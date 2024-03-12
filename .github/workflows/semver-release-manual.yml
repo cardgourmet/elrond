@@ -1,0 +1,22 @@
+name: Publish Manual Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  resolve-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: set tag
+        id: tag
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+  call-gradle-deploy:
+    needs: resolve-tag
+    uses: cardgourmet/elrond/.github/workflows/gradle-deploy.yml@main
+    with:
+      tag: ${{ needs.resolve-tag.outputs.tag }}
+    secrets: inherit
