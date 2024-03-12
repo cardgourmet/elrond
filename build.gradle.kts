@@ -37,15 +37,13 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.cowzy.cardgourmet:commons:0.1.+")
-    implementation("dev.cowzy.cardgourmet:chef-tagger:0.1.+")
-    implementation("dev.cowzy.cardgourmet:chef-farbeagle:0.1.+")
+    implementation("dev.cowzy.cardgourmet:commons:0.+")
+    implementation("dev.cowzy.cardgourmet:chef-tagger:0.+")
+    implementation("dev.cowzy.cardgourmet:chef-farbeagle:0.+")
+    implementation("dev.cowzy:kuery-orm:0.+")
 
     // Coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-
-    // ORM
-    implementation("dev.cowzy:kuery-orm:0.2.+")
 
     // PostgreSQL
     implementation("org.postgresql:postgresql:42.6.0")
