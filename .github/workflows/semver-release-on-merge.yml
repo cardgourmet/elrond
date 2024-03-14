@@ -1,10 +1,6 @@
 name: Publish Release
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
   push:
     branches:
       - main
