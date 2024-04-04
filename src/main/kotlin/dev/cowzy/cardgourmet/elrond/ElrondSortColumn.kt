@@ -12,7 +12,9 @@ fun ElrondSortColumn.flipped() = this.copy(
         Order.ASCENDING -> Order.DESCENDING
         Order.DESCENDING -> Order.ASCENDING
     }
-)
+).also {
+    it.sortName = this.sortName
+}
 
 fun Array<out SortColumnDefinition>.parseSortColumns(value: String): List<ElrondSortColumn> {
     return value.split(",").map {
