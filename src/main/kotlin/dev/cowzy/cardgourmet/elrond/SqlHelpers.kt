@@ -291,10 +291,18 @@ private fun List<ElrondSortColumn>.apply(builder: WhereQueryBuilder<*>, index: I
         return
     }
 
-    builder.where { it
-        .where(columnName, operator, value, column.placeholder())
-        .orWhere { inner ->
-            inner.where(columnName, value, column.placeholder())
+    builder.where {
+        if (value != null) {
+            it.where(columnName, operator, value, column.placeholder())
+        }
+
+        it.orWhere { inner ->
+            if (value == null) {
+                inner.whereRaw("$columnName IS NULL")
+            } else {
+                inner.where(columnName, value, column.placeholder())
+            }
+
             this.apply(inner, index + 1, values, distinctBySortColumn, inverse)
         }
     }

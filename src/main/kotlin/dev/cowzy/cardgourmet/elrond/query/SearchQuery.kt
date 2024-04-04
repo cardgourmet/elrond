@@ -57,6 +57,7 @@ suspend fun <T : Enum<T>> SearchQuery<T>.toQueryBuilder(
         val property = column.property
         val type = property.returnType.classifier as KClass<*>
         if (type.isSubclassOf(Number::class)) {
+            // TODO: This is a hack to make sure that null values are sorted last.
             builder.selectAs("COALESCE(${property.columnName()}, 2147483647)", column.sortName)
         } else {
             builder.selectAs(property.columnName(), column.sortName)
@@ -111,6 +112,7 @@ fun <T : Enum<T>> SearchQuery<T>.toPaginationValueQueryBuilder(
         val property = it.property
         val type = property.returnType.classifier as KClass<*>
         if (type.isSubclassOf(Number::class)) {
+            // TODO: This is a hack to make sure that null values are sorted last.
             builder.selectAs("COALESCE(${property.columnName()}, 2147483647)", it.sortName)
         } else {
             builder.selectAs(property.columnName(), it.sortName)
