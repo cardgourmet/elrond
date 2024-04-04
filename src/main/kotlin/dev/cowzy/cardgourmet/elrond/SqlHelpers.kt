@@ -7,11 +7,14 @@ import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.column.transformer.UuidColumnTransformer
 import dev.cowzy.kuery.query.*
+import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.placeholder
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.*
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.isSubclassOf
 
 fun createSqlAlias(length: Int = 8): String {
     val allowedChars = ('a'..'z')
@@ -291,16 +294,19 @@ private fun List<ElrondSortColumn>.apply(builder: WhereQueryBuilder<*>, index: I
         return
     }
 
+    val type = column.returnType.classifier as KClass<*>
+    val mappedValue = value ?: 2147483647.takeIf { type.isSubclassOf(Number::class) }
+
     builder.where {
-        if (value != null) {
-            it.where(columnName, operator, value, column.placeholder())
+        if (mappedValue != null) {
+            it.where(columnName, operator, mappedValue, column.placeholder())
         }
 
         it.orWhere { inner ->
-            if (value == null) {
+            if (mappedValue == null) {
                 inner.whereRaw("$columnName IS NULL")
             } else {
-                inner.where(columnName, value, column.placeholder())
+                inner.where(columnName, mappedValue, column.placeholder())
             }
 
             this.apply(inner, index + 1, values, distinctBySortColumn, inverse)
