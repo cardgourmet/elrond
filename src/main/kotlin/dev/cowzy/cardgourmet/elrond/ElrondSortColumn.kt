@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.elrond
 import dev.cowzy.kuery.Order
 import kotlin.reflect.KProperty1
 
-data class ElrondSortColumn(val property: KProperty1<*, *>, val order: Order) {
+data class ElrondSortColumn(val property: KProperty1<*, *>, val order: Order, val flipped: Boolean = false) {
     var sortName = "sort_${createSqlAlias(4)}"
 }
 
@@ -11,7 +11,8 @@ fun ElrondSortColumn.flipped() = this.copy(
     order = when (this.order) {
         Order.ASCENDING -> Order.DESCENDING
         Order.DESCENDING -> Order.ASCENDING
-    }
+    },
+    flipped = !this.flipped
 ).also {
     it.sortName = this.sortName
 }

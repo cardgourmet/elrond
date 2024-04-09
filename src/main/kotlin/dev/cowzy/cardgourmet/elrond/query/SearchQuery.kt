@@ -225,27 +225,3 @@ private fun QueryExpression.collectTables(): Set<KClass<*>> {
         else -> emptySet()
     }
 }
-
-suspend fun <T : WhereQueryBuilder<T>> T.whereSuspend(block: suspend (ConcreteWhereQueryBuilder) -> Unit): T {
-    val dummy = SimpleConditionQueryBuilder()
-    block(dummy)
-    val sqlExpression = dummy.getWhereExpression() ?: return this
-    this.whereRaw(sqlExpression.sql, sqlExpression.fill)
-    return this
-}
-
-suspend fun <T : WhereQueryBuilder<T>> T.orWhereSuspend(block: suspend (ConcreteWhereQueryBuilder) -> Unit): T {
-    val dummy = SimpleConditionQueryBuilder()
-    block(dummy)
-    val sqlExpression = dummy.getWhereExpression() ?: return this
-    this.orWhereRaw(sqlExpression.sql, sqlExpression.fill)
-    return this
-}
-
-suspend fun <T : WhereQueryBuilder<T>> T.whereNotSuspend(block: suspend (ConcreteWhereQueryBuilder) -> Unit): T {
-    val dummy = SimpleConditionQueryBuilder()
-    block(dummy)
-    val sqlExpression = dummy.getWhereExpression() ?: return this
-    this.whereNotRaw(sqlExpression.sql, sqlExpression.fill)
-    return this
-}

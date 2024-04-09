@@ -40,7 +40,7 @@ dependencies {
     implementation("dev.cowzy.cardgourmet:commons-core:0.+")
     implementation("dev.cowzy.cardgourmet:chef-tagger:0.+")
     implementation("dev.cowzy.cardgourmet:chef-farbeagle:0.+")
-    implementation("dev.cowzy:kuery-orm:0.+")
+    implementation("dev.cowzy:kuery-orm:0.3.+")
 
     // Coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")

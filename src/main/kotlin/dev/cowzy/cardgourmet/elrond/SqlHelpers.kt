@@ -283,19 +283,23 @@ private fun List<ElrondSortColumn>.apply(builder: WhereQueryBuilder<*>, index: I
     val current = this[index]
     val order = current.order
 
-    val operator = if ((order == Order.ASCENDING && !inverse) || (order == Order.DESCENDING && inverse)) ">" else "<"
-    val value = values[index]
+    var operator = if ((order == Order.ASCENDING && !inverse) || (order == Order.DESCENDING && inverse)) ">" else "<"
+    if (current.flipped) {
+        operator += "="
+    }
 
     val column = current.property
     val columnName = "innerQuery.${current.sortName}"
+
+    val value = values[index]
+    val type = column.returnType.classifier as KClass<*>
+    val mappedValue = value ?: 2147483647.takeIf { type.isSubclassOf(Number::class) }
 
     if (index >= this.size - 1) {
         builder.where(columnName, operator, value)
         return
     }
 
-    val type = column.returnType.classifier as KClass<*>
-    val mappedValue = value ?: 2147483647.takeIf { type.isSubclassOf(Number::class) }
 
     builder.where {
         if (mappedValue != null) {
