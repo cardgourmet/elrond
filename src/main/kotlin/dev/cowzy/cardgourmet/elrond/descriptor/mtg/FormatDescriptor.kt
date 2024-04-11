@@ -6,7 +6,7 @@ import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
 
-class FormatDescriptor(private val type: Type) : PropertyDescriptor(Strings.Query.Mtg.Property.CARD) {
+class FormatDescriptor(private val type: Type) : PropertyDescriptor(Strings.Query.Property.CARD) {
 
     enum class Type(val key: String, val negatedKey: String) {
         LEGAL(Strings.Query.Mtg.Comparison.FormatLegal.TRUE, Strings.Query.Mtg.Comparison.FormatLegal.FALSE),
