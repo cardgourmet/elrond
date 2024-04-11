@@ -17,7 +17,7 @@ class MtgPrintLanguagesProperty(
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table()),
-    descriptor = AvailableInDescriptor(Strings.Query.Mtg.Property.PRINT)
+    descriptor = AvailableInDescriptor(Strings.Query.Property.PRINT)
 ) {
 
     override val valueDefinition = QueryValueDefinition {

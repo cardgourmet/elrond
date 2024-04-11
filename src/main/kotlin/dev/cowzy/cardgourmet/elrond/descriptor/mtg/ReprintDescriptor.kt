@@ -6,7 +6,7 @@ import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
 
-open class ReprintDescriptor(private val mode: Mode) : PropertyDescriptor(Strings.Query.Mtg.Property.CARD) {
+open class ReprintDescriptor(private val mode: Mode) : PropertyDescriptor(Strings.Query.Property.CARD) {
 
     enum class Mode(val key: String, val negatedKey: String) {
         REPRINT_IN(Strings.Query.Mtg.Comparison.ReprintIn.TRUE, Strings.Query.Mtg.Comparison.ReprintIn.FALSE),

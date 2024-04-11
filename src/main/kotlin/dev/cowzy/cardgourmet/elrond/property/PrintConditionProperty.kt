@@ -12,7 +12,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
 class PrintConditionProperty : SearchQueryProperty<CardCondition>(
     supportedOperators = numericQueryOperators,
     affectedTables = arrayOf(UserCard::class),
-    descriptor = NumericDescriptor(Strings.Query.Mtg.Property.CONDITION)
+    descriptor = NumericDescriptor(Strings.Query.Collection.Property.CONDITION)
 ) {
 
     override val valueDefinition = QueryValueDefinition {

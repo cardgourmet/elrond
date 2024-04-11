@@ -11,7 +11,7 @@ import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
 
 class MtgUserCardFoilProperty(private val inverted: Boolean = false) : StaticSearchQueryProperty(
     arrayOf(UserCard::class),
-    SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsFoil.KEY, Strings.Query.Mtg.Property.PRINT)
+    SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsFoil.KEY, Strings.Query.Property.PRINT)
 ) {
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T) {
         val foilTypes = MtgFinish.values().filter { it.isFoil() }

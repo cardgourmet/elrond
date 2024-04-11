@@ -11,7 +11,7 @@ import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 class MtgRarityProperty : SearchQueryProperty<MtgRarity>(
     supportedOperators = numericQueryOperators,
     affectedTables = arrayOf(MtgPrint::class),
-    descriptor = NumericDescriptor(Strings.Query.Mtg.Property.RARITY)
+    descriptor = NumericDescriptor(Strings.Query.Property.RARITY)
 ) {
 
     override val valueDefinition = QueryValueDefinition<MtgRarity> {
