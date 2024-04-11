@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.cowzy.cardgourmet:commons-core:0.+")
+    implementation("dev.cowzy.cardgourmet:commons-core:0.9.+")
     implementation("dev.cowzy.cardgourmet:chef-tagger:0.+")
     implementation("dev.cowzy.cardgourmet:chef-farbeagle:0.+")
     implementation("dev.cowzy:kuery-orm:0.3.+")

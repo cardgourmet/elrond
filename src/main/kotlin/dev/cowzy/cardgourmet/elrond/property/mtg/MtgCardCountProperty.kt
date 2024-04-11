@@ -42,22 +42,22 @@ abstract class MtgCardCountProperty(
 
 class MtgPrintCountProperty : MtgCardCountProperty(
     distinctyBy = MtgPrint::id,
-    descriptorSubjectKey = Strings.Query.Mtg.Property.PRINT_COUNT,
+    descriptorSubjectKey = Strings.Query.Property.PRINT_COUNT,
 )
 
 class MtgPaperPrintCountProperty : MtgCardCountProperty(
     distinctyBy = MtgPrint::id,
     applyCondition = { it.whereRaw(MtgPrint::mediums, "@>", "ARRAY['${MtgMedium.PAPER.getSerialName()}']") },
-    descriptorSubjectKey = Strings.Query.Mtg.Property.PRINT_COUNT_PAPER,
+    descriptorSubjectKey = Strings.Query.Property.PRINT_COUNT_PAPER,
 )
 
 class MtgSetCountProperty : MtgCardCountProperty(
     distinctyBy = MtgPrint::setId,
-    descriptorSubjectKey = Strings.Query.Mtg.Property.SET_COUNT,
+    descriptorSubjectKey = Strings.Query.Property.SET_COUNT,
 )
 
 class MtgPaperSetCountProperty : MtgCardCountProperty(
     distinctyBy = MtgPrint::setId,
     applyCondition = { it.whereRaw(MtgPrint::mediums, "@>", "ARRAY['${MtgMedium.PAPER.getSerialName()}']") },
-    descriptorSubjectKey = Strings.Query.Mtg.Property.SET_COUNT_PAPER,
+    descriptorSubjectKey = Strings.Query.Property.SET_COUNT_PAPER,
 )

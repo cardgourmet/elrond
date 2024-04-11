@@ -17,6 +17,7 @@ import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.config.createCollectionSearchQueryFilters
 import dev.cowzy.cardgourmet.elrond.descriptor.*
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.FormatDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
@@ -38,6 +39,7 @@ private val finishes = StaticValueProvider((MtgFinish.values().toList() - promoF
 private val mediums = StaticValueProvider(MtgMedium.values().map { it.getSerialName() }.toSet())
 private val languages = StaticValueProvider(MtgLanguage.values().map { it.getSerialName() }.toSet())
 
+private val propertyKeys = Strings.Query.Property
 private val mtgPropertyKeys = Strings.Query.Mtg.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
@@ -100,63 +102,63 @@ private val mtgMechanicsMappings = allMechanics
 
 // Numeric properties
 private val manaValue = NumericColumnProperty(MtgCardFace::manaValue, propertyKey = mtgPropertyKeys.MANA_VALUE)
-private val collectorNumberValue = NumericColumnProperty(MtgPrint::collectorNumberValue, propertyKey = mtgPropertyKeys.COLLECTOR_NUMBER)
+private val collectorNumberValue = NumericColumnProperty(MtgPrint::collectorNumberValue, propertyKey = propertyKeys.COLLECTOR_NUMBER)
 private val powerValue = NumericColumnProperty(MtgCardFace::powerValue, propertyKey = mtgPropertyKeys.POWER)
 private val toughnessValue = NumericColumnProperty(MtgCardFace::toughnessValue, propertyKey = mtgPropertyKeys.TOUGHNESS)
 private val loyaltyValue = NumericColumnProperty(MtgCardFace::loyaltyValue, propertyKey = mtgPropertyKeys.LOYALTY)
 private val defenseValue = NumericColumnProperty(MtgCardFace::defenseValue, propertyKey = mtgPropertyKeys.DEFENSE)
 private val powerToughnessValue = NumericColumnProperty(MtgCardFace::powerValue, MtgCardFace::toughnessValue, propertyKey = mtgPropertyKeys.COMBINED_POWER_TOUGHNESS)
-private val faceCount = NumericColumnProperty(MtgCard::faceCount, propertyKey = mtgPropertyKeys.FACE_COUNT)
-private val faceNumber = NumericColumnProperty(MtgCardFace::index, offset = 1.0, propertyKey = mtgPropertyKeys.FACE_NUMBER)
-private val releaseYear = YearOfDateProperty(MtgPrint::releaseDate, descriptorSubjectKey = mtgPropertyKeys.RELEASE_YEAR)
+private val faceCount = NumericColumnProperty(MtgCard::faceCount, propertyKey = propertyKeys.FACE_COUNT)
+private val faceNumber = NumericColumnProperty(MtgCardFace::index, offset = 1.0, propertyKey = propertyKeys.FACE_NUMBER)
+private val releaseYear = YearOfDateProperty(MtgPrint::releaseDate, descriptorSubjectKey = propertyKeys.RELEASE_YEAR)
 private val printCount = MtgPrintCountProperty()
 private val paperPrintCount = MtgPaperPrintCountProperty()
 private val setCount = MtgSetCountProperty()
 private val paperSetCount = MtgPaperSetCountProperty()
-private val printFinishesCount = ArrayCardinalityProperty(MtgPrint::finishes, propertyKey = mtgPropertyKeys.FINISH_COUNT)
+private val printFinishesCount = ArrayCardinalityProperty(MtgPrint::finishes, propertyKey = propertyKeys.FINISH_COUNT)
 private val watermarksCount = ArrayCardinalityProperty(MtgPrint::watermarks, propertyKey = mtgPropertyKeys.WATERMARK)
-private val printKeywordsCount = ArrayCardinalityProperty(MtgCard::keywords, propertyKey = mtgPropertyKeys.KEYWORD_COUNT)
-private val printMechanicsCount = ArrayCardinalityProperty(MtgPrintFace::mechanicTags, propertyKey = mtgPropertyKeys.MECHANIC_COUNT)
-private val printPropertyCount = ArrayCardinalityProperty(MtgPrintFace::propertyTags, propertyKey = mtgPropertyKeys.PROPERTY_COUNT)
-private val printArtTagCount = ArrayCardinalityProperty(MtgPrintFace::artTags, propertyKey = mtgPropertyKeys.ART_TAGS_COUNT)
+private val printKeywordsCount = ArrayCardinalityProperty(MtgCard::keywords, propertyKey = propertyKeys.KEYWORD_COUNT)
+private val printMechanicsCount = ArrayCardinalityProperty(MtgPrintFace::mechanicTags, propertyKey = propertyKeys.MECHANIC_COUNT)
+private val printPropertyCount = ArrayCardinalityProperty(MtgPrintFace::propertyTags, propertyKey = propertyKeys.PROPERTY_COUNT)
+private val printArtTagCount = ArrayCardinalityProperty(MtgPrintFace::artTags, propertyKey = propertyKeys.ART_TAGS_COUNT)
 private val printFrameEffectsCount = ArrayCardinalityProperty(MtgPrint::frameEffects, propertyKey = mtgPropertyKeys.FRAME_EFFECT_COUNT)
 private val legalFormatsCount = ArrayCardinalityProperty(MtgPrint::formatsLegal, propertyKey = mtgPropertyKeys.FORMATS_LEGAL_COUNT)
 private val restrictedFormatsCount = ArrayCardinalityProperty(MtgPrint::formatsRestricted, propertyKey = mtgPropertyKeys.FORMATS_RESTRICTED_COUNT)
 private val bannedFormatsCount = ArrayCardinalityProperty(MtgPrint::formatsBanned, propertyKey = mtgPropertyKeys.FORMATS_BANNED_COUNT)
-private val printMediumsCount = ArrayCardinalityProperty(MtgPrint::mediums, propertyKey = mtgPropertyKeys.MEDIUM_COUNT)
+private val printMediumsCount = ArrayCardinalityProperty(MtgPrint::mediums, propertyKey = propertyKeys.MEDIUM_COUNT)
 private val printPromoTypesCount = ArrayCardinalityProperty(MtgPrint::promoTypes, propertyKey = mtgPropertyKeys.PROMO_TYPE_COUNT)
 private val colorCount = ArrayCardinalityProperty(MtgCardFace::colors, manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_COUNT) // TODO: explain mappings
 private val indicatorCount = ArrayCardinalityProperty(MtgCardFace::colorIndicator, manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_INDICATOR_COUNT) // TODO: explain mappings
 private val identityCount = ArrayCardinalityProperty(MtgCard::colorIdentity, manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_IDENTITY_COUNT) // TODO: explain mappings
 private val producesCount = ArrayCardinalityProperty(MtgCardFace::producesMana, manaCardinalityMappings.filter { it.key != "colorless" }, propertyKey = mtgPropertyKeys.PRODUCED_MANA_COUNT) // TODO: explain mappings
-private val priceUsd = NumericColumnProperty(MtgPrintPrice::priceUsd, propertyKey = mtgPropertyKeys.PRICE_USD)
-private val priceEur = NumericColumnProperty(MtgPrintPrice::priceEur, propertyKey = mtgPropertyKeys.PRICE_EUR)
-private val priceTix = NumericColumnProperty(MtgPrintPrice::priceTix, propertyKey = mtgPropertyKeys.PRICE_TIX)
-private val languageCount = ArrayCardinalityProperty(MtgPrint::languages, propertyKey = mtgPropertyKeys.LANGUAGE_COUNT)
+private val priceUsd = NumericColumnProperty(MtgPrintPrice::priceUsd, propertyKey = propertyKeys.PRICE_USD)
+private val priceEur = NumericColumnProperty(MtgPrintPrice::priceEur, propertyKey = propertyKeys.PRICE_EUR)
+private val priceTix = NumericColumnProperty(MtgPrintPrice::priceTix, propertyKey = propertyKeys.PRICE_TIX)
+private val languageCount = ArrayCardinalityProperty(MtgPrint::languages, propertyKey = propertyKeys.LANGUAGE_COUNT)
 private val edhrecRank = NumericColumnProperty(MtgCard::edhrecRank, propertyKey = mtgPropertyKeys.EDHREC_RANK)
 
 // String properties
 private val name = MtgNameProperty()
-private val setName = StringColumnProperty(MtgSet::name, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(mtgPropertyKeys.SET_NAME))
+private val setName = StringColumnProperty(MtgSet::name, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_NAME))
 private val setType = StringColumnProperty(MtgSet::type, mapContainsToEquals = true, descriptor = StringDescriptor(mtgPropertyKeys.SET_TYPE))
 private val typeLine = StringColumnProperty(MtgCardFaceTranslation::typeLine, simpleColumn = MtgCardFaceTranslation::simpleTypeLine, descriptor = StringDescriptor(mtgPropertyKeys.TYPE_LINE))
-private val oracleText = MtgOracleTextProperty(MtgCardFaceTranslation::oracleText, MtgCardFaceTranslation::simpleOracleText, descriptor = StringDescriptor(mtgPropertyKeys.TEXT))
-private val fullOracleText = MtgOracleTextProperty(MtgCardFaceTranslation::fullOracleText, MtgCardFaceTranslation::simpleFullOracleText, descriptor = StringDescriptor(mtgPropertyKeys.TEXT_WITH_REMINDERS))
+private val oracleText = MtgOracleTextProperty(MtgCardFaceTranslation::oracleText, MtgCardFaceTranslation::simpleOracleText, descriptor = StringDescriptor(propertyKeys.TEXT))
+private val fullOracleText = MtgOracleTextProperty(MtgCardFaceTranslation::fullOracleText, MtgCardFaceTranslation::simpleFullOracleText, descriptor = StringDescriptor(propertyKeys.TEXT_WITH_REMINDERS))
 private val flavorName = StringColumnProperty(MtgPrintFaceTranslation::flavorName, simpleColumn = MtgPrintFaceTranslation::simpleFlavorName, descriptor = StringDescriptor(mtgPropertyKeys.FLAVOR_NAME))
-private val flavorText = StringColumnProperty(MtgPrintFaceTranslation::flavorText, simpleColumn = MtgPrintFaceTranslation::simpleFlavorText, descriptor = StringDescriptor(mtgPropertyKeys.FLAVOR_TEXT))
-private val artist = StringColumnProperty(MtgPrint::artist, descriptor = StringDescriptor(mtgPropertyKeys.ARTIST))
+private val flavorText = StringColumnProperty(MtgPrintFaceTranslation::flavorText, simpleColumn = MtgPrintFaceTranslation::simpleFlavorText, descriptor = StringDescriptor(propertyKeys.FLAVOR_TEXT))
+private val artist = StringColumnProperty(MtgPrint::artist, descriptor = StringDescriptor(propertyKeys.ARTIST))
 private val powerDisplay = StringColumnProperty(MtgCardFace::powerDisplay, descriptor = StringDescriptor(mtgPropertyKeys.POWER))
 private val toughnessDisplay = StringColumnProperty(MtgCardFace::toughnessDisplay, descriptor = StringDescriptor(mtgPropertyKeys.TOUGHNESS))
 private val loyaltyDisplay = StringColumnProperty(MtgCardFace::loyaltyDisplay, descriptor = StringDescriptor(mtgPropertyKeys.LOYALTY))
 private val defenseDisplay = StringColumnProperty(MtgCardFace::defenseDisplay, descriptor = StringDescriptor(mtgPropertyKeys.DEFENSE))
-private val collectorNumberDisplay = StringColumnProperty(MtgPrint::collectorNumber, descriptor = StringDescriptor(mtgPropertyKeys.COLLECTOR_NUMBER))
+private val collectorNumberDisplay = StringColumnProperty(MtgPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
 
 // Text array properties
-private val printProperties = StringArrayColumnProperty(MtgPrintFace::propertyTags, valueProvider = properties, mappings = mtgPropertyMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.PROPERTY))
-private val printFinishes = StringArrayColumnProperty(MtgPrint::finishes, valueProvider = finishes, mappings = mtgFinishMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FINISH))
-private val printMechanics = StringArrayColumnProperty(MtgPrintFace::mechanicTags, valueProvider = mechanics, mappings = mtgMechanicsMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.MECHANIC))
-private val printArtTags = StringArrayColumnProperty(MtgPrintFace::artTags, descriptor = IsPresentDescriptor(mtgPropertyKeys.ART_TAGS))
-private val printMediums = StringArrayColumnProperty(MtgPrint::mediums, valueProvider = mediums, mappings = mtgMediumMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.MEDIUM))
+private val printProperties = StringArrayColumnProperty(MtgPrintFace::propertyTags, valueProvider = properties, mappings = mtgPropertyMappings, descriptor = IsPresentDescriptor(propertyKeys.PROPERTY))
+private val printFinishes = StringArrayColumnProperty(MtgPrint::finishes, valueProvider = finishes, mappings = mtgFinishMappings, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
+private val printMechanics = StringArrayColumnProperty(MtgPrintFace::mechanicTags, valueProvider = mechanics, mappings = mtgMechanicsMappings, descriptor = IsPresentDescriptor(propertyKeys.MECHANIC))
+private val printArtTags = StringArrayColumnProperty(MtgPrintFace::artTags, descriptor = IsPresentDescriptor(propertyKeys.ART_TAGS))
+private val printMediums = StringArrayColumnProperty(MtgPrint::mediums, valueProvider = mediums, mappings = mtgMediumMappings, descriptor = IsPresentDescriptor(propertyKeys.MEDIUM))
 
 // Special properties
 private val colors = MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))
@@ -164,20 +166,19 @@ private val produces = MtgManaArrayColumnProperty(MtgCardFace::producesMana, des
 private val indicator = MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_INDICATOR, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))
 private val identity = MtgManaArrayColumnProperty(MtgCard::colorIdentity, mapContainsToLessThanOrEquals = true, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))
 private val rarity = MtgRarityProperty()
-private val releaseDate = DateProperty(MtgPrint::releaseDate, propertyKey = mtgPropertyKeys.RELEASE_DATE)
+private val releaseDate = DateProperty(MtgPrint::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
 private val printLanguage = MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, mappings = mtgLanguageMappings)
 private val printLanguages = MtgPrintLanguagesProperty(MtgPrint::languages, mappings = mtgLanguageMappings)
 private val manaDisplay = MtgManaDisplayProperty()
 private val devotion = MtgDevotionProperty()
-private val username = StringColumnProperty(User::username, descriptor = StringDescriptor(mtgPropertyKeys.USERNAME))
+private val username = StringColumnProperty(User::username, descriptor = StringDescriptor(propertyKeys.USERNAME))
 
 // Id properties
-private val printId = UuidColumnProperty(MtgPrint::id, descriptor = EqualsDescriptor(mtgPropertyKeys.PRINT_ID))
-private val cardId = UuidColumnProperty(MtgCard::id, descriptor = EqualsDescriptor(mtgPropertyKeys.CARD_ID))
-private val cardFaceId = UuidColumnProperty(MtgCardFace::id, descriptor = EqualsDescriptor(mtgPropertyKeys.CARD_FACE_ID))
-private val printFaceId = UuidColumnProperty(MtgPrintFace::id, descriptor = EqualsDescriptor(mtgPropertyKeys.PRINT_FACE_ID))
-private val userCardId = UuidColumnProperty(UserCard::id, descriptor = EqualsDescriptor(mtgPropertyKeys.USER_CARD_ID))
-private val userId = UuidColumnProperty(UserCard::userId, descriptor = EqualsDescriptor(mtgPropertyKeys.USER_ID))
+private val printId = UuidColumnProperty(MtgPrint::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
+private val cardId = UuidColumnProperty(MtgCard::id, descriptor = EqualsDescriptor(propertyKeys.CARD_ID))
+private val cardFaceId = UuidColumnProperty(MtgCardFace::id, descriptor = EqualsDescriptor(propertyKeys.CARD_FACE_ID))
+private val printFaceId = UuidColumnProperty(MtgPrintFace::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_FACE_ID))
+private val userId = UuidColumnProperty(UserCard::userId, descriptor = EqualsDescriptor(propertyKeys.USER_ID))
 private val scryfallId = StringColumnProperty(MtgPrintIdentifier::scryfallId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.SCRYFALL_ID))
 private val scryfallOracleId = StringColumnProperty(MtgPrintIdentifier::scryfallOracleId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.SCRYFALL_ORACLE_ID))
 private val tcgplayerId = StringColumnProperty(MtgPrintIdentifier::tcgplayerId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.TCGPLAYER_ID))
@@ -189,34 +190,12 @@ private val mtgjsonId = StringColumnProperty(MtgPrintIdentifier::mtgjsonId, mapC
 
 // Collection properties
 private val collectionName = MtgUserNameProperty()
-private val collectionQuantity = NumericColumnProperty(UserCard::amount, propertyKey = mtgPropertyKeys.QUANTITY)
-private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = finishes, mappings = mtgFinishMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FINISH))
-private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = mtgPropertyKeys.FINISH_COUNT)
-private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = mediums, mappings = mtgMediumMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.MEDIUM))
-private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = languages, mappings = mtgLanguageMappings, descriptor = EqualsDescriptor(mtgPropertyKeys.COLLECTION_LANGUAGE))
-private val collectionCondition = PrintConditionProperty()
-private val collectionCreatedAt = DateProperty(UserCard::createdAt, propertyKey = mtgPropertyKeys.CREATED_AT)
-private val collectionUpdatedAt = DateProperty(UserCard::updatedAt, propertyKey = mtgPropertyKeys.UPDATED_AT)
-private val collectionTags = StringArrayColumnProperty(UserCard::tags, descriptor = IsPresentDescriptor(mtgPropertyKeys.TAG))
-private val collectionTagCount = ArrayCardinalityProperty(UserCard::tags, propertyKey = mtgPropertyKeys.TAG_COUNT)
-private val collectionAltered = StaticColumnProperty(UserCard::isAltered, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsAltered.KEY, mtgPropertyKeys.PRINT))
-private val collectionProxy = StaticColumnProperty(UserCard::isProxy, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsProxy.KEY, mtgPropertyKeys.PRINT))
-private val collectionSigned = StaticColumnProperty(UserCard::isSigned, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsSigned.KEY, mtgPropertyKeys.PRINT))
-private val collectionNotAltered = StaticColumnProperty(UserCard::isAltered, inverted = true, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsAltered.KEY, mtgPropertyKeys.PRINT, true))
-private val collectionNotProxy = StaticColumnProperty(UserCard::isProxy, inverted = true, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsProxy.KEY, mtgPropertyKeys.PRINT, true))
-private val collectionNotSigned = StaticColumnProperty(UserCard::isSigned, inverted = true, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsSigned.KEY, mtgPropertyKeys.PRINT, true))
+private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = propertyKeys.FINISH_COUNT)
+private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = finishes, mappings = mtgFinishMappings, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
+private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = mediums, mappings = mtgMediumMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
+private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = languages, mappings = mtgLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
 private val collectionFoil = MtgUserCardFoilProperty()
 private val collectionNotFoil = MtgUserCardFoilProperty(inverted = true)
-private val collectionAcquiredNull = StaticNullColumnProperty(UserCard::acquiredAt, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUIRED_AT, true))
-private val collectionAcquired = DateProperty(UserCard::acquiredAt, propertyKey = collectionPropertyKeys.ACQUIRED_AT)
-private val collectionAcquiredPrice = NumericColumnProperty(UserCard::acquiredPrice, propertyKey = collectionPropertyKeys.ACQUIRED_PRICE)
-private val collectionAcquiredCurrency = StringColumnProperty(UserCard::acquiredPriceCurrency, mapContainsToEquals = true, descriptor = EqualsDescriptor(collectionPropertyKeys.ACQUIRED_CURRENCY))
-private val collectionBinderId = UuidColumnProperty(UserCard::binderId, descriptor = EqualsDescriptor(collectionPropertyKeys.BINDER_ID))
-private val collectionBinderName = StringColumnProperty(UserCardBinder::name, descriptor = StringDescriptor(collectionPropertyKeys.BINDER))
-private val collectionBinderNull = StaticNullColumnProperty(UserCard::binderId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.BINDER, true))
-private val collectionAcquisitionId = UuidColumnProperty(UserCard::acquisitionId, descriptor = EqualsDescriptor(collectionPropertyKeys.ACQUISITION_ID))
-private val collectionAcquisitionName = StringColumnProperty(UserCardAcquisition::name, descriptor = StringDescriptor(collectionPropertyKeys.ACQUISITION))
-private val collectionAcquisitionNull = StaticNullColumnProperty(UserCard::acquisitionId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUISITION, true))
 
 val mtgNameFilter = QueryFilter(arrayOf("name", "n"), name)
 val mtgCollectionNameFilter = QueryFilter(arrayOf("name", "n"), collectionName)
@@ -251,16 +230,16 @@ fun createMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter>
     val restrictedFormats = StringArrayColumnProperty(MtgPrint::formatsRestricted, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.RESTRICTED))
     val bannedFormats = StringArrayColumnProperty(MtgPrint::formatsBanned, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.BANNED))
 
-    val printKeywords = StringArrayColumnProperty(MtgCard::keywords, valueProvider = providers.keywords, descriptor = IsPresentDescriptor(mtgPropertyKeys.KEYWORD))
+    val printKeywords = StringArrayColumnProperty(MtgCard::keywords, valueProvider = providers.keywords, descriptor = IsPresentDescriptor(propertyKeys.KEYWORD))
     val printPromoTypes = StringArrayColumnProperty(MtgPrint::promoTypes, valueProvider = providers.promoTypes, descriptor = IsPresentDescriptor(mtgPropertyKeys.PROMO_TYPE))
 
     val reprintNew = StringArrayColumnProperty(MtgPrint::reprintNew, valueProvider = providers.reprintNew, descriptor = ReprintNewDescriptor())
     val reprintIn = StringArrayColumnProperty(MtgCard::reprintIn, valueProvider = providers.reprintIn, descriptor = ReprintDescriptor(ReprintDescriptor.Mode.REPRINT_IN))
 
-    val setCode = StringColumnProperty(MtgSet::code, valueProvider = providers.setCodes, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(mtgPropertyKeys.SET_CODE))
+    val setCode = StringColumnProperty(MtgSet::code, valueProvider = providers.setCodes, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_CODE))
 
-    val printReleaseDateBySet = MtgDateByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, mtgPropertyKeys.RELEASE_DATE)
-    val printReleaseYearBySet = MtgYearByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, mtgPropertyKeys.RELEASE_YEAR)
+    val printReleaseDateBySet = DateByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, propertyKeys.RELEASE_DATE)
+    val printReleaseYearBySet = YearByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, propertyKeys.RELEASE_YEAR)
 
     val frameEffects = StringArrayColumnProperty(MtgPrint::frameEffects, valueProvider = providers.frameEffects, mappings = mtgFrameEffectMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FRAME_EFFECT))
     val frame = StringColumnProperty(MtgPrint::frame, mapContainsToEquals = true, valueProvider = providers.frames, descriptor = StringDescriptor(mtgPropertyKeys.FRAME))
@@ -320,7 +299,7 @@ fun createMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter>
         QueryFilter(arrayOf("frameeffect", "frameeffects"), printFrameEffectsCount, frameEffects),
         QueryFilter(arrayOf("stamp"), stamp),
         QueryFilter(arrayOf("border"), border),
-        QueryFilter(arrayOf("artist", "artists"), artist),
+        QueryFilter(arrayOf("artist", "artists", "illustrator", "illustrators"), artist),
         QueryFilter(arrayOf("cn", "number", "collectornumber"), collectorNumberValue, collectorNumberDisplay),
         QueryFilter(arrayOf("rarity", "r"), rarity),
         QueryFilter(arrayOf("lang", "language", "printlang", "printlanguage"), printLanguage),
@@ -332,7 +311,7 @@ fun createMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter>
         QueryFilter(arrayOf("card", "cardid", "oracleid"), cardId),
         QueryFilter(arrayOf("face", "faceid"), cardFaceId),
         QueryFilter(arrayOf("printface", "printfaceid"), printFaceId),
-        QueryFilter(arrayOf("user", "userid", "collection", "username"), userId, username), // TODO: with auth or public collections
+//        QueryFilter(arrayOf("user", "userid", "collection", "username"), userId, username), // TODO: with auth or public collections
         QueryFilter(arrayOf("scryfall", "scryfallid"), scryfallId),
         QueryFilter(arrayOf("scryfalloracle", "scryfalloracleid", "oscryfall", "oscryfallid"), scryfallOracleId),
         QueryFilter(arrayOf("tcgplayer", "tcgplayerid"), tcgplayerId),
@@ -348,36 +327,13 @@ fun createMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter>
 }
 
 fun createMtgCollectionSearchQueryFilters(): List<QueryFilter> {
-    return listOf(
+    return createCollectionSearchQueryFilters() + listOf(
         mtgCollectionNameFilter,
-        QueryFilter(arrayOf("id"), userCardId),
-        QueryFilter(arrayOf("quantity", "qty", "amount"), collectionQuantity),
         QueryFilter(arrayOf("finishes", "finish"), collectionFinishCount, collectionFinishes),
         QueryFilter(arrayOf("medium", "mediums"), collectionMedium),
         QueryFilter(arrayOf("lang", "language", "userlang", "userlanguage"), collectionLanguage),
-        QueryFilter(arrayOf("condition", "cond"), collectionCondition),
-        QueryFilter(arrayOf("created"), collectionCreatedAt),
-        QueryFilter(arrayOf("updated"), collectionUpdatedAt),
-        QueryFilter(arrayOf("acquired:none"), collectionAcquiredNull),
-        QueryFilter(arrayOf("acquired"), collectionAcquired),
-        QueryFilter(arrayOf("acquiredprice", "acquiredfor"), collectionAcquiredPrice),
-        QueryFilter(arrayOf("acquiredcurrency"), collectionAcquiredCurrency),
-        QueryFilter(arrayOf("tags", "tag"), collectionTagCount, collectionTags),
-        QueryFilter(arrayOf("is:altered"), collectionAltered),
-        QueryFilter(arrayOf("is:proxy"), collectionProxy),
-        QueryFilter(arrayOf("is:signed"), collectionSigned),
         QueryFilter(arrayOf("is:foil"), collectionFoil),
-        QueryFilter(arrayOf("not:altered"), collectionNotAltered),
-        QueryFilter(arrayOf("not:proxy"), collectionNotProxy),
-        QueryFilter(arrayOf("not:signed"), collectionNotSigned),
         QueryFilter(arrayOf("not:foil"), collectionNotFoil),
-        QueryFilter(arrayOf("binder", "bindername"), collectionBinderId, collectionBinderName),
-        QueryFilter(arrayOf("binderid"), collectionBinderId),
-        QueryFilter(arrayOf("acquisition", "acquisitionname"), collectionAcquisitionId, collectionAcquisitionName),
-        QueryFilter(arrayOf("acquisitionid"), collectionAcquisitionId),
-        QueryFilter(arrayOf("binder:none"), collectionBinderNull),
-        QueryFilter(arrayOf("acquisition:none"), collectionAcquisitionNull),
-        // TODO: notes
     )
 }
 

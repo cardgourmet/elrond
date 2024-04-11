@@ -12,7 +12,7 @@ import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(MtgCardFaceTranslation::class),
-    descriptor = StringDescriptor(Strings.Query.Mtg.Property.NAME)
+    descriptor = StringDescriptor(Strings.Query.Property.NAME)
 ) {
 
     private val alias = createSqlAlias()

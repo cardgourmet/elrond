@@ -12,7 +12,7 @@ import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 class MtgUserNameProperty : SearchQueryProperty<QueryValue<*>>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(MtgCardFaceTranslation::class, MtgPrintFaceTranslation::class),
-    descriptor = StringDescriptor(Strings.Query.Mtg.Property.NAME)
+    descriptor = StringDescriptor(Strings.Query.Property.NAME)
 ) {
 
     override val valueDefinition = QueryValueDefinition<QueryValue<*>> {
