@@ -34,6 +34,9 @@ data class SearchQueryResult<T>(
     data class Entry<T>(
         val value: T,
         val cursor: UUID,
+        val preferredLanguage: String? = null,
+        val preferredPrintId: UUID? = null,
+        val preferredFaceIndex: Int? = null,
     )
 }
 
