@@ -76,7 +76,16 @@ private val inkwell = StaticColumnProperty(DlcCard::inkwell, descriptor = Simple
 private val printId = UuidColumnProperty(DlcPrint::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
 private val cardId = UuidColumnProperty(DlcCard::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
 
-data class DlcValueProviders(
+// Collection properties
+private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = propertyKeys.FINISH_COUNT)
+private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = finishes, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
+private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = mediums, mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
+private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = languages, mappings = dlcLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
+
+val dlcNameFilter = QueryFilter(arrayOf("name", "n"), name)
+val dlcCollectionNameFilter = dlcNameFilter // TODO (?)
+
+    data class DlcValueProviders(
     val separator: ValueProvider<String>,
     val setCode: ValueProvider<String>,
     val setReleaseDates: ValueProvider<Pair<String, LocalDate>>,
@@ -99,6 +108,7 @@ fun createDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFilter>
     val marketReleaseYearBySet = YearByMappingProperty(DlcSet::marketReleaseDate, providers.setReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
 
     return listOf(
+        dlcNameFilter,
         QueryFilter(arrayOf("cost"), inkCost),
         QueryFilter(arrayOf("ink", "inktype", "i","color", "c", "id", "identity"), inkCost, inkType),
         QueryFilter(arrayOf("strength", "power", "pow", "str"), strength),
@@ -116,7 +126,6 @@ fun createDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFilter>
         QueryFilter(arrayOf("artist", "illustrator"), artist),
         QueryFilter(arrayOf("set", "setcode", "s", "e", "edition"), setCode, setName),
         QueryFilter(arrayOf("cn", "number", "collectornumber"), collectorNumber, collectorNumberValue),
-        QueryFilter(arrayOf("name"), name),
         QueryFilter(arrayOf("title"), title),
         QueryFilter(arrayOf("text", "description", "ability", "abilities", "action", "actions", "oracle", "oracletext", "o"), text),
         QueryFilter(arrayOf("fulltext", "fulldescription", "fulloracle", "fulloracletext", "fo"), fullText),
@@ -129,18 +138,22 @@ fun createDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFilter>
         QueryFilter(arrayOf("not"), type, classifications, inverted = true), // TODO: print properties
         QueryFilter(arrayOf("print", "printid"), printId),
         QueryFilter(arrayOf("card", "cardid", "oracleid"), cardId),
+        // TODO: lang/langs
         // TODO: new/in
         // TODO: is:promo/not:promo
         // TODO: rarity
-        // TODO: lang/langs
     )
 }
 
 fun createDlcCollectionSearchQueryFilters(): List<QueryFilter> {
-    return createCollectionSearchQueryFilters()
-    // TODO: rarity
-    // TODO: lang
-    // TODO: is:foil/not:foil
+    return createCollectionSearchQueryFilters() + listOf(
+        dlcCollectionNameFilter,
+        QueryFilter(arrayOf("finishes", "finish"), collectionFinishCount, collectionFinishes),
+        QueryFilter(arrayOf("medium", "mediums"), collectionMedium),
+        QueryFilter(arrayOf("lang", "language", "userlang", "userlanguage"), collectionLanguage),
+        // TODO: rarity
+        // TODO: is:foil/not:foil
+    )
 }
 
 private val tableDependencies = mapOf(
