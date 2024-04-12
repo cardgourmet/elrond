@@ -161,16 +161,16 @@ private val tableDependencies = mapOf(
         builder.innerJoin(DlcCard::class) { it.whereColumn(DlcCard::id, DlcPrint::cardId) }
     },
     DlcCardTranslation::class to TableDependency(DlcCard::class) { builder ->
-        builder.innerJoin(DlcCard::class) { it.whereColumn(DlcCard::id, DlcCardTranslation::cardId) }
+        builder.innerJoin(DlcCardTranslation::class) { it.whereColumn(DlcCard::id, DlcCardTranslation::cardId) }
     },
     DlcPrintTranslation::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcPrint::class) { it.whereColumn(DlcPrint::id, DlcPrintTranslation::printId) }
+        builder.innerJoin(DlcPrintTranslation::class) { it.whereColumn(DlcPrint::id, DlcPrintTranslation::printId) }
     },
     DlcPrintIdentifier::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcPrint::class) { it.whereColumn(DlcPrint::id, DlcPrintIdentifier::printId) }
+        builder.innerJoin(DlcPrintIdentifier::class) { it.whereColumn(DlcPrint::id, DlcPrintIdentifier::printId) }
     },
     DlcSet::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcPrint::class) { it.whereColumn(DlcPrint::setId, DlcSet::id) }
+        builder.innerJoin(DlcSet::class) { it.whereColumn(DlcPrint::setId, DlcSet::id) }
     },
     CardPrice::class to TableDependency(DlcPrint::class) { builder ->
         builder.leftJoin(CardPrice::class) {
