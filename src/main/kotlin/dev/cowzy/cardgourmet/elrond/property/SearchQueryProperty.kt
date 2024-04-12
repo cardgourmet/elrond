@@ -37,10 +37,4 @@ abstract class SearchQueryProperty<OutputType : Any>(
         other: SearchQueryProperty<*>
     ) = Unit
 
-    open suspend fun <T : WhereQueryBuilder<T>> applyComplexCondition(
-        baseBuilder: SelectQueryBuilder,
-        builder: T,
-        operator: SearchQueryOperator,
-        value: OutputType
-    ) = applyCondition(builder, operator, value)
 }

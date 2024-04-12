@@ -137,12 +137,12 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
     when (expression) {
         is BooleanQueryExpression -> this.whereRaw(if (expression.negate) "FALSE" else "TRUE")
         is FilterLeafQueryExpression -> when {
-            expression.negate -> this.whereNotSuspend { expression.property.applyComplexCondition(baseBuilder, it, expression.operator, expression.otherProperty) }
-            else -> expression.property.applyComplexCondition(baseBuilder, this, expression.operator, expression.otherProperty)
+            expression.negate -> this.whereNotSuspend { expression.property.applyCondition(it, expression.operator, expression.otherProperty) }
+            else -> expression.property.applyCondition(this, expression.operator, expression.otherProperty)
         }
         is ValueLeafQueryExpression -> when {
-            expression.negate -> this.whereNotSuspend { expression.property.applyComplexCondition(baseBuilder, it, expression.operator, expression.value) }
-            else -> expression.property.applyComplexCondition(baseBuilder, this, expression.operator, expression.value)
+            expression.negate -> this.whereNotSuspend { expression.property.applyCondition(it, expression.operator, expression.value) }
+            else -> expression.property.applyCondition(this, expression.operator, expression.value)
         }
         is QueryExpressionGroup -> {
             if (expression.children.isEmpty()) return
