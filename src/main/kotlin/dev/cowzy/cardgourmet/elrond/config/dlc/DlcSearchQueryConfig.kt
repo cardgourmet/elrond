@@ -85,7 +85,7 @@ private val collectionLanguage = StringColumnProperty(UserCard::language, mapCon
 val dlcNameFilter = QueryFilter(arrayOf("name", "n"), name)
 val dlcCollectionNameFilter = dlcNameFilter // TODO (?)
 
-    data class DlcValueProviders(
+data class DlcValueProviders(
     val separator: ValueProvider<String>,
     val setCode: ValueProvider<String>,
     val setReleaseDates: ValueProvider<Pair<String, LocalDate>>,
