@@ -1,4 +1,4 @@
-package dev.cowzy.cardgourmet.elrond.property
+package dev.cowzy.cardgourmet.elrond.user.property
 
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.orWhere
@@ -8,6 +8,7 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
+import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 
 class PrintConditionProperty : SearchQueryProperty<CardCondition>(
     supportedOperators = numericQueryOperators,

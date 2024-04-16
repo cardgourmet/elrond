@@ -7,7 +7,6 @@ import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.column.transformer.UuidColumnTransformer
 import dev.cowzy.kuery.query.*
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.placeholder
 import java.sql.Connection
 import java.sql.ResultSet
@@ -62,7 +61,7 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
 
     var attempt = 0
     while (true) {
-        val distinctBySortColumn = elrond.ElrondSortColumn(distinctBy, pagination.direction).apply { sortName = "distinct_id" }
+        val distinctBySortColumn = ElrondSortColumn(distinctBy, pagination.direction).apply { sortName = "distinct_id" }
         val pageColumns = sortColumns + distinctBySortColumn
 
         val paginationValues = pagination.lastId?.let { id ->
@@ -235,7 +234,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.getPageItems(
 
         if (count in 1..pageSize) return listOf(null)
 
-        val distinctBySortColumn = elrond.ElrondSortColumn(distinctBy, Order.ASCENDING).apply { sortName = "distinct_id" }
+        val distinctBySortColumn = ElrondSortColumn(distinctBy, Order.ASCENDING).apply { sortName = "distinct_id" }
         val pageColumns = sortColumns + distinctBySortColumn
 
         val result = this.toQueryBuilder(
