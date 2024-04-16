@@ -135,7 +135,7 @@ fun createMtgBaseBuilder(
         }
 }
 
-fun createDlcSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
+fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
     return createMtgBaseBuilder(mtgBasicSearchQueryConfig, queryBuilder, mtgNameFilter)
         .filters(createBasicMtgSearchQueryFilters(providers))
         .build()
