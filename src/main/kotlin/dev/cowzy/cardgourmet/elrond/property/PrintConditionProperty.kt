@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.orWhere
 import dev.cowzy.cardgourmet.commons.database.card.CardCondition
-import dev.cowzy.cardgourmet.commons.database.user.UserCard
+import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*

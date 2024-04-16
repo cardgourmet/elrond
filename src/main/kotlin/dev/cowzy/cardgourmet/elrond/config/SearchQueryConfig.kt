@@ -1,8 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.config
 
-import dev.cowzy.cardgourmet.commons.database.user.UserCard
-import dev.cowzy.cardgourmet.commons.database.user.UserCardAcquisition
-import dev.cowzy.cardgourmet.commons.database.user.UserCardBinder
+import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
+import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor

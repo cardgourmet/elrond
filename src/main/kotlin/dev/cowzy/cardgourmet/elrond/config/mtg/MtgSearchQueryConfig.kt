@@ -7,10 +7,10 @@ import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
-import dev.cowzy.cardgourmet.commons.database.user.User
-import dev.cowzy.cardgourmet.commons.database.user.UserCard
-import dev.cowzy.cardgourmet.commons.database.user.UserCardAcquisition
-import dev.cowzy.cardgourmet.commons.database.user.UserCardBinder
+import dev.cowzy.cardgourmet.commons.user.User
+import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
+import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.QueryFilter

@@ -1,6 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.config
 
-import dev.cowzy.cardgourmet.commons.database.user.UserCard
+import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.elrond.SortColumnDefinition
 import kotlin.reflect.KProperty1
 

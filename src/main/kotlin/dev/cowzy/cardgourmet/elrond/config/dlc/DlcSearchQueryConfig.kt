@@ -5,12 +5,12 @@ import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
-import dev.cowzy.cardgourmet.commons.database.user.User
-import dev.cowzy.cardgourmet.commons.database.user.UserCard
-import dev.cowzy.cardgourmet.commons.database.user.UserCardAcquisition
-import dev.cowzy.cardgourmet.commons.database.user.UserCardBinder
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.commons.user.User
+import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
+import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.TableDependency

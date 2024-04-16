@@ -2,7 +2,7 @@ package dev.cowzy.cardgourmet.elrond.config.mtg
 
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
-import dev.cowzy.cardgourmet.commons.database.user.UserCard
+import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
