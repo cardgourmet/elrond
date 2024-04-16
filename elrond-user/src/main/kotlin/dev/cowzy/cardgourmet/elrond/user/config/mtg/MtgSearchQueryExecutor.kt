@@ -36,7 +36,7 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
     applyMtgSortPostLanguage(query, builder, preferMode)
 }
 
-fun createDlcSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
+fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
     return createMtgBaseBuilder(mtgSearchQueryConfig, queryBuilder, mtgNameFilter)
         .filters(createBasicMtgSearchQueryFilters(providers))
         .build()
