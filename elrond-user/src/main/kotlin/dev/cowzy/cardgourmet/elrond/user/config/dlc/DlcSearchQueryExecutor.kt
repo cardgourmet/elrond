@@ -35,7 +35,7 @@ private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder)
 }
 
 fun createDlcSearchQueryExecutor(providers: DlcValueProviders): SearchQueryExecutor<DlcSearchQueryFlag> {
-    return createDlcBaseBuilder(dlcSearchQueryConfig, queryBuilder, dlcNameFilter)
+    return createDlcBaseBuilder(dlcSearchQueryConfig, fallbackFilter = dlcNameFilter)
         .filters(createBasicDlcSearchQueryFilters(providers))
         .build()
 }

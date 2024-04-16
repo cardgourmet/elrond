@@ -52,7 +52,7 @@ fun applyDlcSort(query: SearchQuery<DlcSearchQueryFlag>, builder: SelectQueryBui
 
 fun createDlcBaseBuilder(
     config: SearchQueryConfig,
-    builder: (SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit,
+    builder: (SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<DlcSearchQueryFlag> {
     return SearchQueryExecutorBuilder<DlcSearchQueryFlag>(config)

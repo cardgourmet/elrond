@@ -97,7 +97,7 @@ fun applyMtgSortPostLanguage(query: SearchQuery<MtgSearchQueryFlag>, builder: Se
 
 fun createMtgBaseBuilder(
     config: SearchQueryConfig,
-    builder: (SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit,
+    builder: (SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<MtgSearchQueryFlag> {
     return SearchQueryExecutorBuilder<MtgSearchQueryFlag>(config)
