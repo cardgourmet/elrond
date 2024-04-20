@@ -25,36 +25,19 @@ private val collectionTagCount = ArrayCardinalityProperty(UserCard::tags, proper
 private val collectionAltered = StaticColumnProperty(UserCard::isAltered, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsAltered.KEY, propertyKeys.PRINT))
 private val collectionProxy = StaticColumnProperty(UserCard::isProxy, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsProxy.KEY, propertyKeys.PRINT))
 private val collectionSigned = StaticColumnProperty(UserCard::isSigned, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsSigned.KEY, propertyKeys.PRINT))
-private val collectionNotAltered = StaticColumnProperty(UserCard::isAltered, inverted = true, descriptor = SimplePropertyDescriptor(
-    Strings.Query.Mtg.Comparison.IsAltered.KEY, propertyKeys.PRINT, true)
-)
-private val collectionNotProxy = StaticColumnProperty(UserCard::isProxy, inverted = true, descriptor = SimplePropertyDescriptor(
-    Strings.Query.Mtg.Comparison.IsProxy.KEY, propertyKeys.PRINT, true)
-)
-private val collectionNotSigned = StaticColumnProperty(UserCard::isSigned, inverted = true, descriptor = SimplePropertyDescriptor(
-    Strings.Query.Mtg.Comparison.IsSigned.KEY, propertyKeys.PRINT, true)
-)
-private val collectionAcquiredNull = StaticNullColumnProperty(UserCard::acquiredAt, descriptor = SimplePropertyDescriptor(
-    Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUIRED_AT, true)
-)
+private val collectionNotAltered = StaticColumnProperty(UserCard::isAltered, inverted = true, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsAltered.KEY, propertyKeys.PRINT, true))
+private val collectionNotProxy = StaticColumnProperty(UserCard::isProxy, inverted = true, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsProxy.KEY, propertyKeys.PRINT, true))
+private val collectionNotSigned = StaticColumnProperty(UserCard::isSigned, inverted = true, descriptor = SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsSigned.KEY, propertyKeys.PRINT, true))
+private val collectionAcquiredNull = StaticNullColumnProperty(UserCard::acquiredAt, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUIRED_AT, true))
 private val collectionAcquired = DateProperty(UserCard::acquiredAt, propertyKey = collectionPropertyKeys.ACQUIRED_AT)
 private val collectionAcquiredPrice = NumericColumnProperty(UserCard::acquiredPrice, propertyKey = collectionPropertyKeys.ACQUIRED_PRICE)
-private val collectionAcquiredCurrency = StringColumnProperty(UserCard::acquiredPriceCurrency, mapContainsToEquals = true, descriptor = EqualsDescriptor(
-    collectionPropertyKeys.ACQUIRED_CURRENCY))
-private val collectionBinderId = UuidColumnProperty(UserCard::binderId, descriptor = EqualsDescriptor(
-    collectionPropertyKeys.BINDER_ID))
-private val collectionBinderName = StringColumnProperty(UserCardBinder::name, descriptor = StringDescriptor(
-    collectionPropertyKeys.BINDER))
-private val collectionBinderNull = StaticNullColumnProperty(UserCard::binderId, descriptor = SimplePropertyDescriptor(
-    Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.BINDER, true)
-)
-private val collectionAcquisitionId = UuidColumnProperty(UserCard::acquisitionId, descriptor = EqualsDescriptor(
-    collectionPropertyKeys.ACQUISITION_ID))
-private val collectionAcquisitionName = StringColumnProperty(UserCardAcquisition::name, descriptor = StringDescriptor(
-    collectionPropertyKeys.ACQUISITION))
-private val collectionAcquisitionNull = StaticNullColumnProperty(UserCard::acquisitionId, descriptor = SimplePropertyDescriptor(
-    Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUISITION, true)
-)
+private val collectionAcquiredCurrency = StringColumnProperty(UserCard::acquiredPriceCurrency, mapContainsToEquals = true, descriptor = EqualsDescriptor(collectionPropertyKeys.ACQUIRED_CURRENCY))
+private val collectionBinderId = UuidColumnProperty(UserCard::binderId, descriptor = EqualsDescriptor(collectionPropertyKeys.BINDER_ID))
+private val collectionBinderName = StringColumnProperty(UserCardBinder::name, descriptor = StringDescriptor(collectionPropertyKeys.BINDER))
+private val collectionBinderNull = StaticNullColumnProperty(UserCard::binderId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.BINDER, true))
+private val collectionAcquisitionId = UuidColumnProperty(UserCard::acquisitionId, descriptor = EqualsDescriptor(collectionPropertyKeys.ACQUISITION_ID))
+private val collectionAcquisitionName = StringColumnProperty(UserCardAcquisition::name, descriptor = StringDescriptor(collectionPropertyKeys.ACQUISITION))
+private val collectionAcquisitionNull = StaticNullColumnProperty(UserCard::acquisitionId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUISITION, true))
 
 fun createCollectionSearchQueryFilters(): List<QueryFilter> {
     return listOf(

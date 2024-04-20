@@ -2,7 +2,6 @@ package dev.cowzy.cardgourmet.elrond.user.config.dlc
 
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.user.User
@@ -11,9 +10,11 @@ import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.dlc.*
+import dev.cowzy.cardgourmet.elrond.config.dlc.StaticDlcProviders
+import dev.cowzy.cardgourmet.elrond.config.dlc.dlcBasicSearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
+import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.ArrayCardinalityProperty
 import dev.cowzy.cardgourmet.elrond.property.StringArrayColumnProperty
 import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
@@ -26,9 +27,12 @@ private val collectionPropertyKeys = Strings.Query.Collection.Property
 
 // Collection properties
 private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = propertyKeys.FINISH_COUNT)
-private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = finishes, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
-private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = mediums, mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
-private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = languages, mappings = dlcLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
+private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = StaticDlcProviders.finishes, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
+private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = StaticDlcProviders.mediums, mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
+private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = StaticDlcProviders.languages, mappings = StaticDlcProviders.dlcLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
+
+private val name = StringColumnProperty(DlcCardTranslation::name, simpleColumn = DlcCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.NAME))
+val dlcCollectionNameFilter = QueryFilter(arrayOf("name", "n"), name) // TODO (?)
 
 fun createDlcCollectionSearchQueryFilters(): List<QueryFilter> {
     return createCollectionSearchQueryFilters() + listOf(

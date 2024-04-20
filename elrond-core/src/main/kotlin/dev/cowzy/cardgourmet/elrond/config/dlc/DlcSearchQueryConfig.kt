@@ -22,17 +22,21 @@ import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 import java.time.LocalDate
 
+object StaticDlcProviders {
+
+    val finishes = StaticValueProvider(setOf("nonfoil", "foil"))
+    val mediums = StaticValueProvider(setOf("paper"))
+    val languages = StaticValueProvider(DlcLanguage.values().map { it.getSerialName() }.toSet())
+    val inkTypes = StaticValueProvider(DlcInkType.values().map { it.getSerialName() }.toSet())
+
+    val dlcLanguageMappings = DlcLanguage.values().associate { language ->
+        language.name to language.getSerialName()
+    }
+
+}
+
 private val propertyKeys = Strings.Query.Property
 private val dlcPropertyKeys = Strings.Query.Dlc.Property
-
-val finishes = StaticValueProvider(setOf("nonfoil", "foil"))
-val mediums = StaticValueProvider(setOf("paper"))
-val languages = StaticValueProvider(DlcLanguage.values().map { it.getSerialName() }.toSet())
-val inkTypes = StaticValueProvider(DlcInkType.values().map { it.getSerialName() }.toSet())
-
-val dlcLanguageMappings = DlcLanguage.values().associate { language ->
-    language.name to language.getSerialName()
-}
 
 // Numeric properties
 private val inkCost = NumericColumnProperty(DlcCard::cost, propertyKey = dlcPropertyKeys.COST)
@@ -50,16 +54,16 @@ private val marketReleaseYear = YearOfDateProperty(DlcSet::marketReleaseDate, de
 // TODO: set count
 
 // String properties
-private val inkType = StringColumnProperty(DlcCard::inkType, valueProvider = inkTypes, descriptor = StringDescriptor(dlcPropertyKeys.INK_TYPE))
+private val inkType = StringColumnProperty(DlcCard::inkType, valueProvider = StaticDlcProviders.inkTypes, descriptor = StringDescriptor(dlcPropertyKeys.INK_TYPE))
 private val franchise = StringColumnProperty(DlcCard::franchise, descriptor = StringDescriptor(dlcPropertyKeys.FRANCHISE))
-private val artist = StringColumnProperty(DlcPrint::artist, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val collectorNumber = StringColumnProperty(DlcPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.SET_NAME))
+private val artist = StringColumnProperty(DlcPrint::artist, descriptor = StringDescriptor(propertyKeys.ARTIST))
+private val collectorNumber = StringColumnProperty(DlcPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
 private val setName = StringColumnProperty(DlcSet::name, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val name = StringColumnProperty(DlcCardTranslation::name, simpleColumn = DlcCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.SET_NAME))
+private val name = StringColumnProperty(DlcCardTranslation::name, simpleColumn = DlcCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.NAME))
 private val title = StringColumnProperty(DlcCardTranslation::title, simpleColumn = DlcCardTranslation::simpleTitle, descriptor = StringDescriptor(dlcPropertyKeys.TITLE))
-private val text = StringColumnProperty(DlcCardTranslation::text, simpleColumn = DlcCardTranslation::simpleText, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val fullText = StringColumnProperty(DlcCardTranslation::fullText, simpleColumn = DlcCardTranslation::simpleFullText, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val flavorText = StringColumnProperty(DlcPrintTranslation::flavorText, simpleColumn = DlcPrintTranslation::simpleFlavorText, descriptor = StringDescriptor(propertyKeys.SET_NAME))
+private val text = StringColumnProperty(DlcCardTranslation::text, simpleColumn = DlcCardTranslation::simpleText, descriptor = StringDescriptor(propertyKeys.TEXT))
+private val fullText = StringColumnProperty(DlcCardTranslation::fullText, simpleColumn = DlcCardTranslation::simpleFullText, descriptor = StringDescriptor(propertyKeys.TEXT_WITH_REMINDERS))
+private val flavorText = StringColumnProperty(DlcPrintTranslation::flavorText, simpleColumn = DlcPrintTranslation::simpleFlavorText, descriptor = StringDescriptor(propertyKeys.FLAVOR_TEXT))
 
 // Date properties
 private val releaseDate = DateProperty(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
@@ -71,7 +75,6 @@ private val printId = UuidColumnProperty(DlcPrint::id, descriptor = EqualsDescri
 private val cardId = UuidColumnProperty(DlcCard::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
 
 val dlcNameFilter = QueryFilter(arrayOf("name", "n"), name)
-val dlcCollectionNameFilter = dlcNameFilter // TODO (?)
 
 data class DlcValueProviders(
     val separator: ValueProvider<String>,

@@ -28,71 +28,75 @@ import dev.cowzy.cardgourmet.tagger.tags.mtg.allProperties
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
-val properties = StaticValueProvider(allProperties.map { it.key }.toTypedArray())
-val mechanics = StaticValueProvider(allMechanics.map { it.key }.toTypedArray())
-val finishes = StaticValueProvider((MtgFinish.values().toList() - promoFinishesMapping.values.toSet()).map { it.getSerialName() }.toSet())
-val mediums = StaticValueProvider(MtgMedium.values().map { it.getSerialName() }.toSet())
-val languages = StaticValueProvider(MtgLanguage.values().map { it.getSerialName() }.toSet())
+object StaticMtgProviders {
+
+    val properties = StaticValueProvider(allProperties.map { it.key }.toTypedArray())
+    val mechanics = StaticValueProvider(allMechanics.map { it.key }.toTypedArray())
+    val finishes = StaticValueProvider((MtgFinish.values().toList() - promoFinishesMapping.values.toSet()).map { it.getSerialName() }.toSet())
+    val mediums = StaticValueProvider(MtgMedium.values().map { it.getSerialName() }.toSet())
+    val languages = StaticValueProvider(MtgLanguage.values().map { it.getSerialName() }.toSet())
+
+    val manaCardinalityMappings = mapOf(
+        "colorless" to (0 to SearchQueryOperator.EQUALS),
+        "monocolor" to (1 to SearchQueryOperator.EQUALS),
+        "bicolor" to (2 to SearchQueryOperator.EQUALS),
+        "dualcolor" to (2 to SearchQueryOperator.EQUALS),
+        "tricolor" to (3 to SearchQueryOperator.EQUALS),
+        "quadcolor" to (4 to SearchQueryOperator.EQUALS),
+        "omnicolor" to (5 to SearchQueryOperator.EQUALS),
+        "multicolor" to (2 to SearchQueryOperator.GREATER_THAN_OR_EQUALS),
+        "any" to (1 to SearchQueryOperator.GREATER_THAN_OR_EQUALS)
+    )
+
+    val mtgFinishMappings = mapOf(
+        "foil" to "traditional_foil"
+    )
+
+    val mtgLayoutMappings = mapOf(
+        "art" to "art_series",
+        "modal" to "modal_dfc",
+        "dft" to "double_faced_token",
+        "reversible" to "reversible_card"
+    )
+
+    val mtgMediumMappings = mapOf(
+        "online" to "mtgo"
+    )
+
+    val mtgPropertyMappings = mapOf(
+        "alchemy" to "arena",
+        "story_spotlight" to "spotlight",
+        "storyspotlight" to "spotlight",
+        "dfc" to "double_faced_card",
+    ) + allProperties
+        .filter { it.key.contains("_") }
+        .associate { it.key.replace("_", "") to it.key }
+
+    val mtgFrameEffectMappings = mapOf(
+        "extended_art" to "extendedart"
+    )
+
+    val mtgLanguageMappings = MtgLanguage.values().map { language ->
+        language.aliases.map { alias ->
+            if (alias.contains("_")) {
+                listOf(
+                    alias.replace("_", "") to language.getSerialName(),
+                    alias to language.getSerialName()
+                )
+            } else {
+                listOf(alias to language.getSerialName())
+            }
+        }.flatten()
+    }.flatten().toMap()
+
+    val mtgMechanicsMappings = allMechanics
+        .filter { it.key.contains("_") }
+        .associate { it.key.replace("_", "") to it.key }
+
+}
 
 private val propertyKeys = Strings.Query.Property
 private val mtgPropertyKeys = Strings.Query.Mtg.Property
-
-val manaCardinalityMappings = mapOf(
-    "colorless" to (0 to SearchQueryOperator.EQUALS),
-    "monocolor" to (1 to SearchQueryOperator.EQUALS),
-    "bicolor" to (2 to SearchQueryOperator.EQUALS),
-    "dualcolor" to (2 to SearchQueryOperator.EQUALS),
-    "tricolor" to (3 to SearchQueryOperator.EQUALS),
-    "quadcolor" to (4 to SearchQueryOperator.EQUALS),
-    "omnicolor" to (5 to SearchQueryOperator.EQUALS),
-    "multicolor" to (2 to SearchQueryOperator.GREATER_THAN_OR_EQUALS),
-    "any" to (1 to SearchQueryOperator.GREATER_THAN_OR_EQUALS)
-)
-
-val mtgFinishMappings = mapOf(
-    "foil" to "traditional_foil"
-)
-
-val mtgLayoutMappings = mapOf(
-    "art" to "art_series",
-    "modal" to "modal_dfc",
-    "dft" to "double_faced_token",
-    "reversible" to "reversible_card"
-)
-
-val mtgMediumMappings = mapOf(
-    "online" to "mtgo"
-)
-
-val mtgPropertyMappings = mapOf(
-    "alchemy" to "arena",
-    "story_spotlight" to "spotlight",
-    "storyspotlight" to "spotlight",
-    "dfc" to "double_faced_card",
-) + allProperties
-    .filter { it.key.contains("_") }
-    .associate { it.key.replace("_", "") to it.key }
-
-val mtgFrameEffectMappings = mapOf(
-    "extended_art" to "extendedart"
-)
-
-val mtgLanguageMappings = MtgLanguage.values().map { language ->
-    language.aliases.map { alias ->
-        if (alias.contains("_")) {
-            listOf(
-                alias.replace("_", "") to language.getSerialName(),
-                alias to language.getSerialName()
-            )
-        } else {
-            listOf(alias to language.getSerialName())
-        }
-    }.flatten()
-}.flatten().toMap()
-
-val mtgMechanicsMappings = allMechanics
-    .filter { it.key.contains("_") }
-    .associate { it.key.replace("_", "") to it.key }
 
 // Numeric properties
 private val manaValue = NumericColumnProperty(MtgCardFace::manaValue, propertyKey = mtgPropertyKeys.MANA_VALUE)
@@ -121,10 +125,10 @@ private val restrictedFormatsCount = ArrayCardinalityProperty(MtgPrint::formatsR
 private val bannedFormatsCount = ArrayCardinalityProperty(MtgPrint::formatsBanned, propertyKey = mtgPropertyKeys.FORMATS_BANNED_COUNT)
 private val printMediumsCount = ArrayCardinalityProperty(MtgPrint::mediums, propertyKey = propertyKeys.MEDIUM_COUNT)
 private val printPromoTypesCount = ArrayCardinalityProperty(MtgPrint::promoTypes, propertyKey = mtgPropertyKeys.PROMO_TYPE_COUNT)
-private val colorCount = ArrayCardinalityProperty(MtgCardFace::colors, manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_COUNT) // TODO: explain mappings
-private val indicatorCount = ArrayCardinalityProperty(MtgCardFace::colorIndicator, manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_INDICATOR_COUNT) // TODO: explain mappings
-private val identityCount = ArrayCardinalityProperty(MtgCard::colorIdentity, manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_IDENTITY_COUNT) // TODO: explain mappings
-private val producesCount = ArrayCardinalityProperty(MtgCardFace::producesMana, manaCardinalityMappings.filter { it.key != "colorless" }, propertyKey = mtgPropertyKeys.PRODUCED_MANA_COUNT) // TODO: explain mappings
+private val colorCount = ArrayCardinalityProperty(MtgCardFace::colors, StaticMtgProviders.manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_COUNT) // TODO: explain mappings
+private val indicatorCount = ArrayCardinalityProperty(MtgCardFace::colorIndicator, StaticMtgProviders.manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_INDICATOR_COUNT) // TODO: explain mappings
+private val identityCount = ArrayCardinalityProperty(MtgCard::colorIdentity, StaticMtgProviders.manaCardinalityMappings, propertyKey = mtgPropertyKeys.COLOR_IDENTITY_COUNT) // TODO: explain mappings
+private val producesCount = ArrayCardinalityProperty(MtgCardFace::producesMana, StaticMtgProviders.manaCardinalityMappings.filter { it.key != "colorless" }, propertyKey = mtgPropertyKeys.PRODUCED_MANA_COUNT) // TODO: explain mappings
 private val priceUsd = NumericColumnProperty(MtgPrintPrice::priceUsd, propertyKey = propertyKeys.PRICE_USD)
 private val priceEur = NumericColumnProperty(MtgPrintPrice::priceEur, propertyKey = propertyKeys.PRICE_EUR)
 private val priceTix = NumericColumnProperty(MtgPrintPrice::priceTix, propertyKey = propertyKeys.PRICE_TIX)
@@ -148,11 +152,11 @@ private val defenseDisplay = StringColumnProperty(MtgCardFace::defenseDisplay, d
 private val collectorNumberDisplay = StringColumnProperty(MtgPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
 
 // Text array properties
-private val printProperties = StringArrayColumnProperty(MtgPrintFace::propertyTags, valueProvider = properties, mappings = mtgPropertyMappings, descriptor = IsPresentDescriptor(propertyKeys.PROPERTY))
-private val printFinishes = StringArrayColumnProperty(MtgPrint::finishes, valueProvider = finishes, mappings = mtgFinishMappings, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
-private val printMechanics = StringArrayColumnProperty(MtgPrintFace::mechanicTags, valueProvider = mechanics, mappings = mtgMechanicsMappings, descriptor = IsPresentDescriptor(propertyKeys.MECHANIC))
+private val printProperties = StringArrayColumnProperty(MtgPrintFace::propertyTags, valueProvider = StaticMtgProviders.properties, mappings = StaticMtgProviders.mtgPropertyMappings, descriptor = IsPresentDescriptor(propertyKeys.PROPERTY))
+private val printFinishes = StringArrayColumnProperty(MtgPrint::finishes, valueProvider = StaticMtgProviders.finishes, mappings = StaticMtgProviders.mtgFinishMappings, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
+private val printMechanics = StringArrayColumnProperty(MtgPrintFace::mechanicTags, valueProvider = StaticMtgProviders.mechanics, mappings = StaticMtgProviders.mtgMechanicsMappings, descriptor = IsPresentDescriptor(propertyKeys.MECHANIC))
 private val printArtTags = StringArrayColumnProperty(MtgPrintFace::artTags, descriptor = IsPresentDescriptor(propertyKeys.ART_TAGS))
-private val printMediums = StringArrayColumnProperty(MtgPrint::mediums, valueProvider = mediums, mappings = mtgMediumMappings, descriptor = IsPresentDescriptor(propertyKeys.MEDIUM))
+private val printMediums = StringArrayColumnProperty(MtgPrint::mediums, valueProvider = StaticMtgProviders.mediums, mappings = StaticMtgProviders.mtgMediumMappings, descriptor = IsPresentDescriptor(propertyKeys.MEDIUM))
 
 // Special properties
 private val colors = MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))
@@ -161,8 +165,8 @@ private val indicator = MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, 
 private val identity = MtgManaArrayColumnProperty(MtgCard::colorIdentity, mapContainsToLessThanOrEquals = true, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))
 private val rarity = MtgRarityProperty()
 private val releaseDate = DateProperty(MtgPrint::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
-private val printLanguage = MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, mappings = mtgLanguageMappings)
-private val printLanguages = MtgPrintLanguagesProperty(MtgPrint::languages, mappings = mtgLanguageMappings)
+private val printLanguage = MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, mappings = StaticMtgProviders.mtgLanguageMappings)
+private val printLanguages = MtgPrintLanguagesProperty(MtgPrint::languages, mappings = StaticMtgProviders.mtgLanguageMappings)
 private val manaDisplay = MtgManaDisplayProperty()
 private val devotion = MtgDevotionProperty()
 
@@ -202,7 +206,7 @@ data class MtgValueProviders(
 )
 
 fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter> {
-    val layout = StringColumnProperty(MtgCard::layout, valueProvider = providers.layouts, mappings = mtgLayoutMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.LAYOUT))
+    val layout = StringColumnProperty(MtgCard::layout, valueProvider = providers.layouts, mappings = StaticMtgProviders.mtgLayoutMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.LAYOUT))
 
     val types = StringArrayColumnProperty(MtgCardFace::types, valueProvider = providers.types, descriptor = IsPresentDescriptor(mtgPropertyKeys.TYPE))
     val superTypes = StringArrayColumnProperty(MtgCardFace::superTypes, valueProvider = providers.superTypes, descriptor = IsPresentDescriptor(mtgPropertyKeys.SUPER_TYPE))
@@ -223,7 +227,7 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
     val printReleaseDateBySet = DateByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, propertyKeys.RELEASE_DATE)
     val printReleaseYearBySet = YearByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, propertyKeys.RELEASE_YEAR)
 
-    val frameEffects = StringArrayColumnProperty(MtgPrint::frameEffects, valueProvider = providers.frameEffects, mappings = mtgFrameEffectMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FRAME_EFFECT))
+    val frameEffects = StringArrayColumnProperty(MtgPrint::frameEffects, valueProvider = providers.frameEffects, mappings = StaticMtgProviders.mtgFrameEffectMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FRAME_EFFECT))
     val frame = StringColumnProperty(MtgPrint::frame, mapContainsToEquals = true, valueProvider = providers.frames, descriptor = StringDescriptor(mtgPropertyKeys.FRAME))
     val stamp = StringColumnProperty(MtgPrint::stamp, mapContainsToEquals = true, valueProvider = providers.stamps, descriptor = StringDescriptor(mtgPropertyKeys.STAMP))
     val border = StringColumnProperty(MtgPrint::border, mapContainsToEquals = true, valueProvider = providers.borders, descriptor = StringDescriptor(mtgPropertyKeys.BORDER))
