@@ -92,11 +92,11 @@ fun createBasicDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFi
     val classifications = StringArrayColumnProperty(DlcCard::classifications, valueProvider = providers.classifications, descriptor = IsPresentDescriptor(dlcPropertyKeys.CLASSIFICATIONS))
     val keywords = StringArrayColumnProperty(DlcCard::keywords, valueProvider = providers.keywords, descriptor = IsPresentDescriptor(propertyKeys.KEYWORD))
 
-    val releaseDateBySet = DateByMappingProperty(DlcSet::releaseDate, providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
-    val releaseYearBySet = YearByMappingProperty(DlcSet::releaseDate, providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
+    val releaseDateBySet = DateByMappingProperty(DlcSet::releaseDate, valueProvider = providers.setCode, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
+    val releaseYearBySet = YearByMappingProperty(DlcSet::releaseDate, valueProvider = providers.setCode, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
 
-    val marketReleaseDateBySet = DateByMappingProperty(DlcSet::marketReleaseDate, providers.setReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
-    val marketReleaseYearBySet = YearByMappingProperty(DlcSet::marketReleaseDate, providers.setReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+    val marketReleaseDateBySet = DateByMappingProperty(DlcSet::marketReleaseDate, valueProvider = providers.setCode, mappingProvider = providers.setReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
+    val marketReleaseYearBySet = YearByMappingProperty(DlcSet::marketReleaseDate, valueProvider = providers.setCode, mappingProvider = providers.setReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
 
     return listOf(
         dlcNameFilter,

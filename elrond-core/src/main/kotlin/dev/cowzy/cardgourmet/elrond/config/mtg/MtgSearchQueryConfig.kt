@@ -136,7 +136,6 @@ private val languageCount = ArrayCardinalityProperty(MtgPrint::languages, proper
 private val edhrecRank = NumericColumnProperty(MtgCard::edhrecRank, propertyKey = mtgPropertyKeys.EDHREC_RANK)
 
 // String properties
-private val name = MtgNameProperty()
 private val setName = StringColumnProperty(MtgSet::name, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_NAME))
 private val setType = StringColumnProperty(MtgSet::type, mapContainsToEquals = true, descriptor = StringDescriptor(mtgPropertyKeys.SET_TYPE))
 private val typeLine = StringColumnProperty(MtgCardFaceTranslation::typeLine, simpleColumn = MtgCardFaceTranslation::simpleTypeLine, descriptor = StringDescriptor(mtgPropertyKeys.TYPE_LINE))
@@ -184,9 +183,8 @@ private val mtgArenaId = StringColumnProperty(MtgPrintIdentifier::mtgArenaId, ma
 private val mtgoId = StringColumnProperty(MtgPrintIdentifier::mtgOnlineId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.MTGO_ID))
 private val mtgjsonId = StringColumnProperty(MtgPrintIdentifier::mtgjsonId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.MTGJSON_ID))
 
-val mtgNameFilter = QueryFilter(arrayOf("name", "n"), name)
-
 data class MtgValueProviders(
+    val names: MtgNameValueProvider,
     val layouts: MtgLayoutValueProvider,
     val types: MtgTypeValueProvider,
     val superTypes: MtgTypeValueProvider,
@@ -204,6 +202,11 @@ data class MtgValueProviders(
     val stamps: MtgStampValueProvider,
     val watermarks: MtgWatermarkValueProvider
 )
+
+fun createMtgDefaultFilter(providers: MtgValueProviders): QueryFilter {
+    val property = MtgNameProperty(valueProvider = providers.names)
+    return QueryFilter(arrayOf("name", "n"), property)
+}
 
 fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter> {
     val layout = StringColumnProperty(MtgCard::layout, valueProvider = providers.layouts, mappings = StaticMtgProviders.mtgLayoutMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.LAYOUT))
@@ -224,8 +227,8 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
 
     val setCode = StringColumnProperty(MtgSet::code, valueProvider = providers.setCodes, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_CODE))
 
-    val printReleaseDateBySet = DateByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, propertyKeys.RELEASE_DATE)
-    val printReleaseYearBySet = YearByMappingProperty(MtgPrint::releaseDate, providers.setReleaseDates, propertyKeys.RELEASE_YEAR)
+    val printReleaseDateBySet = DateByMappingProperty(MtgPrint::releaseDate, valueProvider = providers.setCodes, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
+    val printReleaseYearBySet = YearByMappingProperty(MtgPrint::releaseDate, valueProvider = providers.setCodes, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
 
     val frameEffects = StringArrayColumnProperty(MtgPrint::frameEffects, valueProvider = providers.frameEffects, mappings = StaticMtgProviders.mtgFrameEffectMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FRAME_EFFECT))
     val frame = StringColumnProperty(MtgPrint::frame, mapContainsToEquals = true, valueProvider = providers.frames, descriptor = StringDescriptor(mtgPropertyKeys.FRAME))
@@ -234,7 +237,6 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
     val watermarks = StringArrayColumnProperty(MtgPrint::watermarks, valueProvider = providers.watermarks, descriptor = IsPresentDescriptor(mtgPropertyKeys.WATERMARK))
 
     return listOf(
-        mtgNameFilter,
         QueryFilter(arrayOf("cmc", "mv", "manavalue", "manacost"), manaValue),
         QueryFilter(arrayOf("display", "mana", "m", "manadisplay"), manaDisplay),
         QueryFilter(arrayOf("devotion"), devotion),
@@ -261,7 +263,7 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
         QueryFilter(arrayOf("mechanic", "mechanics", "function", "otag", "oracletag"), printMechanicsCount, printMechanics),
         QueryFilter(arrayOf("property", "properties"), printPropertyCount, printProperties),
         QueryFilter(arrayOf("art"), printArtTagCount, printArtTags),
-        QueryFilter(arrayOf("tag", "tags", "is", "has"), layout, rarity, printFinishes, printPromoTypes, printMediums, types, superTypes, subTypes, frameEffects, printProperties),
+        QueryFilter(arrayOf("is", "has", "tag", "tags"), layout, rarity, printFinishes, printPromoTypes, printMediums, types, superTypes, subTypes, frameEffects, printProperties),
         QueryFilter(arrayOf("not"), layout, rarity, printFinishes, printPromoTypes, printMediums, types, superTypes, subTypes, frameEffects, printProperties, inverted = true),
         QueryFilter(arrayOf("legal", "legalformats", "legalin", "format"), legalFormatsCount, legalFormats),
         QueryFilter(arrayOf("restricted", "restrictedformats", "restrictedin"), restrictedFormatsCount, restrictedFormats),

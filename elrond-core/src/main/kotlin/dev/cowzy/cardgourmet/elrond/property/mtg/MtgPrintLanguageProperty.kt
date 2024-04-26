@@ -9,6 +9,7 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
+import dev.cowzy.cardgourmet.elrond.property.Mappable
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.kuery.query.orWhere
 import kotlin.reflect.KProperty1
@@ -16,12 +17,12 @@ import kotlin.reflect.KProperty1
 class MtgPrintLanguageProperty(
     private val languagesColumn: KProperty1<*, *>,
     private vararg val languageColumns: KProperty1<*, *>,
-    mappings: Map<String, String> = emptyMap()
+    override val mappings: Map<String, String> = emptyMap()
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table(), *languageColumns.map { it.table() }.toTypedArray()),
     descriptor = EqualsDescriptor(propertyKey = Strings.Query.Property.LANGUAGE)
-) {
+), Mappable<String> {
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {

@@ -12,15 +12,16 @@ import kotlin.reflect.KProperty1
 
 class StringArrayColumnProperty(
     private vararg val columns: KProperty1<*, *>,
-    private val valueProvider: ValueProvider<String>? = null,
-    private val mappings: Map<String, String> = emptyMap(),
+    override val valueProvider: ValueProvider<String>? = null,
+    override val allowAnyValue: Boolean = false,
+    override val mappings: Map<String, String> = emptyMap(),
     private val inverted: Boolean = false,
     descriptor: PropertyDescriptor
 ) : SearchQueryProperty<String>(
     supportedOperators = arrayOf(SearchQueryOperator.CONTAINS),
     affectedTables = columns.map { it.table() }.distinct().toTypedArray(),
     descriptor = descriptor
-) {
+), ValueProvided, Mappable<String> {
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
@@ -29,10 +30,7 @@ class StringArrayColumnProperty(
                     it.key.equals(value.value, ignoreCase = true)
                 }?.value ?: value.value
 
-                when {
-                    valueProvider != null -> valueProvider.getValues().find { it.equals(mappedValue, ignoreCase = true) }
-                    else -> mappedValue
-                }
+                matchValue(mappedValue)
             }
         }
     }
@@ -42,10 +40,7 @@ class StringArrayColumnProperty(
         operator: SearchQueryOperator,
         value: String
     ) {
-        val matchingValue = valueProvider?.let { provider ->
-            provider.getValues().find { it.equals(value, ignoreCase = true) }
-                ?: throw IllegalStateException("Unsupported value: $value")
-        } ?: value
+        val matchingValue = matchValue(value) ?: throw IllegalStateException("Unsupported value: $value")
 
         val apply: (ConcreteWhereQueryBuilder) -> Unit = {
             columns.forEach { column ->

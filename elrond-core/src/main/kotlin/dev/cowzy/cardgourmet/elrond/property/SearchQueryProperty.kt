@@ -5,6 +5,7 @@ import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlin.reflect.KClass
 
 abstract class SearchQueryProperty<OutputType : Any>(
@@ -36,5 +37,30 @@ abstract class SearchQueryProperty<OutputType : Any>(
         operator: SearchQueryOperator,
         other: SearchQueryProperty<*>
     ) = Unit
+
+}
+
+interface ValueProvided {
+
+    val valueProvider: ValueProvider<String>?
+    val allowAnyValue: Boolean
+
+    suspend fun matchValue(value: String): String? {
+        val provider = valueProvider
+
+        return when {
+            allowAnyValue -> value
+            provider != null -> provider.getValues().find { it.equals(value, ignoreCase = true) }
+            else -> value
+        }
+    }
+
+}
+
+interface Mappable<T> {
+
+    val mappings: Map<String, T>
+
+    fun mapValue(value: String) = mappings[value]
 
 }

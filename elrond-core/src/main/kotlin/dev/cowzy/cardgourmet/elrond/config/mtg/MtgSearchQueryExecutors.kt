@@ -136,8 +136,10 @@ fun createMtgBaseBuilder(
 }
 
 fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
-    return createMtgBaseBuilder(mtgBasicSearchQueryConfig, queryBuilder, mtgNameFilter)
-        .filters(createBasicMtgSearchQueryFilters(providers))
+    val defaultFilter = createMtgDefaultFilter(providers)
+
+    return createMtgBaseBuilder(mtgBasicSearchQueryConfig, queryBuilder, defaultFilter)
+        .filters(createBasicMtgSearchQueryFilters(providers) + defaultFilter)
         .build()
 }
 

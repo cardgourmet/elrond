@@ -8,17 +8,18 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
+import dev.cowzy.cardgourmet.elrond.property.Mappable
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import kotlin.reflect.KProperty1
 
 class MtgPrintLanguagesProperty(
     private val languagesColumn: KProperty1<*, *>,
-    mappings: Map<String, String> = emptyMap()
+    override val mappings: Map<String, String> = emptyMap()
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table()),
     descriptor = AvailableInDescriptor(Strings.Query.Property.PRINT)
-) {
+), Mappable<String> {
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {

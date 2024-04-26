@@ -11,8 +11,9 @@ import kotlin.reflect.KProperty1
 
 open class StringColumnProperty(
     protected val column: KProperty1<*, *>,
-    private val valueProvider: ValueProvider<String>? = null,
-    private val mappings: Map<String, String> = emptyMap(),
+    override val valueProvider: ValueProvider<String>? = null,
+    override val allowAnyValue: Boolean = false,
+    override val mappings: Map<String, String> = emptyMap(),
     private val simpleColumn: KProperty1<*, *>? = null,
     mapContainsToEquals: Boolean = false,
     descriptor: PropertyDescriptor,
@@ -21,7 +22,7 @@ open class StringColumnProperty(
     affectedTables = arrayOf(column.table()),
     descriptor = descriptor,
     mapContainsToEquals = mapContainsToEquals
-) {
+), ValueProvided, Mappable<String> {
 
     override val valueDefinition = QueryValueDefinition<QueryValue<*>> {
         StringValue::class {
@@ -39,7 +40,7 @@ open class StringColumnProperty(
             }
 
             match { value ->
-                valueProvider?.getValues()?.any { it.equals(value.value.toString(), ignoreCase = true) } ?: true
+                matchValue(value.value.toString()) != null
             }
 
             display { value, _, _ ->

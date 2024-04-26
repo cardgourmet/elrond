@@ -7,12 +7,12 @@ import kotlin.reflect.KProperty1
 
 class ArrayCardinalityProperty(
     private val column: KProperty1<*, *>,
-    private val mappings: Map<String, Pair<Number, SearchQueryOperator>> = emptyMap(),
+    override val mappings: Map<String, Pair<Number, SearchQueryOperator>> = emptyMap(),
     propertyKey: String
 ) : NumericSearchQueryProperty(
     affectedTables = arrayOf(column.table()),
     descriptorSubjectKey = propertyKey
-) {
+), Mappable<Pair<Number, SearchQueryOperator>> {
 
     override val valueDefinition = QueryValueDefinition {
         NumberValue::class {
@@ -21,7 +21,7 @@ class ArrayCardinalityProperty(
 
         StringValue::class {
             transformWithOperator { it, operator ->
-                val mapping = mappings[it.value] ?: return@transformWithOperator null
+                val mapping = mapValue(it.value) ?: return@transformWithOperator null
                 val mappedOperator = if (operator == SearchQueryOperator.CONTAINS) mapping.second else operator
                 mapping.first to mappedOperator
             }

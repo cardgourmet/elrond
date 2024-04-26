@@ -11,17 +11,20 @@ import kotlin.reflect.KProperty1
 
 class DateByMappingProperty(
     val column: KProperty1<*, *>,
+    override val valueProvider: ValueProvider<String>,
+    override val allowAnyValue: Boolean = true,
     private val mappingProvider: ValueProvider<Pair<String, LocalDate>>,
     propertyKey: String,
 ) : SearchQueryProperty<LocalDate>(
     supportedOperators = numericQueryOperators,
     affectedTables = arrayOf(column.table()),
     descriptor = NumericDescriptor(propertyKey)
-) {
+), ValueProvided {
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
             transform { value ->
-                val mapping = mappingProvider.getValues().find { it.first.equals(value.value, ignoreCase = true) } ?: return@transform null
+                val matchedValue = matchValue(value.value)
+                val mapping = mappingProvider.getValues().find { it.first.equals(matchedValue, ignoreCase = true) } ?: return@transform null
                 mapping.second
             }
             display { it, _, _ -> "`${(it as LocalDate).format(DateTimeFormatter.ISO_LOCAL_DATE)}`" }

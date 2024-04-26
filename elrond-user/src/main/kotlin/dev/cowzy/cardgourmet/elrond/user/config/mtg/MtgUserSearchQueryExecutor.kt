@@ -37,8 +37,10 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
 }
 
 fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
-    return createMtgBaseBuilder(mtgSearchQueryConfig, fallbackFilter = mtgNameFilter)
-        .filters(createBasicMtgSearchQueryFilters(providers))
+    val defaultFilter = createMtgDefaultFilter(providers)
+
+    return createMtgBaseBuilder(mtgSearchQueryConfig, fallbackFilter = defaultFilter)
+        .filters(createBasicMtgSearchQueryFilters(providers) + defaultFilter)
         .build()
 }
 
