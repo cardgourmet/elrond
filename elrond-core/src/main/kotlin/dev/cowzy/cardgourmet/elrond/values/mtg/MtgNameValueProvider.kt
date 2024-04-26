@@ -14,7 +14,7 @@ class MtgNameValueProvider(val pool: SqlDatabasePool) : DynamicStringValueProvid
                 .select("mtg.search_names.name")
                 .apply {
                     filter?.let {
-                        this.where("mtg.search_names.simple_name", "%${it.toSimpleString()}%")
+                        this.where("mtg.search_names.simple_name", operator = "ILIKE", value = "%${it.toSimpleString()}%")
                     }
                 }
                 .orderBy("mtg.search_names.name")
