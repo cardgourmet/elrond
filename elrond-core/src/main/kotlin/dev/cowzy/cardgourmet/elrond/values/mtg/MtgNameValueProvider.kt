@@ -17,7 +17,7 @@ class MtgNameValueProvider(val pool: SqlDatabasePool) : DynamicStringValueProvid
                         this.where("mtg.search_names.simple_name", "%${it.toSimpleString()}%")
                     }
                 }
-                .orderBy("mtg.search_names.simple_name")
+                .orderBy("mtg.search_names.name")
                 .limit(limit)
                 .get(connection) { row, index -> row.getString(index.getAndIncrement()) }
         }
