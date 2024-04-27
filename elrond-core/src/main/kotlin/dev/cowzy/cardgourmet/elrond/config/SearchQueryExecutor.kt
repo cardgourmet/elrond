@@ -1,8 +1,13 @@
 package dev.cowzy.cardgourmet.elrond.config
 
+import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.cardgourmet.elrond.*
+import dev.cowzy.cardgourmet.elrond.property.Mappable
+import dev.cowzy.cardgourmet.elrond.property.ValueProvided
 import dev.cowzy.cardgourmet.elrond.query.*
+import dev.cowzy.cardgourmet.elrond.values.DynamicStringValueProvider
+import kotlinx.serialization.Serializable
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -26,7 +31,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
         expression: QueryExpressionBuilderResult,
         flags: Set<T>,
         distinctBy: KProperty1<*, *>,
-        sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn> = emptyList(),
+        sortColumns: List<ElrondSortColumn> = emptyList(),
         preferredLanguage: String,
         attempt: Int = 0,
         applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
@@ -62,43 +67,127 @@ data class SearchQueryExecutor<T : Enum<T>>(
         )
     }
 
-    fun toPaginationValueQueryBuilder(
-        expression: QueryExpressionBuilderResult,
-        flags: Set<T>,
-        distinctBy: KProperty1<*, *>,
-        id: UUID,
-        sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn> = emptyList(),
-        preferredLanguage: String,
-        attempt: Int = 0,
-        applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
-    ): SelectQueryBuilder? {
-        var searchQuery = SearchQuery(
-            expression = expression.expression,
-            distinctBy = distinctBy,
-            sortColumns = sortColumns,
-            flags = flags,
-            preferredLanguage = preferredLanguage,
-        )
+    @Serializable
+    data class SearchQueryFilter(
+        val keywords: List<String>,
+        val properties: List<SearchQueryProperty>,
+        val providesValues: Boolean,
+        val strictValues: Boolean,
+        val inverted: Boolean
+    )
 
-        val attemptTransformer = when (attempt) {
-            0 -> null
-            else -> attemptTransformers.getOrNull(attempt - 1) ?: return null
+    @Serializable
+    data class SearchQueryProperty(
+        val key: String,
+        val valueTypes: List<String>,
+        val operators: List<String>,
+    )
+
+    fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
+        val filters = this.filters.filter { filter ->
+            query?.let { query ->
+                filter.keywords.any { it.toSimpleString().contains(query.toSimpleString()) }
+            } ?: true
         }
 
-        searchQuery = attemptTransformer?.invoke(searchQuery) ?: searchQuery
+        return filters.map { filter ->
+            var allowsAnyValue = false
+            var providesValues = false
 
-        return searchQuery.toPaginationValueQueryBuilder(
-            config = config,
-            distinctBy = distinctBy,
-            id = id,
-            sortColumns = sortColumns,
-            sqlBuilder = SearchQuerySqlBuilder(
-                affectedTables = customTables,
-                apply = customBuilder
-            ),
-            applyCustomConditions = applyCustomConditions,
-        )
+            val properties = filter.properties.map { property ->
+                val valueTypes = property.valueDefinition.supportedValueTypes.mapNotNull { type ->
+                    when (type) {
+                        StringValue::class -> "string"
+                        NumberValue::class -> "number"
+                        RegexValue::class -> "regex"
+                        else -> null
+                    }
+                }
+
+                val operators = property.supportedOperators.map { it.value }
+
+                if (property is Mappable<*> && property.mappings.any()) {
+                    providesValues = true
+                }
+
+                if (property is ValueProvided) {
+                    providesValues = providesValues || property.valueProvider != null
+                    allowsAnyValue = allowsAnyValue || (property.valueProvider == null || property.allowAnyValue)
+                }
+
+                SearchQueryProperty(property.key, valueTypes, operators)
+            }
+
+            SearchQueryFilter(filter.keywords.sorted(), properties, providesValues, !allowsAnyValue, filter.inverted)
+        }.sortedBy { it.keywords.first() }
     }
+
+    suspend fun getFilterValues(keyword: String, amount: Int, query: String?): List<String>? {
+        val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
+
+        val mappables = filter.properties.filterIsInstance<Mappable<*>>()
+        val valueProperties = filter.properties.filterIsInstance<ValueProvided>()
+        val valueProviders = valueProperties.mapNotNull { it.valueProvider }
+
+        val values = mutableListOf<String>()
+
+        // First, add all mappings.
+        for (mappable in mappables) {
+            if (values.size >= amount) break
+            val keys = mappable.mappings.keys.filter { value -> query?.let { value.toSimpleString().contains(it.toSimpleString()) } ?: true }
+            values.addAll(keys)
+        }
+
+        // Now add provider values.
+        for (provider in valueProviders) {
+            if (values.size >= amount) break
+            val remaining = amount - values.size
+            when (provider) {
+                is DynamicStringValueProvider -> values.addAll(provider.getValues(remaining, query))
+                else -> values.addAll(provider.getValues().filter { value -> query?.let { value.toSimpleString().contains(it.toSimpleString()) } ?: true })
+            }
+        }
+
+        return values.sorted().take(amount)
+    }
+
+//    fun toPaginationValueQueryBuilder(
+//        expression: QueryExpressionBuilderResult,
+//        flags: Set<T>,
+//        distinctBy: KProperty1<*, *>,
+//        id: UUID,
+//        sortColumns: List<ElrondSortColumn> = emptyList(),
+//        preferredLanguage: String,
+//        attempt: Int = 0,
+//        applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
+//    ): SelectQueryBuilder? {
+//        var searchQuery = SearchQuery(
+//            expression = expression.expression,
+//            distinctBy = distinctBy,
+//            sortColumns = sortColumns,
+//            flags = flags,
+//            preferredLanguage = preferredLanguage,
+//        )
+//
+//        val attemptTransformer = when (attempt) {
+//            0 -> null
+//            else -> attemptTransformers.getOrNull(attempt - 1) ?: return null
+//        }
+//
+//        searchQuery = attemptTransformer?.invoke(searchQuery) ?: searchQuery
+//
+//        return searchQuery.toPaginationValueQueryBuilder(
+//            config = config,
+//            distinctBy = distinctBy,
+//            id = id,
+//            sortColumns = sortColumns,
+//            sqlBuilder = SearchQuerySqlBuilder(
+//                affectedTables = customTables,
+//                apply = customBuilder
+//            ),
+//            applyCustomConditions = applyCustomConditions,
+//        )
+//    }
 }
 
 typealias SearchQueryTransformer<T> = (SearchQuery<T>) -> SearchQuery<T>?
