@@ -138,7 +138,7 @@ private val edhrecRank = NumericColumnProperty(MtgCard::edhrecRank, propertyKey 
 // String properties
 private val setName = StringColumnProperty(MtgSet::name, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_NAME))
 private val setType = StringColumnProperty(MtgSet::type, mapContainsToEquals = true, descriptor = StringDescriptor(mtgPropertyKeys.SET_TYPE))
-private val typeLine = StringColumnProperty(MtgCardFaceTranslation::typeLine, simpleColumn = MtgCardFaceTranslation::simpleTypeLine, descriptor = StringDescriptor(mtgPropertyKeys.TYPE_LINE))
+private val typeLine = StringColumnProperty(MtgCardFaceTranslation::typeLine, simpleColumn = MtgCardFaceTranslation::simpleTypeLine, allowAnyValue = true, descriptor = StringDescriptor(mtgPropertyKeys.TYPE_LINE))
 private val oracleText = MtgOracleTextProperty(MtgCardFaceTranslation::oracleText, MtgCardFaceTranslation::simpleOracleText, descriptor = StringDescriptor(propertyKeys.TEXT))
 private val fullOracleText = MtgOracleTextProperty(MtgCardFaceTranslation::fullOracleText, MtgCardFaceTranslation::simpleFullOracleText, descriptor = StringDescriptor(propertyKeys.TEXT_WITH_REMINDERS))
 private val flavorName = StringColumnProperty(MtgPrintFaceTranslation::flavorName, simpleColumn = MtgPrintFaceTranslation::simpleFlavorName, descriptor = StringDescriptor(mtgPropertyKeys.FLAVOR_NAME))
@@ -215,15 +215,15 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
     val superTypes = StringArrayColumnProperty(MtgCardFace::superTypes, valueProvider = providers.superTypes, descriptor = IsPresentDescriptor(mtgPropertyKeys.SUPER_TYPE))
     val subTypes = StringArrayColumnProperty(MtgCardFace::subTypes, valueProvider = providers.subTypes, descriptor = IsPresentDescriptor(mtgPropertyKeys.SUB_TYPE))
 
-    val legalFormats = StringArrayColumnProperty(MtgPrint::formatsLegal, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.LEGAL))
-    val restrictedFormats = StringArrayColumnProperty(MtgPrint::formatsRestricted, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.RESTRICTED))
-    val bannedFormats = StringArrayColumnProperty(MtgPrint::formatsBanned, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.BANNED))
+    val legalFormats = StringArrayColumnProperty(MtgPrint::formatsLegal, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.LEGAL), key = "legal_formats")
+    val restrictedFormats = StringArrayColumnProperty(MtgPrint::formatsRestricted, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.RESTRICTED), key = "restricted_formats")
+    val bannedFormats = StringArrayColumnProperty(MtgPrint::formatsBanned, valueProvider = providers.formats, descriptor = FormatDescriptor(FormatDescriptor.Type.BANNED), key = "banned_formats")
 
     val printKeywords = StringArrayColumnProperty(MtgCard::keywords, valueProvider = providers.keywords, descriptor = IsPresentDescriptor(propertyKeys.KEYWORD))
     val printPromoTypes = StringArrayColumnProperty(MtgPrint::promoTypes, valueProvider = providers.promoTypes, descriptor = IsPresentDescriptor(mtgPropertyKeys.PROMO_TYPE))
 
-    val reprintNew = StringArrayColumnProperty(MtgPrint::reprintNew, valueProvider = providers.reprintNew, descriptor = ReprintNewDescriptor())
-    val reprintIn = StringArrayColumnProperty(MtgCard::reprintIn, valueProvider = providers.reprintIn, descriptor = ReprintDescriptor(ReprintDescriptor.Mode.REPRINT_IN))
+    val reprintNew = StringArrayColumnProperty(MtgPrint::reprintNew, valueProvider = providers.reprintNew, descriptor = ReprintNewDescriptor(), key = "reprint_new")
+    val reprintIn = StringArrayColumnProperty(MtgCard::reprintIn, valueProvider = providers.reprintIn, descriptor = ReprintDescriptor(ReprintDescriptor.Mode.REPRINT_IN), key = "reprint_in")
 
     val setCode = StringColumnProperty(MtgSet::code, valueProvider = providers.setCodes, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_CODE))
 

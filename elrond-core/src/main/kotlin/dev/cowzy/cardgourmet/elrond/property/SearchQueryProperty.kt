@@ -12,8 +12,11 @@ abstract class SearchQueryProperty<OutputType : Any>(
     val supportedOperators: Array<SearchQueryOperator>,
     val comparableTo: Array<KClass<out SearchQueryProperty<*>>> = emptyArray(),
     val affectedTables: Array<KClass<*>>,
-    val descriptor: PropertyDescriptor
+    val descriptor: PropertyDescriptor,
+    key: String? = null
 ) {
+
+    val key: String = key ?: descriptor.propertyKey.split(".").last()
 
     abstract val valueDefinition: QueryValueDefinition<OutputType>
 

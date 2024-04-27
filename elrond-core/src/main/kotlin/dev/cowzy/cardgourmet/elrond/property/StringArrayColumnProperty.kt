@@ -16,11 +16,13 @@ class StringArrayColumnProperty(
     override val allowAnyValue: Boolean = false,
     override val mappings: Map<String, String> = emptyMap(),
     private val inverted: Boolean = false,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
+    key: String? = null,
 ) : SearchQueryProperty<String>(
     supportedOperators = arrayOf(SearchQueryOperator.CONTAINS),
     affectedTables = columns.map { it.table() }.distinct().toTypedArray(),
-    descriptor = descriptor
+    descriptor = descriptor,
+    key = key
 ), ValueProvided, Mappable<String> {
 
     override val valueDefinition = QueryValueDefinition {

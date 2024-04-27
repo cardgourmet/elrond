@@ -8,8 +8,9 @@ import kotlin.reflect.KClass
 
 abstract class StaticSearchQueryProperty(
     affectedTables: Array<KClass<*>>,
-    descriptor: PropertyDescriptor
-) : SearchQueryProperty<Any>(emptyArray(), emptyArray(), affectedTables, descriptor) {
+    descriptor: PropertyDescriptor,
+    key: String? = null
+) : SearchQueryProperty<Any>(emptyArray(), emptyArray(), affectedTables, descriptor, key) {
 
     override val valueDefinition = QueryValueDefinition<Any>()
 

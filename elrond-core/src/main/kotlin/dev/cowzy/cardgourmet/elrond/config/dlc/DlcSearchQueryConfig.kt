@@ -70,7 +70,7 @@ private val releaseDate = DateProperty(DlcSet::releaseDate, propertyKey = proper
 private val marketReleaseDate = DateProperty(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
 
 // Misc properties
-private val inkwell = StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT))
+private val inkwell = StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell")
 private val printId = UuidColumnProperty(DlcPrint::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
 private val cardId = UuidColumnProperty(DlcCard::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
 
