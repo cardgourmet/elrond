@@ -45,7 +45,9 @@ fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecu
 }
 
 fun createMtgCollectionSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
-    return createMtgBaseBuilder(mtgSearchQueryConfig, queryBuilder, mtgCollectionNameFilter)
+    val defaultFilter = createMtgCollectionDefaultFilter(providers)
+
+    return createMtgBaseBuilder(mtgSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(createMtgCollectionSearchQueryFilters())
         .filters(createBasicMtgSearchQueryFilters(providers))
         .build()
