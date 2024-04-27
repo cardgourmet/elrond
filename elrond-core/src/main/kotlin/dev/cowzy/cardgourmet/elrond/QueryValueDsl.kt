@@ -29,10 +29,13 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 data class QueryValueMapping<Input : QueryValue<*>, Output>(
     val transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>?,
     val match: suspend (Output) -> Boolean,
-    val display: suspend (Output, LocalizationService, UserLanguage) -> String
+    val display: suspend (Output, LocalizationService, UserLanguage) -> String,
+    val format: String?,
 )
 
 class QueryValueMappingBuilder<Input : QueryValue<*>, Output : Any>(private val type: KClass<Input>) {
+
+    var format: String? = null
 
     private var transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>? = { it, operator ->
         try {
@@ -74,7 +77,8 @@ class QueryValueMappingBuilder<Input : QueryValue<*>, Output : Any>(private val 
     internal fun build() = QueryValueMapping(
         transform = transform,
         match = match,
-        display = display
+        display = display,
+        format = format
     )
 
 }

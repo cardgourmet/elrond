@@ -24,6 +24,8 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
 
     override val valueDefinition = QueryValueDefinition<Map<MtgManaType, Int>> {
         StringValue::class {
+            format = "mtg_mana"
+
             transform { value -> value.value.toManaDisplays()?.map { display -> display.values.map { it.type } }?.flatten()?.groupBy { it }?.mapValues { it.value.size } }
 
             match { it.values.distinct().size == 1 && it.values.sum() % it.entries.size == 0 }

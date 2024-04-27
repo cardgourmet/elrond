@@ -22,11 +22,14 @@ class DateByMappingProperty(
 ), ValueProvided {
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
+            format = "date"
+
             transform { value ->
                 val matchedValue = matchValue(value.value)
                 val mapping = mappingProvider.getValues().find { it.first.equals(matchedValue, ignoreCase = true) } ?: return@transform null
                 mapping.second
             }
+
             display { it, _, _ -> "`${(it as LocalDate).format(DateTimeFormatter.ISO_LOCAL_DATE)}`" }
         }
     }

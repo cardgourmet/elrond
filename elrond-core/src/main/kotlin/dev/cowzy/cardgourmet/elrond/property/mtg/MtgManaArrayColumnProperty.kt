@@ -24,6 +24,7 @@ class MtgManaArrayColumnProperty(
 
     override val valueDefinition = QueryValueDefinition<List<ManaValue>> {
         StringValue::class {
+            format = "mtg_mana"
             transform { value -> value.value.toManaDisplays()?.flatten() }
             match { values -> values.all { it is ConcreteManaValue } }
             display { manaTypes, _, _ -> "`${manaTypes.joinToString("") { "{${it.type.symbol}}" }}`" }

@@ -79,8 +79,14 @@ data class SearchQueryExecutor<T : Enum<T>>(
     @Serializable
     data class SearchQueryProperty(
         val key: String,
-        val valueTypes: List<String>,
+        val valueTypes: List<ValueType>,
         val operators: List<String>,
+    )
+
+    @Serializable
+    data class ValueType(
+        val type: String,
+        val format: String?
     )
 
     fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
@@ -96,12 +102,14 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
             val properties = filter.properties.map { property ->
                 val valueTypes = property.valueDefinition.supportedValueTypes.mapNotNull { type ->
-                    when (type) {
+                    val valueType = when (type) {
                         StringValue::class -> "string"
                         NumberValue::class -> "number"
                         RegexValue::class -> "regex"
-                        else -> null
+                        else -> return@mapNotNull null
                     }
+
+                    ValueType(valueType, property.valueDefinition.getMapping(type).format)
                 }
 
                 val operators = property.supportedOperators.map { it.value }
@@ -150,44 +158,6 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
         return values.sorted().take(amount)
     }
-
-//    fun toPaginationValueQueryBuilder(
-//        expression: QueryExpressionBuilderResult,
-//        flags: Set<T>,
-//        distinctBy: KProperty1<*, *>,
-//        id: UUID,
-//        sortColumns: List<ElrondSortColumn> = emptyList(),
-//        preferredLanguage: String,
-//        attempt: Int = 0,
-//        applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
-//    ): SelectQueryBuilder? {
-//        var searchQuery = SearchQuery(
-//            expression = expression.expression,
-//            distinctBy = distinctBy,
-//            sortColumns = sortColumns,
-//            flags = flags,
-//            preferredLanguage = preferredLanguage,
-//        )
-//
-//        val attemptTransformer = when (attempt) {
-//            0 -> null
-//            else -> attemptTransformers.getOrNull(attempt - 1) ?: return null
-//        }
-//
-//        searchQuery = attemptTransformer?.invoke(searchQuery) ?: searchQuery
-//
-//        return searchQuery.toPaginationValueQueryBuilder(
-//            config = config,
-//            distinctBy = distinctBy,
-//            id = id,
-//            sortColumns = sortColumns,
-//            sqlBuilder = SearchQuerySqlBuilder(
-//                affectedTables = customTables,
-//                apply = customBuilder
-//            ),
-//            applyCustomConditions = applyCustomConditions,
-//        )
-//    }
 }
 
 typealias SearchQueryTransformer<T> = (SearchQuery<T>) -> SearchQuery<T>?

@@ -14,6 +14,7 @@ class UuidColumnProperty(
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
+            format = "uuid"
             transform { value ->
                 try {
                     UUID.fromString(value.value)
