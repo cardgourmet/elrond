@@ -49,6 +49,6 @@ fun createMtgCollectionSearchQueryExecutor(providers: MtgValueProviders): Search
 
     return createMtgBaseBuilder(mtgSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(createMtgCollectionSearchQueryFilters())
-        .filters(createBasicMtgSearchQueryFilters(providers))
+        .filters(createBasicMtgSearchQueryFilters(providers) + defaultFilter)
         .build()
 }
