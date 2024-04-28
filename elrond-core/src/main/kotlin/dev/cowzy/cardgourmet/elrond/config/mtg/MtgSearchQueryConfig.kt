@@ -210,7 +210,7 @@ fun createMtgDefaultFilter(providers: MtgValueProviders): QueryFilter {
 }
 
 fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFilter> {
-    val layout = StringColumnProperty(MtgCard::layout, valueProvider = providers.layouts, mappings = StaticMtgProviders.mtgLayoutMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.LAYOUT))
+    val layout = StringColumnProperty(MtgCard::layout, valueProvider = providers.layouts, useStrictValues = true, mappings = StaticMtgProviders.mtgLayoutMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.LAYOUT))
 
     val types = StringArrayColumnProperty(MtgCardFace::types, valueProvider = providers.types, descriptor = IsPresentDescriptor(mtgPropertyKeys.TYPE))
     val superTypes = StringArrayColumnProperty(MtgCardFace::superTypes, valueProvider = providers.superTypes, descriptor = IsPresentDescriptor(mtgPropertyKeys.SUPER_TYPE))
