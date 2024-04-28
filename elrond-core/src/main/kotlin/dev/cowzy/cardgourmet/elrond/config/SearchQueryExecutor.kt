@@ -161,11 +161,12 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
         val valueProviders = valueDefinitions.mapNotNull { it.valueProvider }
         for (provider in valueProviders) {
-            val total = mappings.size + values.size
-            val remaining = amount - total
+            val remaining = amount - values.size
             if (remaining <= 0) break
             values.addAll(provider.getValues(remaining, query))
         }
+
+        mappings.removeIf { values.contains(it) }
 
         val takeMappings = minOf(amount, mappings.size)
         val takeValues = minOf(amount - takeMappings, values.size)
