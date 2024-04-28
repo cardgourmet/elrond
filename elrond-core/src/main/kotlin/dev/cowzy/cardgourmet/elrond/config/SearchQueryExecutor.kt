@@ -7,6 +7,8 @@ import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.values.DynamicStringValueProvider
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -87,8 +89,9 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val format: String?
     )
 
+    @Serializable
     data class FilterValues(
-        val mappings: List<String>,
+        val mappings: List<Pair<String, String>>,
         val values: List<String>,
     )
 
@@ -150,7 +153,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
             }
         }.flatten()
 
-        val mappings = mutableSetOf<String>()
+        val mappings = mutableSetOf<Pair<String, String>>()
         val values = mutableSetOf<String>()
 
         val mappingProviders = valueDefinitions.mapNotNull { it.mappingsProvider }
@@ -166,17 +169,25 @@ data class SearchQueryExecutor<T : Enum<T>>(
             values.addAll(provider.getValues(remaining, query))
         }
 
-        mappings.removeIf { values.contains(it) }
+        mappings.removeIf { values.contains(it.first) }
 
         val takeMappings = minOf(amount, mappings.size)
         val takeValues = minOf(amount - takeMappings, values.size)
 
-        return FilterValues(mappings.sorted().take(takeMappings), values.sorted().take(takeValues))
+        return FilterValues(mappings.sortedBy { it.first }.take(takeMappings), values.sorted().take(takeValues))
     }
 
-    private suspend fun <T : Pair<*, *>> ValueProvider<T>.getMappingValues(query: String?): Iterable<String> {
+    private suspend fun <T : Pair<*, *>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {
         val simpleQuery = query?.toSimpleString()
-        return this.getValues().filter { value -> simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true }.map { it.first.toString() }
+        return this.getValues().filter { value ->
+            simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true
+        }.map {
+            val value = it.second
+            it.first.toString() to when (value) {
+                is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
+                else -> value.toString()
+            }
+        }
     }
 
     private suspend fun <T> ValueProvider<T>.getValues(limit: Int, query: String?): Iterable<String> {
