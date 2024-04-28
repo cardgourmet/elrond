@@ -177,13 +177,14 @@ data class SearchQueryExecutor<T : Enum<T>>(
         return FilterValues(mappings.sortedBy { it.first }.take(takeMappings), values.sorted().take(takeValues))
     }
 
-    private suspend fun <T : Pair<*, *>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {
+    private suspend fun <T : Pair<*, Pair<*, SearchQueryOperator?>>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {
         val simpleQuery = query?.toSimpleString()
         return this.getValues().filter { value ->
             simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true
         }.map {
-            val value = it.second
-            it.first.toString() to when (value) {
+            val key = it.first.toString()
+            val value = it.second.first
+            key to when (value) {
                 is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
                 else -> value.toString()
             }
