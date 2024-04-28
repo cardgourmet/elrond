@@ -2,11 +2,13 @@ package dev.cowzy.cardgourmet.elrond
 
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
+import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
+import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlin.reflect.KClass
 
 class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -> Unit = {}) {
 
-    private val mappings = mutableMapOf<KClass<out QueryValue<*>>, QueryValueMapping<out QueryValue<*>, Output>>()
+    private val mappings = mutableMapOf<KClass<out QueryValue<*>>, QueryValueMapping<*, out QueryValue<*>, Output>>()
 
     val supportedValueTypes get() = mappings.keys
 
@@ -14,28 +16,36 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
         init.invoke(this)
     }
 
-    operator fun <Input, T : QueryValue<Input>> KClass<T>.invoke(init: QueryValueMappingBuilder<T, Output>.() -> Unit) {
-        val builder = QueryValueMappingBuilder<T, Output>(this).apply(init)
+    operator fun <Value : Any, Input : QueryValue<Value>> KClass<Input>.invoke(init: QueryValueMappingBuilder<Value, Input, Output>.() -> Unit) {
+        val builder = QueryValueMappingBuilder<Value, Input, Output>(this).apply(init)
         mappings[this] = builder.build()
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : QueryValue<*>> getMapping(type: KClass<T>): QueryValueMapping<T, Output> {
-        return mappings[type]!! as QueryValueMapping<T, Output>
+    fun <Input : QueryValue<*>> getDefinition(type: KClass<Input>): QueryValueMapping<*, Input, Output> {
+        return mappings[type]!! as QueryValueMapping<*, Input, Output>
     }
 
 }
 
-data class QueryValueMapping<Input : QueryValue<*>, Output>(
+data class QueryValueMapping<Value : Any, Input : QueryValue<Value>, Output>(
     val transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>?,
     val match: suspend (Output) -> Boolean,
     val display: suspend (Output, LocalizationService, UserLanguage) -> String,
     val format: String?,
+    val valueProvider: ValueProvider<Value>?,
+    val useStrictValues: Boolean,
+    val mappingsProvider: ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>?,
 )
 
-class QueryValueMappingBuilder<Input : QueryValue<*>, Output : Any>(private val type: KClass<Input>) {
+class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : Any>(private val type: KClass<Input>) {
 
     var format: String? = null
+    var pattern: String? = null
+
+    var mappingsProvider: ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>? = null
+    var valueProvider: ValueProvider<Value>? = null
+    var useStrictValues: Boolean = false
 
     private var transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>? = { it, operator ->
         try {
@@ -74,11 +84,63 @@ class QueryValueMappingBuilder<Input : QueryValue<*>, Output : Any>(private val 
         this.display = transform
     }
 
+    fun values(values: Iterable<Value>, strict: Boolean = true) = values(StaticValueProvider(values.toSet()), strict)
+
+    fun values(valueProvider: ValueProvider<Value>?, strict: Boolean = true) {
+        this.valueProvider = valueProvider
+        this.useStrictValues = valueProvider != null && strict
+    }
+
+    fun mappings(mappings: Map<Value, Output>?) {
+        if (mappings == null) return
+        mappings(StaticValueProvider(mappings.entries.map { it.key to it.value }.toSet()))
+    }
+
+    fun mappings(mappings: Iterable<Pair<Value, Output>>?) {
+        if (mappings == null) return
+        mappings(StaticValueProvider(mappings.toSet()))
+    }
+
+    fun mappings(mappingsProvider: ValueProvider<Pair<Value, Output>>?) {
+        if (mappingsProvider == null) return
+        mappingsWithOperator(WrapOperatorValueProvider(mappingsProvider))
+    }
+
+    fun mappingsWithOperator(mappings: Map<Value, Pair<Output, SearchQueryOperator?>>?) {
+        if (mappings == null) return
+        this.mappingsProvider = StaticValueProvider(mappings.entries.map { it.toPair() }.toSet())
+    }
+
+    fun mappingsWithOperator(mappingsProvider: ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>?) {
+        if (mappingsProvider == null) return
+        this.mappingsProvider = mappingsProvider
+    }
+
     internal fun build() = QueryValueMapping(
         transform = transform,
         match = match,
         display = display,
-        format = format
+        format = format,
+        valueProvider = valueProvider,
+        useStrictValues = useStrictValues,
+        mappingsProvider = mappingsProvider
     )
 
+}
+
+class WrapOperatorValueProvider<Value, Output>(private val valueProvider: ValueProvider<Pair<Value, Output>>) : ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>> {
+    override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (it.second to null as SearchQueryOperator?) }.toSet()
+}
+
+inline fun <reified T : Enum<T>> enumToMappings(findKeywords: ((T) -> List<String>)): Map<String, T> {
+    val values = enumValues<T>()
+    return values.map { value ->
+        val keywords = findKeywords(value)
+        keywords.map { keyword ->
+            when {
+                keyword.contains("_") -> listOf(keyword.replace("_", "") to value, keyword to value)
+                else -> listOf(keyword to value)
+            }
+        }.flatten()
+    }.flatten().toMap()
 }

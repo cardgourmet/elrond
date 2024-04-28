@@ -3,12 +3,10 @@ package dev.cowzy.cardgourmet.elrond.config
 import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.property.Mappable
-import dev.cowzy.cardgourmet.elrond.property.ValueProvided
 import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.values.DynamicStringValueProvider
+import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlinx.serialization.Serializable
-import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -101,7 +99,9 @@ data class SearchQueryExecutor<T : Enum<T>>(
             var providesValues = false
 
             val properties = filter.properties.map { property ->
-                val valueTypes = property.valueDefinition.supportedValueTypes.mapNotNull { type ->
+                val valueDefinitions = property.valueDefinition.supportedValueTypes.associateWith { property.valueDefinition.getDefinition(it) }
+
+                val valueTypes = valueDefinitions.mapNotNull { (type, definition) ->
                     val valueType = when (type) {
                         StringValue::class -> "string"
                         NumberValue::class -> "number"
@@ -109,18 +109,24 @@ data class SearchQueryExecutor<T : Enum<T>>(
                         else -> return@mapNotNull null
                     }
 
-                    ValueType(valueType, property.valueDefinition.getMapping(type).format)
+                    ValueType(valueType, definition.format)
                 }
 
                 val operators = property.supportedOperators.map { it.value }
 
-                if (property is Mappable<*> && property.mappings.any()) {
-                    providesValues = true
-                }
+                valueDefinitions.values.forEach { definition ->
+                    val mappings = definition.mappingsProvider
+                    if (mappings != null) {
+                        providesValues = true
+                    }
 
-                if (property is ValueProvided) {
-                    providesValues = providesValues || property.valueProvider != null
-                    allowsAnyValue = allowsAnyValue || (property.valueProvider == null || property.allowAnyValue)
+                    val valueProvider = definition.valueProvider
+                    if (valueProvider != null) {
+                        providesValues = true
+                        allowsAnyValue = allowsAnyValue || !definition.useStrictValues
+                    } else {
+                        allowsAnyValue = true
+                    }
                 }
 
                 SearchQueryProperty(property.key, valueTypes, operators)
@@ -133,30 +139,41 @@ data class SearchQueryExecutor<T : Enum<T>>(
     suspend fun getFilterValues(keyword: String, amount: Int, query: String?): List<String>? {
         val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
 
-        val mappables = filter.properties.filterIsInstance<Mappable<*>>()
-        val valueProperties = filter.properties.filterIsInstance<ValueProvided>()
-        val valueProviders = valueProperties.mapNotNull { it.valueProvider }
+        val valueDefinitions = filter.properties.map { property ->
+            property.valueDefinition.supportedValueTypes.map { type ->
+                property.valueDefinition.getDefinition(type)
+            }
+        }.flatten()
 
         val values = mutableListOf<String>()
 
-        // First, add all mappings.
-        for (mappable in mappables) {
+        val mappingProviders = valueDefinitions.mapNotNull { it.mappingsProvider }
+        for (provider in mappingProviders) {
             if (values.size >= amount) break
-            val keys = mappable.mappings.keys.filter { value -> query?.let { value.toSimpleString().contains(it.toSimpleString()) } ?: true }
-            values.addAll(keys)
+            values.addAll(provider.getMappingValues(query))
         }
 
-        // Now add provider values.
+        val valueProviders = valueDefinitions.mapNotNull { it.valueProvider }
         for (provider in valueProviders) {
             if (values.size >= amount) break
             val remaining = amount - values.size
-            when (provider) {
-                is DynamicStringValueProvider -> values.addAll(provider.getValues(remaining, query))
-                else -> values.addAll(provider.getValues().filter { value -> query?.let { value.toSimpleString().contains(it.toSimpleString()) } ?: true })
-            }
+            values.addAll(provider.getValues(remaining, query))
         }
 
         return values.sorted().take(amount)
+    }
+
+    private suspend fun <T : Pair<*, *>> ValueProvider<T>.getMappingValues(query: String?): Iterable<String> {
+        val simpleQuery = query?.toSimpleString()
+        return this.getValues().filter { value -> simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true }.map { it.toString() }
+    }
+
+    private suspend fun <T> ValueProvider<T>.getValues(limit: Int, query: String?): Iterable<String> {
+        val simpleQuery = query?.toSimpleString()
+        return when (this) {
+            is DynamicStringValueProvider -> this.getValues(limit, query)
+            else -> this.getValues().filter { value -> simpleQuery?.let { value.toString().toSimpleString().contains(it) } ?: true }.map { it.toString() }
+        }
     }
 }
 

@@ -7,35 +7,21 @@ import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgLanguage
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
-import dev.cowzy.cardgourmet.elrond.property.Mappable
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.kuery.query.orWhere
 import kotlin.reflect.KProperty1
 
 class MtgPrintLanguageProperty(
     private val languagesColumn: KProperty1<*, *>,
-    private vararg val languageColumns: KProperty1<*, *>,
-    override val mappings: Map<String, String> = emptyMap()
+    private vararg val languageColumns: KProperty1<*, *>
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table(), *languageColumns.map { it.table() }.toTypedArray()),
     descriptor = EqualsDescriptor(propertyKey = Strings.Query.Property.LANGUAGE),
-), Mappable<String> {
+) {
 
-    override val valueDefinition = QueryValueDefinition {
-        StringValue::class {
-            transform { value ->
-                val transformed = mappings.entries.find { it.key.equals(value.value, ignoreCase = true) }?.value ?: value.value
-                MtgLanguage.values().find { it.getSerialName().equals(transformed, ignoreCase = true) }
-            }
-
-            display { language, i18n, locale ->
-                i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${(language as MtgLanguage).getSerialName()}")
-            }
-        }
-    }
+    override val valueDefinition = mtgPrintLanguageValueDefinition
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
@@ -53,4 +39,15 @@ class MtgPrintLanguageProperty(
         }
     }
 
+}
+
+val mtgPrintLanguageValueDefinition = QueryValueDefinition {
+    StringValue::class {
+        mappings(enumToMappings<MtgLanguage> { it.aliases })
+        values(MtgLanguage.values().map { it.getSerialName() })
+
+        display { language, i18n, locale ->
+            i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${(language as MtgLanguage).getSerialName()}")
+        }
+    }
 }

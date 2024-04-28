@@ -11,22 +11,16 @@ import kotlin.reflect.KProperty1
 
 class YearByMappingProperty(
     val column: KProperty1<*, *>,
-    override val valueProvider: ValueProvider<String>,
-    override val allowAnyValue: Boolean = true,
-    private val mappingProvider: ValueProvider<Pair<String, LocalDate>>,
+    mappingProvider: ValueProvider<Pair<String, Int>>,
     propertyKey: String,
 ) : SearchQueryProperty<Int>(
     supportedOperators = numericQueryOperators,
     affectedTables = arrayOf(column.table()),
     descriptor = NumericDescriptor(propertyKey)
-), ValueProvided {
+) {
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
-            transform { value ->
-                val matchedValue = matchValue(value.value)
-                val mapping = mappingProvider.getValues().find { it.first.equals(matchedValue, ignoreCase = true) } ?: return@transform null
-                mapping.second.year
-            }
+            mappings(mappingProvider)
             display { it, _, _ -> "`$it`" }
         }
     }

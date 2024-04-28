@@ -164,11 +164,47 @@ suspend fun String.parseQueryExpression(
                 val propertyCandidates = filter.properties.mapNotNull inner@{ prop ->
                     if (!prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }) return@inner null
 
-                    val mapping = prop.valueDefinition.getMapping(value::class) as QueryValueMapping<QueryValue<*>, Any>
+                    val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
+
+                    val mappingsProvider = definition.mappingsProvider
+                    if (mappingsProvider != null) {
+                        val mapping = mappingsProvider.getValues().find {
+                            when (value) {
+                                is StringValue -> it.first.toString().equals(value.value, true)
+                                else -> it.first == value.value
+                            }
+                        }
+
+                        if (mapping != null) {
+                            return@inner prop to mapping.second
+                        }
+                    }
+
+                    var localValue = value
+                    val valueProvider = definition.valueProvider
+                    if (valueProvider != null) {
+                        val matchingValue = valueProvider.getValues().find {
+                            when (value) {
+                                is StringValue -> it.toString().equals(value.value, true)
+                                else -> it == value.value
+                            }
+                        }
+
+                        if (matchingValue != null) {
+                            localValue = when (value) {
+                                is StringValue -> StringValue(matchingValue as String, exact = true)
+                                is RegexValue -> RegexValue(matchingValue as Regex)
+                                is NumberValue -> NumberValue(matchingValue as Number)
+                                else -> throw UnsupportedOperationException()
+                            }
+                        }
+
+                        if (definition.useStrictValues) return@inner null
+                    }
 
                     try {
-                        val transformedValue = mapping.transform(value, expressionOperator)
-                        if (transformedValue == null || !mapping.match(transformedValue.first)) return@inner null
+                        val transformedValue = definition.transform(localValue, expressionOperator)
+                        if (transformedValue == null || !definition.match(transformedValue.first)) return@inner null
                         return@inner prop to transformedValue
                     } catch (ex: Exception) {
                         return@inner null
@@ -211,8 +247,8 @@ suspend fun String.parseQueryExpression(
                 ValueLeafQueryExpression(
                     filter,
                     matchingProperty.first as SearchQueryProperty<Any>,
-                    matchingProperty.second.second,
-                    matchingProperty.first.valueDefinition.getMapping(value::class) as QueryValueMapping<QueryValue<*>, Any>,
+                    matchingProperty.second.second ?: expressionOperator,
+                    matchingProperty.first.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>,
                     matchingProperty.second.first,
                     negated,
                     "$negate$property$operator$raw"

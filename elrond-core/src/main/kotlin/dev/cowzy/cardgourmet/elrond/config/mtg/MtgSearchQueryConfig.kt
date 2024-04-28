@@ -20,6 +20,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
+import dev.cowzy.cardgourmet.elrond.values.DataYearMappingProvider
 import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
 import dev.cowzy.cardgourmet.elrond.values.mtg.*
 import dev.cowzy.cardgourmet.farbeagle.model.CardImage
@@ -138,7 +139,7 @@ private val edhrecRank = NumericColumnProperty(MtgCard::edhrecRank, propertyKey 
 // String properties
 private val setName = StringColumnProperty(MtgSet::name, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_NAME))
 private val setType = StringColumnProperty(MtgSet::type, mapContainsToEquals = true, descriptor = StringDescriptor(mtgPropertyKeys.SET_TYPE))
-private val typeLine = StringColumnProperty(MtgCardFaceTranslation::typeLine, simpleColumn = MtgCardFaceTranslation::simpleTypeLine, allowAnyValue = true, descriptor = StringDescriptor(mtgPropertyKeys.TYPE_LINE))
+private val typeLine = StringColumnProperty(MtgCardFaceTranslation::typeLine, simpleColumn = MtgCardFaceTranslation::simpleTypeLine, useStrictValues = true, descriptor = StringDescriptor(mtgPropertyKeys.TYPE_LINE))
 private val oracleText = MtgOracleTextProperty(MtgCardFaceTranslation::oracleText, MtgCardFaceTranslation::simpleOracleText, descriptor = StringDescriptor(propertyKeys.TEXT))
 private val fullOracleText = MtgOracleTextProperty(MtgCardFaceTranslation::fullOracleText, MtgCardFaceTranslation::simpleFullOracleText, descriptor = StringDescriptor(propertyKeys.TEXT_WITH_REMINDERS))
 private val flavorName = StringColumnProperty(MtgPrintFaceTranslation::flavorName, simpleColumn = MtgPrintFaceTranslation::simpleFlavorName, descriptor = StringDescriptor(mtgPropertyKeys.FLAVOR_NAME))
@@ -164,8 +165,8 @@ private val indicator = MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, 
 private val identity = MtgManaArrayColumnProperty(MtgCard::colorIdentity, mapContainsToLessThanOrEquals = true, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))
 private val rarity = MtgRarityProperty()
 private val releaseDate = DateProperty(MtgPrint::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
-private val printLanguage = MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, mappings = StaticMtgProviders.mtgLanguageMappings)
-private val printLanguages = MtgPrintLanguagesProperty(MtgPrint::languages, mappings = StaticMtgProviders.mtgLanguageMappings)
+private val printLanguage = MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language)
+private val printLanguages = MtgPrintLanguagesProperty(MtgPrint::languages)
 private val manaDisplay = MtgManaDisplayProperty()
 private val devotion = MtgDevotionProperty()
 
@@ -227,8 +228,8 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
 
     val setCode = StringColumnProperty(MtgSet::code, valueProvider = providers.setCodes, mappings = mapOf("plist" to "plst", "ulist" to "ulst"), descriptor = StringDescriptor(propertyKeys.SET_CODE))
 
-    val printReleaseDateBySet = DateByMappingProperty(MtgPrint::releaseDate, valueProvider = providers.setCodes, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
-    val printReleaseYearBySet = YearByMappingProperty(MtgPrint::releaseDate, valueProvider = providers.setCodes, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
+    val printReleaseDateBySet = DateByMappingProperty(MtgPrint::releaseDate, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
+    val printReleaseYearBySet = YearByMappingProperty(MtgPrint::releaseDate, mappingProvider = DataYearMappingProvider(providers.setReleaseDates), propertyKey = propertyKeys.RELEASE_YEAR)
 
     val frameEffects = StringArrayColumnProperty(MtgPrint::frameEffects, valueProvider = providers.frameEffects, mappings = StaticMtgProviders.mtgFrameEffectMappings, descriptor = IsPresentDescriptor(mtgPropertyKeys.FRAME_EFFECT))
     val frame = StringColumnProperty(MtgPrint::frame, mapContainsToEquals = true, valueProvider = providers.frames, descriptor = StringDescriptor(mtgPropertyKeys.FRAME))

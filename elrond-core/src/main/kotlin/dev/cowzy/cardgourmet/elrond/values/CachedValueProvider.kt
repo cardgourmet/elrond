@@ -12,7 +12,7 @@ abstract class CachedValueProvider<T>(private val ttl: Long = 3600) : ValueProvi
     private val isDirty get() = (System.currentTimeMillis() - lastFetch) > (ttl * 1000)
     private var lastFetch: Long = 0
 
-    override suspend fun getValues() = mutex.withLock {
+    override suspend fun getValues(): Iterable<T> = mutex.withLock {
         if (isDirty) {
             cache.clear()
             cache.addAll(fetchValues())

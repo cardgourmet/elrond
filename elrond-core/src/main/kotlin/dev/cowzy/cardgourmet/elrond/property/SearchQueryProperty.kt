@@ -42,28 +42,3 @@ abstract class SearchQueryProperty<OutputType : Any>(
     ) = Unit
 
 }
-
-interface ValueProvided {
-
-    val valueProvider: ValueProvider<String>?
-    val allowAnyValue: Boolean
-
-    suspend fun matchValue(value: String): String? {
-        val provider = valueProvider
-
-        return when {
-            allowAnyValue -> value
-            provider != null -> provider.getValues().find { it.equals(value, ignoreCase = true) }
-            else -> value
-        }
-    }
-
-}
-
-interface Mappable<T> {
-
-    val mappings: Map<String, T>
-
-    fun mapValue(value: String) = mappings[value]
-
-}

@@ -8,32 +8,19 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
-import dev.cowzy.cardgourmet.elrond.property.Mappable
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import kotlin.reflect.KProperty1
 
 class MtgPrintLanguagesProperty(
-    private val languagesColumn: KProperty1<*, *>,
-    override val mappings: Map<String, String> = emptyMap()
+    private val languagesColumn: KProperty1<*, *>
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table()),
     descriptor = AvailableInDescriptor(Strings.Query.Property.PRINT),
     key = "language"
-), Mappable<String> {
+) {
 
-    override val valueDefinition = QueryValueDefinition {
-        StringValue::class {
-            transform { value ->
-                val transformed = mappings.entries.find { it.key.equals(value.value, ignoreCase = true) }?.value ?: value.value
-                MtgLanguage.values().find { it.getSerialName().equals(transformed, ignoreCase = true) }
-            }
-
-            display { language, i18n, locale ->
-                i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${(language as MtgLanguage).getSerialName()}")
-            }
-        }
-    }
+    override val valueDefinition = mtgPrintLanguageValueDefinition
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,

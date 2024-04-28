@@ -11,9 +11,9 @@ import kotlin.reflect.KProperty1
 
 open class StringColumnProperty(
     protected val column: KProperty1<*, *>,
-    override val valueProvider: ValueProvider<String>? = null,
-    override val allowAnyValue: Boolean = false,
-    override val mappings: Map<String, String> = emptyMap(),
+    valueProvider: ValueProvider<String>? = null,
+    useStrictValues: Boolean = false,
+    mappings: Map<String, String>? = null,
     private val simpleColumn: KProperty1<*, *>? = null,
     mapContainsToEquals: Boolean = false,
     descriptor: PropertyDescriptor,
@@ -22,25 +22,18 @@ open class StringColumnProperty(
     affectedTables = arrayOf(column.table()),
     descriptor = descriptor,
     mapContainsToEquals = mapContainsToEquals
-), ValueProvided, Mappable<String> {
+) {
 
     override val valueDefinition = QueryValueDefinition<QueryValue<*>> {
         StringValue::class {
+            mappings(mappings?.map { it.key to StringValue(it.value) })
+            values(valueProvider, useStrictValues)
+
             transform {
-                val value = mappings.entries.find { (key, _) ->
-                    key.equals(it.value, ignoreCase = true)
-                }?.let { match ->
-                    StringValue(match.value)
-                } ?: it
-
                 return@transform when {
-                    simpleColumn == null || value.exact -> value
-                    else -> StringValue(value.value.toSimpleString())
+                    simpleColumn == null || it.exact -> it
+                    else -> StringValue(it.value.toSimpleString())
                 }
-            }
-
-            match { value ->
-                matchValue(value.value.toString()) != null
             }
 
             display { value, _, _ ->

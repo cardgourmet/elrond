@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property.mtg
 import dev.cowzy.cardgourmet.commons.catalogue.MtgRarity
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
@@ -16,6 +17,9 @@ class MtgRarityProperty : SearchQueryProperty<MtgRarity>(
 
     override val valueDefinition = QueryValueDefinition<MtgRarity> {
         StringValue::class {
+            mappings(enumToMappings<MtgRarity> { it.keywords.toList() })
+            values(MtgRarity.values().map { it.getSerialName() })
+
             transform { value ->
                 MtgRarity.values().find { it.keywords.any { keyword -> keyword.equals(value.value, ignoreCase = true) } }
             }
