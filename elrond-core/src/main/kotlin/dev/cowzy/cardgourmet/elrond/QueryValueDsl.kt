@@ -132,9 +132,12 @@ class WrapOperatorValueProvider<Value, Output>(private val valueProvider: ValueP
     override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (it.second to null as SearchQueryOperator?) }.toSet()
 }
 
-inline fun <reified T : Enum<T>> enumToMappings(findKeywords: ((T) -> List<String>)): Map<String, T> {
-    val values = enumValues<T>()
-    return values.map { value ->
+inline fun <reified T : Enum<T>> enumToMappings(findKeywords: (T) -> List<String>): Map<String, T> {
+    return enumToMappings(enumValues<T>(), findKeywords)
+}
+
+inline fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: (T) -> List<String>): Map<String, T> {
+    return enumValues.map { value ->
         val keywords = findKeywords(value)
         keywords.map { keyword ->
             when {

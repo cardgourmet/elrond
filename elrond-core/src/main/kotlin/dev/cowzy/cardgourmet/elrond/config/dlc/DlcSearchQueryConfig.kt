@@ -48,8 +48,8 @@ private val loreValue = NumericColumnProperty(DlcCard::loreValue, propertyKey = 
 private val classificationCount = ArrayCardinalityProperty(DlcCard::classifications, propertyKey = dlcPropertyKeys.CLASSIFICATION_COUNT)
 private val keywordCount = ArrayCardinalityProperty(DlcCard::keywords, propertyKey = propertyKeys.KEYWORD_COUNT)
 private val collectorNumberValue = NumericColumnProperty(DlcPrint::collectorNumberValue, propertyKey = propertyKeys.COLLECTOR_NUMBER)
-private val releaseYear = YearOfDateProperty(DlcSet::releaseDate, descriptorSubjectKey = propertyKeys.RELEASE_YEAR)
-private val marketReleaseYear = YearOfDateProperty(DlcSet::marketReleaseDate, descriptorSubjectKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+private val releaseYear = YearOfDateProperty(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR)
+private val marketReleaseYear = YearOfDateProperty(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
 // TODO: ability count
 // TODO: reprint count
 // TODO: set count

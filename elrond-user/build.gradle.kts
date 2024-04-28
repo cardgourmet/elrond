@@ -1,6 +1,7 @@
 val artifactVersion: String by project
 val ktorVersion: String by project
 val logbackVersion: String by project
+val commonsVersion: String by project
 
 plugins {
     kotlin("jvm") version "1.8.21"
@@ -10,9 +11,9 @@ plugins {
 
 dependencies {
     implementation(project(":elrond-core"))
-    implementation("dev.cowzy.cardgourmet:commons-core:0.10.+")
-    implementation("dev.cowzy.cardgourmet:commons-user:0.10.+")
-    implementation("dev.cowzy.cardgourmet:commons-auth:0.10.+")
+    implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
+    implementation("dev.cowzy.cardgourmet:commons-user:$commonsVersion")
+    implementation("dev.cowzy.cardgourmet:commons-auth:$commonsVersion")
     implementation("dev.cowzy.cardgourmet:chef-tagger:0.+")
     implementation("dev.cowzy.cardgourmet:chef-farbeagle:0.+")
     implementation("dev.cowzy:kuery-orm:0.3.+")
