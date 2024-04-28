@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.config
 
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.cardgourmet.elrond.*
@@ -186,6 +187,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
             val value = it.second.first
             key to when (value) {
                 is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
+                is Enum<*> -> value.getSerialName()
                 else -> value.toString()
             }
         }
