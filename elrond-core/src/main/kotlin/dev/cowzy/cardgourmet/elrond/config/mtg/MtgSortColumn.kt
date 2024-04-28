@@ -10,7 +10,7 @@ enum class MtgSortColumn(override val keyword: String, override val properties: 
     NAME("name", MtgCardFaceTranslation::sortName),
     RARITY("rarity", MtgPrint::rarity),
     SET_CODE("set_code", MtgPrint::setCode),
-    COLLECTOR_NUMBER("collector_number", arrayOf(MtgPrint::collectorNumber, MtgPrint::collectorNumberValue)),
+    COLLECTOR_NUMBER("collector_number", arrayOf(MtgPrint::collectorNumberValue, MtgPrint::collectorNumber)),
     MANA_VALUE("mana_value", MtgCardFace::manaValue),
     COLOR("colors", MtgCardFace::colorSort),
     POWER("power", arrayOf(MtgCardFace::powerValue, MtgCardFace::powerDisplay)),
