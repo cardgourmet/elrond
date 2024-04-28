@@ -87,6 +87,11 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val format: String?
     )
 
+    data class FilterValues(
+        val mappings: List<String>,
+        val values: List<String>,
+    )
+
     fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
         val filters = this.filters.filter { filter ->
             query?.let { query ->
@@ -136,7 +141,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
         }.sortedBy { it.keywords.first() }
     }
 
-    suspend fun getFilterValues(keyword: String, amount: Int, query: String?): List<String>? {
+    suspend fun getFilterValues(keyword: String, amount: Int, query: String?): FilterValues? {
         val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
 
         val valueDefinitions = filter.properties.map { property ->
@@ -145,22 +150,27 @@ data class SearchQueryExecutor<T : Enum<T>>(
             }
         }.flatten()
 
-        val values = mutableListOf<String>()
+        val mappings = mutableSetOf<String>()
+        val values = mutableSetOf<String>()
 
         val mappingProviders = valueDefinitions.mapNotNull { it.mappingsProvider }
         for (provider in mappingProviders) {
-            if (values.size >= amount) break
-            values.addAll(provider.getMappingValues(query))
+            if (mappings.size >= amount) break
+            mappings.addAll(provider.getMappingValues(query))
         }
 
         val valueProviders = valueDefinitions.mapNotNull { it.valueProvider }
         for (provider in valueProviders) {
-            if (values.size >= amount) break
-            val remaining = amount - values.size
+            val total = mappings.size + values.size
+            val remaining = amount - total
+            if (remaining <= 0) break
             values.addAll(provider.getValues(remaining, query))
         }
 
-        return values.sorted().take(amount)
+        val takeMappings = minOf(amount, mappings.size)
+        val takeValues = minOf(amount - takeMappings, values.size)
+
+        return FilterValues(mappings.sorted().take(takeMappings), values.sorted().take(takeValues))
     }
 
     private suspend fun <T : Pair<*, *>> ValueProvider<T>.getMappingValues(query: String?): Iterable<String> {
