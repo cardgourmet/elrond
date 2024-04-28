@@ -1,7 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.QueryValue
 import dev.cowzy.cardgourmet.elrond.QueryValueMapping
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
@@ -30,7 +29,7 @@ class ValueLeafQueryExpression(
     filter: QueryFilter,
     property: SearchQueryProperty<Any>,
     operator: SearchQueryOperator,
-    val valueMapping: QueryValueMapping<*, Any>?,
+    val valueMapping: QueryValueMapping<*, *, Any>?,
     val value: Any,
     negate: Boolean,
     rawValue: String? = null
