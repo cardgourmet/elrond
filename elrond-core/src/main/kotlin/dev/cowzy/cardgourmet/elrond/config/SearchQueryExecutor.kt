@@ -175,7 +175,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
     private suspend fun <T : Pair<*, *>> ValueProvider<T>.getMappingValues(query: String?): Iterable<String> {
         val simpleQuery = query?.toSimpleString()
-        return this.getValues().filter { value -> simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true }.map { it.toString() }
+        return this.getValues().filter { value -> simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true }.map { it.first.toString() }
     }
 
     private suspend fun <T> ValueProvider<T>.getValues(limit: Int, query: String?): Iterable<String> {
