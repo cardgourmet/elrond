@@ -36,7 +36,7 @@ open class StringColumnProperty(
                 }
             }
 
-            display { value, _, _ -> "\"$value\"" }
+            display { value, _, _ -> "\"${value.value}\"" }
         }
 
         RegexValue::class {
