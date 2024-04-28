@@ -36,13 +36,7 @@ open class StringColumnProperty(
                 }
             }
 
-            display { value, _, _ ->
-                val displayValue = valueProvider?.getValues()?.first {
-                    it.equals(value.value.toString(), ignoreCase = true)
-                } ?: value.value.toString()
-
-                return@display "\"$displayValue\""
-            }
+            display { value, _, _ -> "\"$value\"" }
         }
 
         RegexValue::class {
