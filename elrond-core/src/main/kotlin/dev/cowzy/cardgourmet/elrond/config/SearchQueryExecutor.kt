@@ -188,6 +188,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
             key to when (value) {
                 is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
                 is Enum<*> -> value.getSerialName()
+                is QueryValue<*> -> value.value.toString()
                 else -> value.toString()
             }
         }
