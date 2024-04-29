@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.elrond.config.pcg
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
-import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetTranslation
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
@@ -60,7 +59,7 @@ fun createPcgBaseBuilder(
         .fallbackFilter(fallbackFilter)
         .flags(*PcgSearchQueryFlag.values())
         .customTables {
-            setOf(CardImage::class, PcgSet::class, PcgSetTranslation::class)
+            setOf(CardImage::class, PcgSet::class, PcgCardTranslation::class)
         }
         .customBuilder(builder)
         .transformAttempt {
