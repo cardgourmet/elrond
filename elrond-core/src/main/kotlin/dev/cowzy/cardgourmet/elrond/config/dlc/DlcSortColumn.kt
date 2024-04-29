@@ -7,8 +7,10 @@ import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.SortColumnDefinition
 import kotlin.reflect.KProperty1
 
-enum class DlcSortColumn(override val keyword: String, override val properties: Array<KProperty1<*, *>>) :
-    dev.cowzy.cardgourmet.elrond.SortColumnDefinition {
+enum class DlcSortColumn(
+    override val keyword: String,
+    override val properties: Array<KProperty1<*, *>>
+) : SortColumnDefinition {
 
     NAME("name", DlcCardTranslation::simpleName),
 //    RARITY("rarity", MtgPrint::rarity),

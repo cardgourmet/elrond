@@ -109,7 +109,7 @@ private val defenseValue = NumericColumnProperty(MtgCardFace::defenseValue, prop
 private val powerToughnessValue = NumericColumnProperty(MtgCardFace::powerValue, MtgCardFace::toughnessValue, propertyKey = mtgPropertyKeys.COMBINED_POWER_TOUGHNESS)
 private val faceCount = NumericColumnProperty(MtgCard::faceCount, propertyKey = propertyKeys.FACE_COUNT)
 private val faceNumber = NumericColumnProperty(MtgCardFace::index, offset = 1.0, propertyKey = propertyKeys.FACE_NUMBER)
-private val releaseYear = YearOfDateProperty(MtgPrint::releaseDate, descriptorSubjectKey = propertyKeys.RELEASE_YEAR)
+private val releaseYear = YearOfDateProperty(MtgPrint::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR)
 private val printCount = MtgPrintCountProperty()
 private val paperPrintCount = MtgPaperPrintCountProperty()
 private val setCount = MtgSetCountProperty()

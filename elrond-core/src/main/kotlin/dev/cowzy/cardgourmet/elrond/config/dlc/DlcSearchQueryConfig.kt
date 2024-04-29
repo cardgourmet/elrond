@@ -48,8 +48,8 @@ private val loreValue = NumericColumnProperty(DlcCard::loreValue, propertyKey = 
 private val classificationCount = ArrayCardinalityProperty(DlcCard::classifications, propertyKey = dlcPropertyKeys.CLASSIFICATION_COUNT)
 private val keywordCount = ArrayCardinalityProperty(DlcCard::keywords, propertyKey = propertyKeys.KEYWORD_COUNT)
 private val collectorNumberValue = NumericColumnProperty(DlcPrint::collectorNumberValue, propertyKey = propertyKeys.COLLECTOR_NUMBER)
-private val releaseYear = YearOfDateProperty(DlcSet::releaseDate, descriptorSubjectKey = propertyKeys.RELEASE_YEAR)
-private val marketReleaseYear = YearOfDateProperty(DlcSet::marketReleaseDate, descriptorSubjectKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+private val releaseYear = YearOfDateProperty(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR)
+private val marketReleaseYear = YearOfDateProperty(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
 // TODO: ability count
 // TODO: reprint count
 // TODO: set count
@@ -126,14 +126,17 @@ fun createBasicDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFi
         QueryFilter(arrayOf("franchise"), franchise),
         QueryFilter(arrayOf("is:inkwell"), inkwell),
         QueryFilter(arrayOf("not:inkwell"), inkwell, inverted = true),
-        QueryFilter(arrayOf("tag", "tags", "is", "has"), type, classifications), // TODO: print properties
-        QueryFilter(arrayOf("not"), type, classifications, inverted = true), // TODO: print properties
+        QueryFilter(arrayOf("tag", "tags", "is", "has"), type, classifications),
+        QueryFilter(arrayOf("not"), type, classifications, inverted = true),
         QueryFilter(arrayOf("print", "printid"), printId),
         QueryFilter(arrayOf("card", "cardid", "oracleid"), cardId),
-        // TODO: lang/langs
+
         // TODO: new/in
-        // TODO: is:promo/not:promo
+        // TODO: is/has/not properties
+        // TODO: lang/langs
         // TODO: rarity
+        // TODO: prints/sets (reprints)
+        // TODO: new/in
     )
 }
 
