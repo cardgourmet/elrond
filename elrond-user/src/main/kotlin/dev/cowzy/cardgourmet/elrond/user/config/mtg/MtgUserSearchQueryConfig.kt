@@ -18,7 +18,6 @@ import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
 import dev.cowzy.cardgourmet.elrond.property.ArrayCardinalityProperty
 import dev.cowzy.cardgourmet.elrond.property.StringArrayColumnProperty
 import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
-import dev.cowzy.cardgourmet.elrond.property.mtg.MtgNameProperty
 import dev.cowzy.cardgourmet.elrond.property.mtg.MtgUserNameProperty
 import dev.cowzy.cardgourmet.elrond.user.config.createCollectionSearchQueryFilters
 import dev.cowzy.cardgourmet.elrond.user.property.mtg.MtgUserCardFoilProperty

@@ -28,6 +28,13 @@ private val setPrints = NumericColumnProperty(PcgSet::printedPublicly, propertyK
 private val totalSetPrints = NumericColumnProperty(PcgSet::printedTotal, propertyKey = "DUMMY") // TODO
 private val startReleaseYear = YearOfDateProperty(PcgSet::releaseStartDate, propertyKey = propertyKeys.RELEASE_YEAR)
 private val endReleaseYear = YearOfDateProperty(PcgSet::releaseEndDate, propertyKey = propertyKeys.RELEASE_YEAR) // TODO: custom property key
+private val artistCount = ArrayCardinalityProperty(PcgPrint::illustrators, propertyKey = "DUMMY") // TODO
+private val energyTypeCount = ArrayCardinalityProperty(PcgPrint::illustrators, propertyKey = "DUMMY") // TODO
+private val abilityTypeCount = ArrayCardinalityProperty(PcgCard::abilityTypes, propertyKey = "DUMMY") // TODO
+private val effectTypeCount = ArrayCardinalityProperty(PcgCard::effectTypes, propertyKey = "DUMMY") // TODO
+private val ruleTypeCount = ArrayCardinalityProperty(PcgCard::ruleTypes, propertyKey = "DUMMY") // TODO
+private val weaknessTypeCount = ArrayCardinalityProperty(PcgCard::weaknessTypes, propertyKey = "DUMMY") // TODO
+private val resistanceTypeCount = ArrayCardinalityProperty(PcgCard::resistanceTypes, propertyKey = "DUMMY") // TODO
 
 // Strings
 private val collectorNumber = StringColumnProperty(PcgPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
@@ -47,7 +54,6 @@ private val setCode = StringColumnProperty(PcgSet::setCode, descriptor = StringD
 private val eraName = StringColumnProperty(PcgEra::name, descriptor = StringDescriptor("DUMMY")) // TODO
 
 // String Arrays
-// TODO: cardinality stuff
 private val artists = StringArrayColumnProperty(PcgPrint::illustrators, descriptor = IsPresentDescriptor(propertyKeys.ARTIST))
 private val energyTypes = enumArrayColumnProperty(PcgCard::energies, propertyKey = "DUMMY") // TODO
 private val abilityTypes = enumArrayColumnProperty(PcgCard::abilityTypes, propertyKey = "DUMMY") // TODO
@@ -66,6 +72,8 @@ private val cardId = UuidColumnProperty(PcgCard::id, EqualsDescriptor(propertyKe
 private val setId = UuidColumnProperty(PcgSet::id, EqualsDescriptor("DUMMY")) // TODO
 private val eraId = UuidColumnProperty(PcgEra::id, EqualsDescriptor("DUMMY")) // TODO
 
+val pcgNameFilter = QueryFilter(arrayOf("n", "name"), name)
+
 fun createBasicPcgSearchQueryFilters(): List<QueryFilter> {
     return listOf(
         // Print filters
@@ -73,26 +81,26 @@ fun createBasicPcgSearchQueryFilters(): List<QueryFilter> {
         QueryFilter(arrayOf("cn", "number", "collectornumber"), collectorNumberValue, collectorNumber),
         QueryFilter(arrayOf("rarity"), rarity), // TODO: numeric comparison
         QueryFilter(arrayOf("mark", "regulationmark"), regulationMark),
-        QueryFilter(arrayOf("artist", "illustrator", "artists", "illustrators"), artists),
+        QueryFilter(arrayOf("artist", "illustrator", "artists", "illustrators"), artistCount, artists),
 
         // Translation filters
         QueryFilter(arrayOf("lang", "language"), language),
         QueryFilter(arrayOf("flavor", "flavortext"), flavorText),
-        QueryFilter(arrayOf("n", "name"), name),
+        pcgNameFilter,
         QueryFilter(arrayOf("text", "o", "oracle", "oracletext", "fulloracle", "fo", "fulloracletext"), text),
         QueryFilter(arrayOf("reminder", "reminders", "rule", "rules"), reminder),
 
         // Card filters
         QueryFilter(arrayOf("cardid", "card"), cardId),
         QueryFilter(arrayOf("hp", "health", "healthpoints"), healthPoints),
-        QueryFilter(arrayOf("energy", "energytypes", "energies", "energytypes"), energyTypes),
+        QueryFilter(arrayOf("energy", "energytypes", "energies", "energytypes"), energyTypeCount, energyTypes),
         QueryFilter(arrayOf("stage", "evolution", "evolutionstage"), evolutionStage),
         QueryFilter(arrayOf("evolves", "evolvesfrom"), evolvesFrom),
-        QueryFilter(arrayOf("ability", "abilities", "abilitytype", "abilitytypes"), abilityTypes),
-        QueryFilter(arrayOf("effect", "effects", "effecttype", "effecttypes"), effectTypes),
-        QueryFilter(arrayOf("ruletype", "ruletypes"), ruleTypes),
-        QueryFilter(arrayOf("weakness", "weaknesses", "weaknesstype", "weaknesstypes"), weaknessTypes),
-        QueryFilter(arrayOf("resistance", "resistances", "resistancetype", "resistancetypes"), resistanceTypes),
+        QueryFilter(arrayOf("ability", "abilities", "abilitytype", "abilitytypes"), abilityTypeCount, abilityTypes),
+        QueryFilter(arrayOf("effect", "effects", "effecttype", "effecttypes"), effectTypeCount, effectTypes),
+        QueryFilter(arrayOf("ruletype", "ruletypes"), ruleTypeCount, ruleTypes),
+        QueryFilter(arrayOf("weakness", "weaknesses", "weaknesstype", "weaknesstypes"), weaknessTypeCount, weaknessTypes),
+        QueryFilter(arrayOf("resistance", "resistances", "resistancetype", "resistancetypes"), resistanceTypeCount, resistanceTypes),
         QueryFilter(arrayOf("retreat", "retreatcost"), retreatCost),
 
         // Set filters
@@ -113,6 +121,10 @@ fun createBasicPcgSearchQueryFilters(): List<QueryFilter> {
         QueryFilter(arrayOf("era"), eraId, eraName),
         QueryFilter(arrayOf("eraid"), eraId),
         QueryFilter(arrayOf("eraname"), eraName),
+
+        // TODO: is/has/not
+        // TODO: new/in
+        // TODO: prints/sets (reprints)
     )
 }
 
@@ -147,7 +159,7 @@ private val tableDependencies = mapOf(
     }
 )
 
-val mtgBasicSearchQueryConfig = SearchQueryConfig(
+val pcgBasicSearchQueryConfig = SearchQueryConfig(
     table = PcgPrint::class,
     printIdColumn = PcgPrint::id,
     faceIndexColumn = null,

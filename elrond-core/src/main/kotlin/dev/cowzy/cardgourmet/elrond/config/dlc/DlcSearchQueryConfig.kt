@@ -126,14 +126,17 @@ fun createBasicDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFi
         QueryFilter(arrayOf("franchise"), franchise),
         QueryFilter(arrayOf("is:inkwell"), inkwell),
         QueryFilter(arrayOf("not:inkwell"), inkwell, inverted = true),
-        QueryFilter(arrayOf("tag", "tags", "is", "has"), type, classifications), // TODO: print properties
-        QueryFilter(arrayOf("not"), type, classifications, inverted = true), // TODO: print properties
+        QueryFilter(arrayOf("tag", "tags", "is", "has"), type, classifications),
+        QueryFilter(arrayOf("not"), type, classifications, inverted = true),
         QueryFilter(arrayOf("print", "printid"), printId),
         QueryFilter(arrayOf("card", "cardid", "oracleid"), cardId),
-        // TODO: lang/langs
+
         // TODO: new/in
-        // TODO: is:promo/not:promo
+        // TODO: is/has/not properties
+        // TODO: lang/langs
         // TODO: rarity
+        // TODO: prints/sets (reprints)
+        // TODO: new/in
     )
 }
 
