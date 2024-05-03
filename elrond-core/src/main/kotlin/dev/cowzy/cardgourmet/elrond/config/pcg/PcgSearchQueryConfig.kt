@@ -45,7 +45,7 @@ private val flavorText = StringColumnProperty(PcgPrintTranslation::flavorText, s
 private val reminder = StringColumnProperty(PcgCardTranslation::reminderText, simpleColumn = PcgCardTranslation::simpleReminderText, descriptor = StringDescriptor("DUMMY")) // TODO
 private val region = enumColumnProperty(PcgSet::region, propertyKey = "DUMMY") // TODO
 private val setName = StringColumnProperty(PcgSetTranslation::name, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val setType = StringColumnProperty(PcgSet::expansionType, descriptor = StringDescriptor("DUMMY")) // TODO
+private val setType = enumColumnProperty(PcgSet::type, propertyKey = "DUMMY") // TODO
 private val rarity = enumColumnProperty(PcgPrint::rarity, propertyKey = propertyKeys.RARITY)
 private val language = enumColumnProperty(PcgPrintTranslation::language, propertyKey = propertyKeys.LANGUAGE) // TODO: language mappings
 private val evolutionStage = enumColumnProperty(PcgCard::evolutionStage, propertyKey = "DUMMY") // TODO
