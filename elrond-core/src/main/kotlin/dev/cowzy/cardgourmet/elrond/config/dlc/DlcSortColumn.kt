@@ -15,7 +15,7 @@ enum class DlcSortColumn(
     NAME("name", DlcCardTranslation::simpleName),
 //    RARITY("rarity", MtgPrint::rarity),
     SET_CODE("set_code", DlcSet::code),
-    COLLECTOR_NUMBER("collector_number", arrayOf(DlcPrint::collectorNumber, DlcPrint::collectorNumberValue)),
+    COLLECTOR_NUMBER("collector_number", arrayOf(DlcPrint::collectorNumberValue, DlcPrint::collectorNumber)),
     INK_TYPE("inkType", DlcCard::inkType),
     STRENGTH("power", DlcCard::strength),
     WILLPOWER("toughness", DlcCard::willpower),

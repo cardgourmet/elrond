@@ -13,9 +13,9 @@ enum class PcgSortColumn(
 ) : SortColumnDefinition {
 
     NAME("name", PcgCardTranslation::simpleName),
-//    RARITY("rarity", MtgPrint::rarity),
+    RARITY("rarity", PcgPrint::rarityValue),
     SET_CODE("set_code", PcgSet::setCode),
-    COLLECTOR_NUMBER("collector_number", arrayOf(PcgPrint::collectorNumber, PcgPrint::collectorNumberValue)),
+    COLLECTOR_NUMBER("collector_number", arrayOf(PcgPrint::collectorNumberValue, PcgPrint::collectorNumber)),
     TYPE("type", PcgCard::type),
     RELEASE_DATE("released_at", PcgSet::releaseStartDate);
 //    PRICE_EUR("price_eur", MtgPrintPrice::priceEur),

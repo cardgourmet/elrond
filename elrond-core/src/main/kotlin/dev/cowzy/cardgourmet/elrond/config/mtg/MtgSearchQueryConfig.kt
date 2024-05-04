@@ -150,6 +150,7 @@ private val toughnessDisplay = StringColumnProperty(MtgCardFace::toughnessDispla
 private val loyaltyDisplay = StringColumnProperty(MtgCardFace::loyaltyDisplay, descriptor = StringDescriptor(mtgPropertyKeys.LOYALTY))
 private val defenseDisplay = StringColumnProperty(MtgCardFace::defenseDisplay, descriptor = StringDescriptor(mtgPropertyKeys.DEFENSE))
 private val collectorNumberDisplay = StringColumnProperty(MtgPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
+private val blockName = StringColumnProperty(MtgBlock::name, descriptor = StringDescriptor("DUMMY")) // TODO
 
 // Text array properties
 private val printProperties = StringArrayColumnProperty(MtgPrintFace::propertyTags, valueProvider = StaticMtgProviders.properties, mappings = StaticMtgProviders.mtgPropertyMappings, descriptor = IsPresentDescriptor(propertyKeys.PROPERTY))
@@ -183,6 +184,8 @@ private val cardmarketId = StringColumnProperty(MtgPrintIdentifier::cardmarketId
 private val mtgArenaId = StringColumnProperty(MtgPrintIdentifier::mtgArenaId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.MTGARENA_ID))
 private val mtgoId = StringColumnProperty(MtgPrintIdentifier::mtgOnlineId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.MTGO_ID))
 private val mtgjsonId = StringColumnProperty(MtgPrintIdentifier::mtgjsonId, mapContainsToEquals = true, descriptor = EqualsDescriptor(mtgPropertyKeys.MTGJSON_ID))
+private val setId = StringColumnProperty(MtgPrint::setId, mapContainsToEquals = true, descriptor = EqualsDescriptor("DUMMY")) // TODO
+private val blockId = StringColumnProperty(MtgSet::blockId, mapContainsToEquals = true, descriptor = EqualsDescriptor("DUMMY")) // TODO
 
 data class MtgValueProviders(
     val names: MtgNameValueProvider,
@@ -273,7 +276,9 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
         QueryFilter(arrayOf("new"), reprintNew),
         QueryFilter(arrayOf("in"), reprintIn),
         QueryFilter(arrayOf("promo", "promotypes", "promotype"), printPromoTypesCount, printPromoTypes),
-        QueryFilter(arrayOf("set", "setcode", "s", "e", "edition"), setCode, setName),
+        QueryFilter(arrayOf("set", "setcode", "s", "e", "edition"), setId, setCode, setName),
+        QueryFilter(arrayOf("setid"), setId),
+        QueryFilter(arrayOf("setname"), setName),
         QueryFilter(arrayOf("settype"), setType),
         QueryFilter(arrayOf("layout"), layout),
         QueryFilter(arrayOf("typeline", "type", "types", "t"), types, superTypes, subTypes, typeLine),
@@ -309,6 +314,9 @@ fun createBasicMtgSearchQueryFilters(providers: MtgValueProviders): List<QueryFi
         QueryFilter(arrayOf("mtgo", "mtgoid"), mtgoId),
         QueryFilter(arrayOf("mtgjson", "mtgjsonid"), mtgjsonId),
         QueryFilter(arrayOf("edhrec", "edhrecrank"), edhrecRank),
+        QueryFilter(arrayOf("block", "era"), blockId, blockName),
+        QueryFilter(arrayOf("blockid", "eraid"), blockId),
+        QueryFilter(arrayOf("blockname", "eraname"), blockName),
     )
 }
 

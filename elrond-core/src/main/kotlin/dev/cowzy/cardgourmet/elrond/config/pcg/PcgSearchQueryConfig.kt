@@ -118,9 +118,9 @@ fun createBasicPcgSearchQueryFilters(): List<QueryFilter> {
         QueryFilter(arrayOf("endreleaseyear"), endReleaseYear), // TODO: mappings by set code
 
         // Era filters
-        QueryFilter(arrayOf("era"), eraId, eraName),
-        QueryFilter(arrayOf("eraid"), eraId),
-        QueryFilter(arrayOf("eraname"), eraName),
+        QueryFilter(arrayOf("era", "block"), eraId, eraName),
+        QueryFilter(arrayOf("eraid", "blockid"), eraId),
+        QueryFilter(arrayOf("eraname", "blockname"), eraName),
 
         // TODO: is/has/not
         // TODO: new/in
