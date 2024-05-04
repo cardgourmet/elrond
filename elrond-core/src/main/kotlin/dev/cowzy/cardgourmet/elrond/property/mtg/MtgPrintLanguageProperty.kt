@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.property.mtg
 
+import dev.cowzy.cardgourmet.commons.catalogue.MtgRarity
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
@@ -45,6 +46,10 @@ val mtgPrintLanguageValueDefinition = QueryValueDefinition {
     StringValue::class {
         mappings(enumToMappings<MtgLanguage> { it.aliases })
         values(MtgLanguage.values().map { it.getSerialName() })
+
+        transform { value ->
+            MtgLanguage.values().find { it.getSerialName() == value.value }
+        }
 
         display { language, i18n, locale ->
             i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${(language as MtgLanguage).getSerialName()}")
