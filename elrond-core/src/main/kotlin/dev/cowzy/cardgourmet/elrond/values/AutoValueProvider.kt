@@ -18,6 +18,7 @@ class AutoStringValueProvider(
             select(columns.first())
                 .apply { columns.drop(1).forEach { union(select(it)) } }
                 .get(connection) { row, index -> row.getString(index.getAndIncrement()) }
+                .filterNotNull()
                 .distinct()
         }
     }
@@ -39,6 +40,7 @@ class AutoStringArrayValueProvider(
             select(columns.first())
                 .apply { columns.drop(1).forEach { union(select(it)) } }
                 .get(connection) { row, index -> row.getString(index.getAndIncrement()) }
+                .filterNotNull()
                 .distinct()
         }
     }

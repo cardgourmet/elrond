@@ -313,7 +313,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("block", "era") {
         uuid(MtgBlock::id, "DUMMY") // TODO
-        string(MtgBlock::name, "DUMMY") { autoValues() } // TODO
+        string(MtgBlock::name, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("blockid", "eraid") { uuid(MtgBlock::id, "DUMMY") } // TODO
