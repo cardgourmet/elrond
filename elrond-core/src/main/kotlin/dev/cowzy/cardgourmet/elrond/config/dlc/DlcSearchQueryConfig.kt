@@ -74,7 +74,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("type", "t", "types") {
         string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
-        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS) { autoValues() }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS)
     }
 
     filter("supertype") {
