@@ -28,7 +28,7 @@ class AutoStringValueProvider(
 
 }
 
-class AutoStringArrayValueProperty(
+class AutoStringArrayValueProvider(
     private val dbPool: SqlDatabasePool,
     private vararg val columns: KProperty1<*, *>,
     ttl: Long = 3600

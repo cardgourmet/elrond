@@ -7,6 +7,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.*
+import dev.cowzy.kuery.reflection.columnName
 import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.KClass
@@ -279,7 +280,7 @@ open class StringPropertyConfig(protected val column: KProperty1<*, *>, protecte
             autoValues()
         }
 
-        mappingsProvider = pool.getOrPut(column) { AutoMappingProvider(valueProvider!!, customMappings) }
+        mappingsProvider = pool.getOrPut("${column.columnName()}-mappings") { AutoMappingProvider(valueProvider!!, customMappings) }
     }
 
 }
@@ -287,7 +288,7 @@ open class StringPropertyConfig(protected val column: KProperty1<*, *>, protecte
 class StringArrayPropertyConfig(column: KProperty1<*, List<String>?>, pool: ValueProviderPool) : StringPropertyConfig(column, pool) {
 
     override fun autoValues(strict: Boolean) {
-        this.valueProvider = pool.getOrPut(column) { AutoStringArrayValueProperty(it, column) }
+        this.valueProvider = pool.getOrPut(column) { AutoStringArrayValueProvider(it, column) }
         this.useStrictValues = strict
     }
 

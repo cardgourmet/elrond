@@ -24,8 +24,8 @@ class ValueProviderPool(private val dbPool: SqlDatabasePool) {
         return getOrPut(columns.joinToString("-") { it.columnName() }) { AutoStringValueProvider(dbPool, columns = columns, ttl) }
     }
 
-    fun getAutoStringArrayProvider(vararg columns: KProperty1<*, List<String>?>, ttl: Long = 3600): AutoStringArrayValueProperty {
-        return getOrPut(columns.joinToString("-") { it.columnName() }) { AutoStringArrayValueProperty(dbPool, columns = columns, ttl) }
+    fun getAutoStringArrayProvider(vararg columns: KProperty1<*, List<String>?>, ttl: Long = 3600): AutoStringArrayValueProvider {
+        return getOrPut(columns.joinToString("-") { it.columnName() }) { AutoStringArrayValueProvider(dbPool, columns = columns, ttl) }
     }
 
 }
