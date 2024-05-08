@@ -197,9 +197,9 @@ suspend fun String.parseQueryExpression(
                                 is NumberValue -> NumberValue(matchingValue as Number)
                                 else -> throw UnsupportedOperationException()
                             }
+                        } else {
+                            if (definition.useStrictValues) return@inner null
                         }
-
-                        if (definition.useStrictValues) return@inner null
                     }
 
                     try {
