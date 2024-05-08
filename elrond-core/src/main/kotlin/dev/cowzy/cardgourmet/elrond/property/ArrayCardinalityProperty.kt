@@ -19,9 +19,11 @@ class ArrayCardinalityProperty(
             transform { it.value }
         }
 
-        StringValue::class {
-            useStrictValues = mappings != null
-            mappingsWithOperator(mappings)
+        if (mappings != null) {
+            StringValue::class {
+                useStrictValues = true
+                mappingsWithOperator(mappings)
+            }
         }
     }
 
