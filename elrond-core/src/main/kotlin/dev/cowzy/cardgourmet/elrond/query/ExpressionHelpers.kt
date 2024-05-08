@@ -200,6 +200,9 @@ suspend fun String.parseQueryExpression(
                         } else {
                             if (definition.useStrictValues) return@inner null
                         }
+                    } else {
+                        // If there is no value provider and no matching mapping was found, the value is invalid.
+                        if (definition.useStrictValues) return@inner null
                     }
 
                     try {

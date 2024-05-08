@@ -52,6 +52,16 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
             throw IllegalArgumentException("All supported value types are already handled by other properties: $property")
         }
 
+        // Validate that all properties requiring strict values have at least one value/mapping provider set.
+        valueTypes.forEach { type ->
+            val definition = property.valueDefinition.getDefinition(type)
+            if (definition.useStrictValues) {
+                if (definition.valueProvider == null && definition.mappingsProvider == null) {
+                    throw IllegalArgumentException("Property requires strict values but no provider is set for values or mappings: $property")
+                }
+            }
+        }
+
         properties.add(property)
     }
 
