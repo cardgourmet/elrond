@@ -47,7 +47,7 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
 
         val valueTypes = property.valueDefinition.supportedValueTypes
         val handledValueTypes = valueTypes.filter { isValueHandled(it) }
-        if (handledValueTypes.size >= valueTypes.size) {
+        if (handledValueTypes.isNotEmpty() && handledValueTypes.size >= valueTypes.size) {
             throw IllegalArgumentException("All supported value types are already handled by other properties: $property")
         }
 
