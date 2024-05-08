@@ -180,6 +180,7 @@ suspend fun String.parseQueryExpression(
                         }
                     }
 
+                    var localValue = value
                     val valueProvider = definition.valueProvider
                     if (valueProvider != null) {
                         val matchingValue = valueProvider.getValues().find {
@@ -190,14 +191,19 @@ suspend fun String.parseQueryExpression(
                         }
 
                         if (matchingValue != null) {
-                            return@inner prop to (matchingValue to null)
+                            localValue = when (value) {
+                                is StringValue -> StringValue(matchingValue.toString(), exact = true)
+                                is RegexValue -> RegexValue(matchingValue as? Regex ?: Regex(matchingValue.toString()))
+                                is NumberValue -> NumberValue(matchingValue as? Number ?: matchingValue.toString().toDouble())
+                                else -> throw UnsupportedOperationException()
+                            }
+                        } else {
+                            if (definition.useStrictValues) return@inner null
                         }
                     }
 
-                    if (definition.useStrictValues) return@inner null
-
                     try {
-                        val transformedValue = definition.transform(value, expressionOperator)
+                        val transformedValue = definition.transform(localValue, expressionOperator)
                         if (transformedValue == null || !definition.match(transformedValue.first)) return@inner null
                         return@inner prop to transformedValue
                     } catch (ex: Exception) {

@@ -38,7 +38,7 @@ class MtgManaArrayColumnProperty(
     ) {
         val manaValues = value.map { it.type }.distinct().toManaColorIndices()
 
-        val sqlArray = "ARRAY[${manaValues.joinToString { "?" }}]::integer[]"
+        val sqlArray = "ARRAY[${manaValues.joinToString { "?" }}]::smallint[]"
 
         val fillArray: (PreparedStatement, ColumnIndex) -> Unit = { stmt, index ->
             manaValues.forEach { stmt.setNumber(index.getAndIncrement(), it) }
