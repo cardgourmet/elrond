@@ -208,10 +208,19 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         property(enumArrayColumnProperty(column, propertyKey))
     }
 
+    inline fun <reified T : Enum<T>> enumArrayAndCardinality(
+        column: KProperty1<*, List<T>>,
+        cardinalityPropertyKey: String,
+        arrayPropertyKey: String
+    ) {
+        cardinality(column, cardinalityPropertyKey)
+        enumArray(column, arrayPropertyKey)
+    }
+
     fun inverted(inverted: Boolean) = this.apply { this.inverted = inverted }
 
     fun ignoreReference(keyword: String) {
-        if (!ignoreReferenceKeywords.contains(keyword)) throw IllegalArgumentException("Keyword not part of filter: $keyword")
+        if (!keywords.contains(keyword)) throw IllegalArgumentException("Keyword not part of filter: $keyword")
         this.ignoreReferenceKeywords.add(keyword)
     }
 
@@ -227,11 +236,11 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
     private fun isValueHandled(valueType: KClass<out QueryValue<*>>): Boolean {
         // Find all properties that support the given value type
         val matchingProperties = properties.filter { it.valueDefinition.supportedValueTypes.contains(valueType) }
+        if (matchingProperties.isEmpty()) return false
 
         // Check if any of the properties allows arbitrary values
         // If so, the value type is handled.
-        val allowsArbitraryValues =
-            matchingProperties.any { it.valueDefinition.getDefinition(valueType).useStrictValues }
+        val allowsArbitraryValues = matchingProperties.any { !it.valueDefinition.getDefinition(valueType).useStrictValues }
         return allowsArbitraryValues
     }
 

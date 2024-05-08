@@ -13,12 +13,10 @@ import dev.cowzy.cardgourmet.elrond.config.TableDependency
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
-import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import dev.cowzy.cardgourmet.elrond.values.dlc.DlcSetMarketReleaseDateMappingProvider
 import dev.cowzy.cardgourmet.elrond.values.dlc.DlcSetReleaseDateMappingProvider
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
-import java.time.LocalDate
 
 val dlcFinishes = StaticValueProvider(setOf("nonfoil", "foil"))
 val dlcMediums = StaticValueProvider(setOf("paper"))
@@ -32,15 +30,6 @@ val dlcSetCodeMappings = mapOf("promo" to "P1", "tfc" to "1", "rof" to "2", "ink
 
 private val propertyKeys = Strings.Query.Property
 private val dlcPropertyKeys = Strings.Query.Dlc.Property
-
-data class DlcValueProviders(
-    val separator: ValueProvider<String>,
-    val setCode: ValueProvider<String>,
-    val setReleaseDates: ValueProvider<Pair<String, LocalDate>>,
-    val type: ValueProvider<String>,
-    val classifications: ValueProvider<String>,
-    val keywords: ValueProvider<String>,
-)
 
 fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it) }

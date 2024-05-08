@@ -63,7 +63,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("energy", "energytypes", "energies", "energytypes") {
-        enumArray(PcgCard::energies, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::energies, "DUMMY", "DUMMY") // TODO
     }
 
     filter("stage", "evolution", "evolutionstage") {
@@ -75,23 +75,23 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("ability", "abilities", "abilitytype", "abilitytypes") {
-        enumArray(PcgCard::abilityTypes, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::abilityTypes, "DUMMY", "DUMMY") // TODO
     }
 
     filter("effect", "effects", "effecttype", "effecttypes") {
-        enumArray(PcgCard::effectTypes, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::effectTypes, "DUMMY", "DUMMY") // TODO
     }
 
     filter("ruletype", "ruletypes") {
-        enumArray(PcgCard::ruleTypes, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::ruleTypes, "DUMMY", "DUMMY") // TODO
     }
 
     filter("weakness", "weaknesses", "weaknesstype", "weaknesstypes") {
-        enumArray(PcgCard::weaknessTypes, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
     }
 
     filter("resistance", "resistances", "resistancetype", "resistancetypes") {
-        enumArray(PcgCard::resistanceTypes, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
     }
 
     filter("retreat", "retreatcost") {
