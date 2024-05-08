@@ -192,9 +192,9 @@ suspend fun String.parseQueryExpression(
                         if (matchingValue != null) {
                             return@inner prop to (matchingValue to null)
                         }
-
-                        if (definition.useStrictValues) return@inner null
                     }
+
+                    if (definition.useStrictValues) return@inner null
 
                     try {
                         val transformedValue = definition.transform(value, expressionOperator)
