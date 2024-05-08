@@ -2,6 +2,7 @@ package dev.cowzy.cardgourmet.elrond
 
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
+import dev.cowzy.cardgourmet.elrond.values.MappingProvider
 import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlin.reflect.KClass
@@ -43,7 +44,7 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
     var format: String? = null
     var pattern: String? = null
 
-    var mappingsProvider: ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>? = null
+    var mappingsProvider: MappingProvider<Value, Output>? = null
     var valueProvider: ValueProvider<Value>? = null
     var useStrictValues: Boolean = false
 
@@ -111,9 +112,14 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
         this.mappingsProvider = StaticValueProvider(mappings.entries.map { it.toPair() }.toSet())
     }
 
-    fun mappingsWithOperator(mappingsProvider: ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>?) {
+    fun mappingsWithOperator(mappingsProvider: MappingProvider<Value, Output>?) {
         if (mappingsProvider == null) return
         this.mappingsProvider = mappingsProvider
+    }
+
+    fun <T> mappingsWithOperator(mappingsProvider: MappingProvider<Value, T>?, transform: (T) -> Output) {
+        if (mappingsProvider == null) return
+        this.mappingsProvider = TransformMappingProvider(mappingsProvider, transform)
     }
 
     internal fun build() = QueryValueMapping(
@@ -130,6 +136,10 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
 
 class WrapOperatorValueProvider<Value, Output>(private val valueProvider: ValueProvider<Pair<Value, Output>>) : ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>> {
     override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (it.second to null as SearchQueryOperator?) }.toSet()
+}
+
+class TransformMappingProvider<Value, T, Output>(private val valueProvider: MappingProvider<Value, T>, private val transform: (T) -> Output) : ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>> {
+    override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (transform(it.second.first) to it.second.second) }.toSet()
 }
 
 inline fun <reified T : Enum<T>> enumToMappings(findKeywords: (T) -> List<String>): Map<String, T> {

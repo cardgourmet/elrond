@@ -8,41 +8,34 @@ import dev.cowzy.cardgourmet.commons.user.User
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.QueryFilter
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.dlc.StaticDlcProviders
-import dev.cowzy.cardgourmet.elrond.config.dlc.dlcBasicSearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
-import dev.cowzy.cardgourmet.elrond.property.ArrayCardinalityProperty
-import dev.cowzy.cardgourmet.elrond.property.StringArrayColumnProperty
-import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
-import dev.cowzy.cardgourmet.elrond.user.config.createCollectionSearchQueryFilters
+import dev.cowzy.cardgourmet.elrond.config.dlc.*
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-// Collection properties
-private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = propertyKeys.FINISH_COUNT)
-private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = StaticDlcProviders.finishes, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
-private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = StaticDlcProviders.mediums, mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
-private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = StaticDlcProviders.languages, mappings = StaticDlcProviders.dlcLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
+fun SearchQueryConfigBuilder.configureDlcCollectionFilters() {
+    filter("finishes", "finish") {
+        stringArrayAndCardinality(UserCard::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
+            values(dlcFinishes)
+        }
+    }
 
-private val name = StringColumnProperty(DlcCardTranslation::name, simpleColumn = DlcCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.NAME))
-val dlcCollectionNameFilter = QueryFilter(arrayOf("name", "n"), name) // TODO (?)
+    filter("medium", "mediums") {
+        exactString(UserCard::medium, propertyKeys.MEDIUM) { values(dlcMediums) }
+    }
 
-fun createDlcCollectionSearchQueryFilters(): List<QueryFilter> {
-    return createCollectionSearchQueryFilters() + listOf(
-        dlcCollectionNameFilter,
-        QueryFilter(arrayOf("finishes", "finish"), collectionFinishCount, collectionFinishes),
-        QueryFilter(arrayOf("medium", "mediums"), collectionMedium),
-        QueryFilter(arrayOf("lang", "language", "userlang", "userlanguage"), collectionLanguage),
-        // TODO: rarity
-        // TODO: is:foil/not:foil
-    )
+    filter("lang", "language", "userlang", "userlanguage") {
+        exactString(UserCard::language, collectionPropertyKeys.LANGUAGE) {
+            values(dlcLanguages)
+            mappings(dlcLanguageMappings)
+        }
+    }
+
+    // TODO: is:foil/not:foil
 }
 
 private val tableDependencies = mapOf(

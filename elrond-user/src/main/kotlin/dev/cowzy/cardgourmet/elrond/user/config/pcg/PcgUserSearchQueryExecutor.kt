@@ -1,11 +1,17 @@
 package dev.cowzy.cardgourmet.elrond.user.config.pcg
 
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.pcg.*
+import dev.cowzy.cardgourmet.elrond.config.pcg.PcgSearchQueryFlag
+import dev.cowzy.cardgourmet.elrond.config.pcg.applyPcgSort
+import dev.cowzy.cardgourmet.elrond.config.pcg.configureBasicPcgFilters
+import dev.cowzy.cardgourmet.elrond.config.pcg.createPcgBaseBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
@@ -34,15 +40,31 @@ private val queryBuilder: ((SearchQuery<PcgSearchQueryFlag>, SelectQueryBuilder)
     applyPcgSort(query, builder)
 }
 
-fun createPcgSearchQueryExecutor(): SearchQueryExecutor<PcgSearchQueryFlag> {
-    return createPcgBaseBuilder(pcgSearchQueryConfig, fallbackFilter = pcgNameFilter)
-        .filters(createBasicPcgSearchQueryFilters())
+fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicPcgFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
+
+    return createPcgBaseBuilder(pcgSearchQueryConfig, fallbackFilter = defaultFilter)
+        .filters(filters)
         .build()
 }
 
-fun createPcgCollectionSearchQueryExecutor(): SearchQueryExecutor<PcgSearchQueryFlag> {
-    return createPcgBaseBuilder(pcgSearchQueryConfig, queryBuilder, pcgCollectionNameFilter)
-        .filters(createPcgCollectionSearchQueryFilters())
-        .filters(createBasicPcgSearchQueryFilters())
+fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicPcgFilters()
+        configureCollectionFilters()
+        configurePcgCollectionFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
+
+    return createPcgBaseBuilder(pcgSearchQueryConfig, queryBuilder, defaultFilter)
+        .filters(filters)
         .build()
 }
+

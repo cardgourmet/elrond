@@ -1,11 +1,14 @@
 package dev.cowzy.cardgourmet.elrond.user.config.dlc
 
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.dlc.*
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
@@ -34,15 +37,31 @@ private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder)
     applyDlcSort(query, builder)
 }
 
-fun createDlcSearchQueryExecutor(providers: DlcValueProviders): SearchQueryExecutor<DlcSearchQueryFlag> {
-    return createDlcBaseBuilder(dlcSearchQueryConfig, fallbackFilter = dlcNameFilter)
-        .filters(createBasicDlcSearchQueryFilters(providers))
+
+fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicDlcFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
+
+    return createDlcBaseBuilder(dlcSearchQueryConfig, fallbackFilter = defaultFilter)
+        .filters(filters)
         .build()
 }
 
-fun createDlcCollectionSearchQueryExecutor(providers: DlcValueProviders): SearchQueryExecutor<DlcSearchQueryFlag> {
-    return createDlcBaseBuilder(dlcSearchQueryConfig, queryBuilder, dlcCollectionNameFilter)
-        .filters(createDlcCollectionSearchQueryFilters())
-        .filters(createBasicDlcSearchQueryFilters(providers))
+fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicDlcFilters()
+        configureCollectionFilters()
+        configureDlcCollectionFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
+
+    return createDlcBaseBuilder(dlcSearchQueryConfig, queryBuilder, defaultFilter)
+        .filters(filters)
         .build()
 }

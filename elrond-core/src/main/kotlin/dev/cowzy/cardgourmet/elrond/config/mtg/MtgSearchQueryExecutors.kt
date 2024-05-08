@@ -1,13 +1,15 @@
 package dev.cowzy.cardgourmet.elrond.config.mtg
 
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.orWhereRaw
@@ -135,11 +137,16 @@ fun createMtgBaseBuilder(
         }
 }
 
-fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
-    val defaultFilter = createMtgDefaultFilter(providers)
+fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicMtgFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
 
     return createMtgBaseBuilder(mtgBasicSearchQueryConfig, queryBuilder, defaultFilter)
-        .filters(createBasicMtgSearchQueryFilters(providers) + defaultFilter)
+        .filters(filters)
         .build()
 }
 

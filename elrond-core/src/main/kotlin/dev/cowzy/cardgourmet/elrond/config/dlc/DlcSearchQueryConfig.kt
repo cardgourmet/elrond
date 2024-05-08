@@ -1,81 +1,37 @@
 package dev.cowzy.cardgourmet.elrond.config.dlc
 
-import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
-import dev.cowzy.cardgourmet.elrond.values.DataYearMappingProvider
 import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.values.dlc.DlcSetMarketReleaseDateMappingProvider
+import dev.cowzy.cardgourmet.elrond.values.dlc.DlcSetReleaseDateMappingProvider
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 import java.time.LocalDate
 
-object StaticDlcProviders {
+val dlcFinishes = StaticValueProvider(setOf("nonfoil", "foil"))
+val dlcMediums = StaticValueProvider(setOf("paper"))
+val dlcLanguages = StaticValueProvider(DlcLanguage.values().map { it.getSerialName() }.toSet())
 
-    val finishes = StaticValueProvider(setOf("nonfoil", "foil"))
-    val mediums = StaticValueProvider(setOf("paper"))
-    val languages = StaticValueProvider(DlcLanguage.values().map { it.getSerialName() }.toSet())
-    val inkTypes = StaticValueProvider(DlcInkType.values().map { it.getSerialName() }.toSet())
-
-    val dlcLanguageMappings = DlcLanguage.values().associate { language ->
-        language.name to language.getSerialName()
-    }
-
+val dlcLanguageMappings = DlcLanguage.values().associate { language ->
+    language.name to language.getSerialName()
 }
+
+val dlcSetCodeMappings = mapOf("promo" to "P1", "tfc" to "1", "rof" to "2", "ink" to "3", "urs" to "4")
 
 private val propertyKeys = Strings.Query.Property
 private val dlcPropertyKeys = Strings.Query.Dlc.Property
-
-// Numeric properties
-private val inkCost = NumericColumnProperty(DlcCard::cost, propertyKey = dlcPropertyKeys.COST)
-private val strength = NumericColumnProperty(DlcCard::strength, propertyKey = dlcPropertyKeys.STRENGTH)
-private val willpower = NumericColumnProperty(DlcCard::willpower, propertyKey = dlcPropertyKeys.WILLPOWER)
-private val moveCost = NumericColumnProperty(DlcCard::moveCost, propertyKey = dlcPropertyKeys.MOVE_COST)
-private val loreValue = NumericColumnProperty(DlcCard::loreValue, propertyKey = dlcPropertyKeys.LORE)
-private val classificationCount = ArrayCardinalityProperty(DlcCard::classifications, propertyKey = dlcPropertyKeys.CLASSIFICATION_COUNT)
-private val keywordCount = ArrayCardinalityProperty(DlcCard::keywords, propertyKey = propertyKeys.KEYWORD_COUNT)
-private val collectorNumberValue = NumericColumnProperty(DlcPrint::collectorNumberValue, propertyKey = propertyKeys.COLLECTOR_NUMBER)
-private val releaseYear = YearOfDateProperty(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR)
-private val marketReleaseYear = YearOfDateProperty(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
-// TODO: ability count
-// TODO: reprint count
-// TODO: set count
-
-// String properties
-private val inkType = StringColumnProperty(DlcCard::inkType, valueProvider = StaticDlcProviders.inkTypes, descriptor = StringDescriptor(dlcPropertyKeys.INK_TYPE))
-private val franchise = StringColumnProperty(DlcCard::franchise, descriptor = StringDescriptor(dlcPropertyKeys.FRANCHISE))
-private val artist = StringColumnProperty(DlcPrint::artist, descriptor = StringDescriptor(propertyKeys.ARTIST))
-private val collectorNumber = StringColumnProperty(DlcPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
-private val setName = StringColumnProperty(DlcSet::name, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val name = StringColumnProperty(DlcCardTranslation::name, simpleColumn = DlcCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.NAME))
-private val title = StringColumnProperty(DlcCardTranslation::title, simpleColumn = DlcCardTranslation::simpleTitle, descriptor = StringDescriptor(dlcPropertyKeys.TITLE))
-private val text = StringColumnProperty(DlcCardTranslation::text, simpleColumn = DlcCardTranslation::simpleText, descriptor = StringDescriptor(propertyKeys.TEXT))
-private val fullText = StringColumnProperty(DlcCardTranslation::fullText, simpleColumn = DlcCardTranslation::simpleFullText, descriptor = StringDescriptor(propertyKeys.TEXT_WITH_REMINDERS))
-private val flavorText = StringColumnProperty(DlcPrintTranslation::flavorText, simpleColumn = DlcPrintTranslation::simpleFlavorText, descriptor = StringDescriptor(propertyKeys.FLAVOR_TEXT))
-
-// Date properties
-private val releaseDate = DateProperty(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
-private val marketReleaseDate = DateProperty(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
-
-// Misc properties
-private val inkwell = StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell")
-private val printId = UuidColumnProperty(DlcPrint::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
-private val cardId = UuidColumnProperty(DlcCard::id, descriptor = EqualsDescriptor(propertyKeys.PRINT_ID))
-
-val dlcNameFilter = QueryFilter(arrayOf("name", "n"), name)
 
 data class DlcValueProviders(
     val separator: ValueProvider<String>,
@@ -86,58 +42,161 @@ data class DlcValueProviders(
     val keywords: ValueProvider<String>,
 )
 
-fun createBasicDlcSearchQueryFilters(providers: DlcValueProviders): List<QueryFilter> {
-    val type = StringColumnProperty(DlcCard::type, valueProvider = providers.type, descriptor = EqualsDescriptor(dlcPropertyKeys.TYPE))
-    val separator = StringColumnProperty(DlcPrint::separator, valueProvider = providers.separator, descriptor = EqualsDescriptor(dlcPropertyKeys.SEPARATOR))
-    val setCode = StringColumnProperty(DlcSet::code, mappings = mapOf("promo" to "P1", "tfc" to "1", "rof" to "2", "ink" to "3", "urs" to "4"), valueProvider = providers.setCode, descriptor = EqualsDescriptor(propertyKeys.SET_CODE))
-    val classifications = StringArrayColumnProperty(DlcCard::classifications, valueProvider = providers.classifications, descriptor = IsPresentDescriptor(dlcPropertyKeys.CLASSIFICATIONS))
-    val keywords = StringArrayColumnProperty(DlcCard::keywords, valueProvider = providers.keywords, descriptor = IsPresentDescriptor(propertyKeys.KEYWORD))
+fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
+    val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it) }
+    val setMarketReleaseDates = valueProviderPool.getOrPut("dlc_set_market_release_dates") { DlcSetMarketReleaseDateMappingProvider(it) }
 
-    val releaseDateBySet = DateByMappingProperty(DlcSet::releaseDate, mappingProvider = providers.setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
-    val releaseYearBySet = YearByMappingProperty(DlcSet::releaseDate, mappingProvider = DataYearMappingProvider(providers.setReleaseDates), propertyKey = propertyKeys.RELEASE_YEAR)
+    filter("name", "n") {
+        simpleString(DlcCardTranslation::name, DlcCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
+    }
 
-    val marketReleaseDateBySet = DateByMappingProperty(DlcSet::marketReleaseDate, mappingProvider = providers.setReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
-    val marketReleaseYearBySet = YearByMappingProperty(DlcSet::marketReleaseDate, mappingProvider = DataYearMappingProvider(providers.setReleaseDates), propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+    filter("cost") {
+        numeric(DlcCard::cost, dlcPropertyKeys.COST)
+    }
 
-    return listOf(
-        dlcNameFilter,
-        QueryFilter(arrayOf("cost"), inkCost),
-        QueryFilter(arrayOf("ink", "inktype", "i","color", "c", "id", "identity"), inkCost, inkType),
-        QueryFilter(arrayOf("strength", "power", "pow", "str"), strength),
-        QueryFilter(arrayOf("willpower", "will", "wp"), willpower),
-        QueryFilter(arrayOf("move", "movecost", "movement"), moveCost),
-        QueryFilter(arrayOf("lore", "lorevalue"), loreValue),
-        QueryFilter(arrayOf("keyword", "keywords", "key"), keywordCount, keywords),
-        QueryFilter(arrayOf("class", "classes", "classification", "classifications", "trait", "traits", "subtype", "subtypes"), classificationCount, classifications),
-        QueryFilter(arrayOf("type", "t", "types"), type, classifications),
-        QueryFilter(arrayOf("supertype"), type),
-        QueryFilter(arrayOf("date", "releasedate"), releaseDateBySet, releaseDate),
-        QueryFilter(arrayOf("year", "releaseyear"), releaseYearBySet, releaseYear),
-        QueryFilter(arrayOf("marketyear", "marketreleaseyear"), marketReleaseDateBySet, marketReleaseDate),
-        QueryFilter(arrayOf("marketdate", "marketreleasedate"), marketReleaseYearBySet, marketReleaseYear),
-        QueryFilter(arrayOf("artist", "illustrator"), artist),
-        QueryFilter(arrayOf("set", "setcode", "s", "e", "edition"), setCode, setName),
-        QueryFilter(arrayOf("cn", "number", "collectornumber"), collectorNumber, collectorNumberValue),
-        QueryFilter(arrayOf("title"), title),
-        QueryFilter(arrayOf("text", "description", "ability", "abilities", "action", "actions", "oracle", "oracletext", "o"), text),
-        QueryFilter(arrayOf("fulltext", "fulldescription", "fulloracle", "fulloracletext", "fo"), fullText),
-        QueryFilter(arrayOf("flavor", "flavortext", "ft"), flavorText),
-        QueryFilter(arrayOf("separator"), separator),
-        QueryFilter(arrayOf("franchise"), franchise),
-        QueryFilter(arrayOf("is:inkwell"), inkwell),
-        QueryFilter(arrayOf("not:inkwell"), inkwell, inverted = true),
-        QueryFilter(arrayOf("tag", "tags", "is", "has"), type, classifications),
-        QueryFilter(arrayOf("not"), type, classifications, inverted = true),
-        QueryFilter(arrayOf("print", "printid"), printId),
-        QueryFilter(arrayOf("card", "cardid", "oracleid"), cardId),
+    filter("ink", "inktype", "i", "color", "c", "id", "identity") {
+        numeric(DlcCard::cost, dlcPropertyKeys.COST)
+        enum(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
+    }
 
-        // TODO: new/in
-        // TODO: is/has/not properties
-        // TODO: lang/langs
-        // TODO: rarity
-        // TODO: prints/sets (reprints)
-        // TODO: new/in
-    )
+    filter("strength", "power", "pow", "str") {
+        numeric(DlcCard::strength, dlcPropertyKeys.STRENGTH)
+    }
+
+    filter("willpower", "will", "wp") {
+        numeric(DlcCard::willpower, dlcPropertyKeys.WILLPOWER)
+    }
+
+    filter("move", "movecost", "movement") {
+        numeric(DlcCard::moveCost, dlcPropertyKeys.MOVE_COST)
+    }
+
+    filter("lore", "lorevalue") {
+        numeric(DlcCard::loreValue, dlcPropertyKeys.LORE)
+    }
+
+    filter("keyword", "keywords", "key") {
+        stringArrayAndCardinality(DlcCard::keywords, propertyKeys.KEYWORD_COUNT, propertyKeys.KEYWORD)
+    }
+
+    filter("class", "classes", "classification", "classifications", "trait", "traits", "subtype", "subtypes") {
+        stringArrayAndCardinality(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION_COUNT, dlcPropertyKeys.CLASSIFICATIONS)
+    }
+
+    filter("type", "t", "types") {
+        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS) { autoValues() }
+    }
+
+    filter("supertype") {
+        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
+    }
+
+    filter("date", "releasedate") {
+        dateByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
+        date(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
+    }
+
+    filter("year", "releaseyear") {
+        yearByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
+        year(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR)
+    }
+
+    filter("marketdate", "marketreleasedate") {
+        dateByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
+        date(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+    }
+
+    filter("marketyear", "marketreleaseyear") {
+        yearByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+        year(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+    }
+
+    filter("artist", "illustrator") {
+        string(DlcPrint::artist, propertyKeys.ARTIST)
+    }
+
+    filter("set", "setcode", "s", "e", "edition") {
+        uuid(DlcSet::id, "DUMMY") // TODO
+        string(DlcSet::code, propertyKeys.SET_CODE) {
+            autoValues()
+            mappings(dlcSetCodeMappings)
+        }
+    }
+
+    filter("setname") {
+        string(DlcSet::name, propertyKeys.SET_NAME) { autoValues(false) }
+    }
+
+    filter("setcode") {
+        string(DlcSet::code, propertyKeys.SET_CODE) {
+            autoValues()
+            mappings(dlcSetCodeMappings)
+        }
+    }
+
+    filter("cn", "number", "collectornumber") {
+        numericAndString(DlcPrint::collectorNumberValue, DlcPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
+    }
+
+    filter("title") {
+        simpleString(DlcCardTranslation::title, DlcCardTranslation::simpleTitle, dlcPropertyKeys.TITLE) { autoValues(false) }
+    }
+
+    filter("text", "description", "ability", "abilities", "action", "actions", "oracle", "oracletext", "o") {
+        simpleString(DlcCardTranslation::text, DlcCardTranslation::simpleText, propertyKeys.TEXT)
+    }
+
+    filter("fulltext", "fulldescription", "fulloracle", "fulloracletext", "fo") {
+        simpleString(DlcCardTranslation::fullText, DlcCardTranslation::simpleFullText, propertyKeys.TEXT_WITH_REMINDERS)
+    }
+
+    filter("flavor", "flavortext", "ft") {
+        simpleString(DlcPrintTranslation::flavorText, DlcPrintTranslation::simpleFlavorText, propertyKeys.FLAVOR_TEXT)
+    }
+
+    filter("separator") {
+        exactString(DlcPrint::separator, dlcPropertyKeys.SEPARATOR) { autoValues() }
+    }
+
+    filter("franchise") {
+        string(DlcCard::franchise, dlcPropertyKeys.FRANCHISE) { autoValues(false) }
+    }
+
+    filter("is:inkwell") {
+        property(StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell"))
+    }
+
+    filter("not:inkwell") {
+        inverted(true)
+        property(StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell"))
+    }
+
+    filter("tag", "tags", "is", "has") {
+        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS) { autoValues() }
+    }
+
+    filter("not") {
+        inverted(true)
+        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS) { autoValues() }
+    }
+
+    filter("print", "printid") {
+        uuid(DlcPrint::id, propertyKeys.PRINT_ID)
+    }
+
+    filter("card", "cardid", "oracleid") {
+        uuid(DlcCard::id, propertyKeys.PRINT_ID)
+    }
+
+    // TODO: new/in
+    // TODO: is/has/not properties
+    // TODO: lang/langs
+    // TODO: rarity
+    // TODO: prints/sets (reprints)
+    // TODO: new/in
 }
 
 private val tableDependencies = mapOf(

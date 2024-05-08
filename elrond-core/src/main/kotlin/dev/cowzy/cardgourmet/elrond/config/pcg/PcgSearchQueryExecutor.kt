@@ -1,14 +1,16 @@
 package dev.cowzy.cardgourmet.elrond.config.pcg
 
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
@@ -71,8 +73,15 @@ fun createPcgBaseBuilder(
         }
 }
 
-fun createPcgSearchQueryExecutor(): SearchQueryExecutor<PcgSearchQueryFlag> {
-    return createPcgBaseBuilder(pcgBasicSearchQueryConfig, queryBuilder, pcgNameFilter)
-        .filters(createBasicPcgSearchQueryFilters())
+fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicPcgFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
+
+    return createPcgBaseBuilder(pcgBasicSearchQueryConfig, queryBuilder, defaultFilter)
+        .filters(filters)
         .build()
 }

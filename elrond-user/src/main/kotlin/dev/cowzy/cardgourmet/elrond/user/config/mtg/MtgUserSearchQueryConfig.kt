@@ -1,25 +1,20 @@
 package dev.cowzy.cardgourmet.elrond.user.config.mtg
 
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgCardFaceTranslation
+import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgLanguage
+import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgMedium
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.user.User
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.QueryFilter
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.mtg.MtgValueProviders
-import dev.cowzy.cardgourmet.elrond.config.mtg.StaticMtgProviders
-import dev.cowzy.cardgourmet.elrond.config.mtg.mtgBasicSearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
-import dev.cowzy.cardgourmet.elrond.property.ArrayCardinalityProperty
-import dev.cowzy.cardgourmet.elrond.property.StringArrayColumnProperty
-import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
-import dev.cowzy.cardgourmet.elrond.property.mtg.MtgUserNameProperty
-import dev.cowzy.cardgourmet.elrond.user.config.createCollectionSearchQueryFilters
+import dev.cowzy.cardgourmet.elrond.config.mtg.*
+import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.cardgourmet.elrond.user.property.mtg.MtgUserCardFoilProperty
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
@@ -27,27 +22,42 @@ import dev.cowzy.kuery.query.leftJoin
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-// Collection properties
-private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = propertyKeys.FINISH_COUNT)
-private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = StaticMtgProviders.finishes, mappings = StaticMtgProviders.mtgFinishMappings, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
-private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = StaticMtgProviders.mediums, mappings = StaticMtgProviders.mtgMediumMappings, mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
-private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = StaticMtgProviders.languages, mappings = StaticMtgProviders.mtgLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
-private val collectionFoil = MtgUserCardFoilProperty()
-private val collectionNotFoil = MtgUserCardFoilProperty(inverted = true)
+fun SearchQueryConfigBuilder.configureMtgCollectionFilters() {
+    val languageValueProvider = valueProviderPool.getAutoStringProvider(MtgCardFaceTranslation::language)
 
-fun createMtgCollectionDefaultFilter(providers: MtgValueProviders): QueryFilter {
-    val property = MtgUserNameProperty(valueProvider = providers.names)
-    return QueryFilter(arrayOf("name", "n"), property)
-}
+//    val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
+//    filter("name", "n") {
+//        property(MtgUserNameProperty(nameValueProvider))
+//    }
 
-fun createMtgCollectionSearchQueryFilters(): List<QueryFilter> {
-    return createCollectionSearchQueryFilters() + listOf(
-        QueryFilter(arrayOf("finishes", "finish"), collectionFinishCount, collectionFinishes),
-        QueryFilter(arrayOf("medium", "mediums"), collectionMedium),
-        QueryFilter(arrayOf("lang", "language", "userlang", "userlanguage"), collectionLanguage),
-        QueryFilter(arrayOf("is:foil"), collectionFoil),
-        QueryFilter(arrayOf("not:foil"), collectionNotFoil),
-    )
+    filter("finishes", "finish") {
+        stringArrayAndCardinality(UserCard::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
+            autoMappings(mtgFinishMappings)
+        }
+    }
+
+    filter("medium", "mediums") {
+        exactString(UserCard::medium, propertyKeys.MEDIUM) {
+            values(MtgMedium.values().map { it.getSerialName() })
+            mappings(mtgMediumMappings)
+        }
+    }
+
+    filter("lang", "language", "userlang", "userlanguage") {
+        exactString(UserCard::language, collectionPropertyKeys.LANGUAGE) {
+            values(languageValueProvider)
+            mappings(enumToMappings<MtgLanguage> { it.aliases }.entries.associate { it.key to it.value.getSerialName() })
+        }
+    }
+
+    filter("is:foil") {
+        property(MtgUserCardFoilProperty())
+    }
+
+    filter("not:foil") {
+        inverted(true)
+        property(MtgUserCardFoilProperty())
+    }
 }
 
 private val tableDependencies = mapOf(

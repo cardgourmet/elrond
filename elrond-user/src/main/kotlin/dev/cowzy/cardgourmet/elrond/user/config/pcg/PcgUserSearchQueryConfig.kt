@@ -10,14 +10,9 @@ import dev.cowzy.cardgourmet.commons.user.User
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.QueryFilter
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
 import dev.cowzy.cardgourmet.elrond.config.pcg.pcgBasicSearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
-import dev.cowzy.cardgourmet.elrond.property.ArrayCardinalityProperty
-import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
-import dev.cowzy.cardgourmet.elrond.user.config.createCollectionSearchQueryFilters
 import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
@@ -25,27 +20,23 @@ import dev.cowzy.kuery.query.leftJoin
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-private val languages = StaticValueProvider(PcgLanguage.values().map { it.getSerialName() }.toSet())
+private val pcgLanguages = StaticValueProvider(PcgLanguage.values().map { it.getSerialName() }.toSet())
 private val pcgLanguageMappings = PcgLanguage.values().associate { language -> language.name to language.getSerialName() }
 
-// Collection properties
-private val collectionFinishCount = ArrayCardinalityProperty(UserCard::finishes, propertyKey = propertyKeys.FINISH_COUNT)
-//private val collectionFinishes = StringArrayColumnProperty(UserCard::finishes, valueProvider = StaticPcgProviders.finishes, descriptor = IsPresentDescriptor(propertyKeys.FINISH))
-private val collectionMedium = StringColumnProperty(UserCard::medium, valueProvider = StaticValueProvider(arrayOf("paper")), mapContainsToEquals = true, descriptor = EqualsDescriptor(propertyKeys.MEDIUM))
-private val collectionLanguage = StringColumnProperty(UserCard::language, mapContainsToEquals = true, valueProvider = languages, mappings = pcgLanguageMappings, descriptor = EqualsDescriptor(collectionPropertyKeys.LANGUAGE))
+fun SearchQueryConfigBuilder.configurePcgCollectionFilters() {
+    filter("medium", "mediums") {
+        exactString(UserCard::medium, propertyKeys.MEDIUM) { values(listOf("paper")) }
+    }
 
-private val name = StringColumnProperty(PcgCardTranslation::name, simpleColumn = PcgCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.NAME))
-val pcgCollectionNameFilter = QueryFilter(arrayOf("name", "n"), name) // TODO (?)
+    filter("lang", "language", "userlang", "userlanguage") {
+        exactString(UserCard::language, collectionPropertyKeys.LANGUAGE) {
+            values(pcgLanguages)
+            mappings(pcgLanguageMappings)
+        }
+    }
 
-fun createPcgCollectionSearchQueryFilters(): List<QueryFilter> {
-    return createCollectionSearchQueryFilters() + listOf(
-        pcgCollectionNameFilter,
-//        QueryFilter(arrayOf("finishes", "finish"), collectionFinishCount, collectionFinishes),
-        QueryFilter(arrayOf("medium", "mediums"), collectionMedium),
-        QueryFilter(arrayOf("lang", "language", "userlang", "userlanguage"), collectionLanguage),
-        // TODO: rarity
-        // TODO: is:foil/not:foil
-    )
+    // TODO: finishes
+    // TODO: is:foil/not:foil
 }
 
 private val tableDependencies = mapOf(

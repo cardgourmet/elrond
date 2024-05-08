@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.config.pcg
 
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.pcg.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
@@ -7,125 +8,168 @@ import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgEra
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetTranslation
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
-import dev.cowzy.cardgourmet.elrond.property.*
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetEndReleaseDateMappingProvider
+import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetStartReleaseDateMappingProvider
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
 
-// Numerics
-private val collectorNumberValue = NumericColumnProperty(PcgPrint::collectorNumberValue, propertyKey = propertyKeys.COLLECTOR_NUMBER)
-private val healthPoints = NumericColumnProperty(PcgCard::hp, propertyKey = "DUMMY") // TODO
-private val retreatCost = NumericColumnProperty(PcgCard::retreatCosts, propertyKey = "DUMMY") // TODO
-private val setPrints = NumericColumnProperty(PcgSet::printedPublicly, propertyKey = "DUMMY") // TODO
-private val totalSetPrints = NumericColumnProperty(PcgSet::printedTotal, propertyKey = "DUMMY") // TODO
-private val startReleaseYear = YearOfDateProperty(PcgSet::releaseStartDate, propertyKey = propertyKeys.RELEASE_YEAR)
-private val endReleaseYear = YearOfDateProperty(PcgSet::releaseEndDate, propertyKey = propertyKeys.RELEASE_YEAR) // TODO: custom property key
-private val artistCount = ArrayCardinalityProperty(PcgPrint::illustrators, propertyKey = "DUMMY") // TODO
-private val energyTypeCount = ArrayCardinalityProperty(PcgPrint::illustrators, propertyKey = "DUMMY") // TODO
-private val abilityTypeCount = ArrayCardinalityProperty(PcgCard::abilityTypes, propertyKey = "DUMMY") // TODO
-private val effectTypeCount = ArrayCardinalityProperty(PcgCard::effectTypes, propertyKey = "DUMMY") // TODO
-private val ruleTypeCount = ArrayCardinalityProperty(PcgCard::ruleTypes, propertyKey = "DUMMY") // TODO
-private val weaknessTypeCount = ArrayCardinalityProperty(PcgCard::weaknessTypes, propertyKey = "DUMMY") // TODO
-private val resistanceTypeCount = ArrayCardinalityProperty(PcgCard::resistanceTypes, propertyKey = "DUMMY") // TODO
+fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
+    val setStartReleaseDates = valueProviderPool.getOrPut("pcg_set_start_release_dates") { PcgSetStartReleaseDateMappingProvider(it) }
+    val setEndReleaseDates = valueProviderPool.getOrPut("pcg_set_end_release_dates") { PcgSetEndReleaseDateMappingProvider(it) }
 
-// Strings
-private val collectorNumber = StringColumnProperty(PcgPrint::collectorNumber, descriptor = StringDescriptor(propertyKeys.COLLECTOR_NUMBER))
-private val regulationMark = StringColumnProperty(PcgPrint::regulationMark, descriptor = StringDescriptor("DUMMY")) // TODO, value provider
-private val name = StringColumnProperty(PcgCardTranslation::name, simpleColumn = PcgCardTranslation::simpleName, descriptor = StringDescriptor(propertyKeys.NAME))
-private val text = StringColumnProperty(PcgCardTranslation::text, simpleColumn = PcgCardTranslation::simpleText, descriptor = StringDescriptor(propertyKeys.TEXT))
-private val flavorText = StringColumnProperty(PcgPrintTranslation::flavorText, simpleColumn = PcgPrintTranslation::simpleFlavorText, descriptor = StringDescriptor(propertyKeys.FLAVOR_TEXT))
-private val reminder = StringColumnProperty(PcgCardTranslation::reminderText, simpleColumn = PcgCardTranslation::simpleReminderText, descriptor = StringDescriptor("DUMMY")) // TODO
-private val region = enumColumnProperty(PcgSet::region, propertyKey = "DUMMY") // TODO
-private val setName = StringColumnProperty(PcgSetTranslation::name, descriptor = StringDescriptor(propertyKeys.SET_NAME))
-private val setType = enumColumnProperty(PcgSet::type, propertyKey = "DUMMY") // TODO
-private val rarity = enumColumnProperty(PcgPrint::rarity, propertyKey = propertyKeys.RARITY)
-private val language = enumColumnProperty(PcgPrintTranslation::language, propertyKey = propertyKeys.LANGUAGE) // TODO: language mappings
-private val evolutionStage = enumColumnProperty(PcgCard::evolutionStage, propertyKey = "DUMMY") // TODO
-private val evolvesFrom = StringColumnProperty(PcgCard::evolvesFromName, descriptor = StringDescriptor("DUMMY")) // TODO, value provider
-private val setCode = StringColumnProperty(PcgSet::setCode, descriptor = StringDescriptor(propertyKeys.SET_CODE)) // TODO: value provider
-private val eraName = StringColumnProperty(PcgEra::name, descriptor = StringDescriptor("DUMMY")) // TODO
+    filter("name", "n") {
+        simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
+    }
 
-// String Arrays
-private val artists = StringArrayColumnProperty(PcgPrint::illustrators, descriptor = IsPresentDescriptor(propertyKeys.ARTIST))
-private val energyTypes = enumArrayColumnProperty(PcgCard::energies, propertyKey = "DUMMY") // TODO
-private val abilityTypes = enumArrayColumnProperty(PcgCard::abilityTypes, propertyKey = "DUMMY") // TODO
-private val effectTypes = enumArrayColumnProperty(PcgCard::effectTypes, propertyKey = "DUMMY") // TODO
-private val ruleTypes = enumArrayColumnProperty(PcgCard::ruleTypes, propertyKey = "DUMMY") // TODO
-private val weaknessTypes = enumArrayColumnProperty(PcgCard::weaknessTypes, propertyKey = "DUMMY") // TODO
-private val resistanceTypes = enumArrayColumnProperty(PcgCard::resistanceTypes, propertyKey = "DUMMY") // TODO
+    filter("cn", "number", "collectornumber") {
+        numericAndString(PcgPrint::collectorNumberValue, PcgPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
+    }
 
-// Dates
-private val startReleaseDate = DateProperty(PcgSet::releaseStartDate, propertyKey = propertyKeys.RELEASE_DATE)
-private val endReleaseDate = DateProperty(PcgSet::releaseEndDate, propertyKey = propertyKeys.RELEASE_DATE) // TODO: custom property key
+    filter("rarity") {
+        enum(PcgPrint::rarity, propertyKeys.RARITY)
+    }
 
-// Identifiers
-private val printId = UuidColumnProperty(PcgPrint::id, EqualsDescriptor(propertyKeys.PRINT_ID))
-private val cardId = UuidColumnProperty(PcgCard::id, EqualsDescriptor(propertyKeys.CARD_ID))
-private val setId = UuidColumnProperty(PcgSet::id, EqualsDescriptor("DUMMY")) // TODO
-private val eraId = UuidColumnProperty(PcgEra::id, EqualsDescriptor("DUMMY")) // TODO
+    filter("mark", "regulationmark") {
+        exactString(PcgPrint::regulationMark, "DUMMY") { autoValues() }
+    }
 
-val pcgNameFilter = QueryFilter(arrayOf("n", "name"), name)
+    filter("artist", "illustrator", "artists", "illustrators") {
+        stringArrayAndCardinality(PcgPrint::illustrators, "DUMMY", propertyKeys.ARTIST) // TODO
+    }
 
-fun createBasicPcgSearchQueryFilters(): List<QueryFilter> {
-    return listOf(
-        // Print filters
-        QueryFilter(arrayOf("printid", "print"), printId),
-        QueryFilter(arrayOf("cn", "number", "collectornumber"), collectorNumberValue, collectorNumber),
-        QueryFilter(arrayOf("rarity"), rarity), // TODO: numeric comparison
-        QueryFilter(arrayOf("mark", "regulationmark"), regulationMark),
-        QueryFilter(arrayOf("artist", "illustrator", "artists", "illustrators"), artistCount, artists),
+    filter("lang", "language") {
+        enum(PcgPrintTranslation::language, propertyKeys.LANGUAGE)
+    }
 
-        // Translation filters
-        QueryFilter(arrayOf("lang", "language"), language),
-        QueryFilter(arrayOf("flavor", "flavortext"), flavorText),
-        pcgNameFilter,
-        QueryFilter(arrayOf("text", "o", "oracle", "oracletext", "fulloracle", "fo", "fulloracletext"), text),
-        QueryFilter(arrayOf("reminder", "reminders", "rule", "rules"), reminder),
+    filter("flavor", "flavortext") {
+        simpleString(PcgPrintTranslation::flavorText, PcgPrintTranslation::simpleFlavorText, propertyKeys.FLAVOR_TEXT)
+    }
 
-        // Card filters
-        QueryFilter(arrayOf("cardid", "card"), cardId),
-        QueryFilter(arrayOf("hp", "health", "healthpoints"), healthPoints),
-        QueryFilter(arrayOf("energy", "energytypes", "energies", "energytypes"), energyTypeCount, energyTypes),
-        QueryFilter(arrayOf("stage", "evolution", "evolutionstage"), evolutionStage),
-        QueryFilter(arrayOf("evolves", "evolvesfrom"), evolvesFrom),
-        QueryFilter(arrayOf("ability", "abilities", "abilitytype", "abilitytypes"), abilityTypeCount, abilityTypes),
-        QueryFilter(arrayOf("effect", "effects", "effecttype", "effecttypes"), effectTypeCount, effectTypes),
-        QueryFilter(arrayOf("ruletype", "ruletypes"), ruleTypeCount, ruleTypes),
-        QueryFilter(arrayOf("weakness", "weaknesses", "weaknesstype", "weaknesstypes"), weaknessTypeCount, weaknessTypes),
-        QueryFilter(arrayOf("resistance", "resistances", "resistancetype", "resistancetypes"), resistanceTypeCount, resistanceTypes),
-        QueryFilter(arrayOf("retreat", "retreatcost"), retreatCost),
+    filter("text", "o", "oracle", "oracletext", "fulloracle", "fo", "fulloracletext") {
+        simpleString(PcgCardTranslation::text, PcgCardTranslation::simpleText, propertyKeys.TEXT)
+    }
 
-        // Set filters
-        QueryFilter(arrayOf("set", "s", "edition", "e", "expansion"), setId, setCode, setName),
-        QueryFilter(arrayOf("setid"), setId),
-        QueryFilter(arrayOf("setname"), setName),
-        QueryFilter(arrayOf("setcode"), setCode),
-        QueryFilter(arrayOf("region"), region),
-        QueryFilter(arrayOf("settype"), setType),
-        QueryFilter(arrayOf("setprints", "publicsetprints"), setPrints),
-        QueryFilter(arrayOf("allsetprints", "totalsetprints"), totalSetPrints),
-        QueryFilter(arrayOf("date", "releasedate", "startreleasedate"), startReleaseDate),
-        QueryFilter(arrayOf("releasedate"), startReleaseYear), // TODO: mappings by set code
-        QueryFilter(arrayOf("year", "releaseyear", "startreleaseyear"), endReleaseDate),
-        QueryFilter(arrayOf("endreleaseyear"), endReleaseYear), // TODO: mappings by set code
+    filter("reminder", "reminders", "rule", "rules") {
+        simpleString(PcgCardTranslation::reminderText, PcgCardTranslation::simpleReminderText, "DUMMY") // TODO
+    }
 
-        // Era filters
-        QueryFilter(arrayOf("era", "block"), eraId, eraName),
-        QueryFilter(arrayOf("eraid", "blockid"), eraId),
-        QueryFilter(arrayOf("eraname", "blockname"), eraName),
+    filter("hp", "health", "healthpoints") {
+        numeric(PcgCard::hp, "DUMMY") // TODO
+    }
 
-        // TODO: is/has/not
-        // TODO: new/in
-        // TODO: prints/sets (reprints)
-    )
+    filter("energy", "energytypes", "energies", "energytypes") {
+        enumArray(PcgCard::energies, "DUMMY") // TODO
+    }
+
+    filter("stage", "evolution", "evolutionstage") {
+        enum(PcgCard::evolutionStage, "DUMMY") // TODO
+    }
+
+    filter("evolves", "evolvesfrom") {
+        string(PcgCard::evolvesFromName, "DUMMY") { autoValues(false) }
+    }
+
+    filter("ability", "abilities", "abilitytype", "abilitytypes") {
+        enumArray(PcgCard::abilityTypes, "DUMMY") // TODO
+    }
+
+    filter("effect", "effects", "effecttype", "effecttypes") {
+        enumArray(PcgCard::effectTypes, "DUMMY") // TODO
+    }
+
+    filter("ruletype", "ruletypes") {
+        enumArray(PcgCard::ruleTypes, "DUMMY") // TODO
+    }
+
+    filter("weakness", "weaknesses", "weaknesstype", "weaknesstypes") {
+        enumArray(PcgCard::weaknessTypes, "DUMMY") // TODO
+    }
+
+    filter("resistance", "resistances", "resistancetype", "resistancetypes") {
+        enumArray(PcgCard::resistanceTypes, "DUMMY") // TODO
+    }
+
+    filter("retreat", "retreatcost") {
+        numeric(PcgCard::retreatCosts, "DUMMY") // TODO
+    }
+
+    filter("set", "s", "edition", "e", "expansion") {
+        uuid(PcgSet::id, "DUMMY") // TODO
+        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues() }
+    }
+
+    filter("setid") {
+        uuid(PcgSet::id, "DUMMY") // TODO
+    }
+
+    filter("setname") {
+        string(PcgSetTranslation::name, propertyKeys.SET_NAME) { autoValues(false) }
+    }
+
+    filter("setcode") {
+        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues() }
+    }
+
+    filter("settype") {
+        enum(PcgSet::type, "DUMMY") // TODO
+    }
+
+    filter("region", "setregion") {
+        enum(PcgSet::region, "DUMMY") // TODO
+    }
+
+    filter("setprints", "publicsetprints") {
+        numeric(PcgSet::printedPublicly, "DUMMY") // TODO
+    }
+
+    filter("allsetprints", "totalsetprints") {
+        numeric(PcgSet::printedTotal, "DUMMY") // TODO
+    }
+
+    filter("date", "releasedate", "startreleasedate") {
+        dateByMapping(PcgSet::releaseStartDate, setStartReleaseDates, propertyKeys.RELEASE_DATE)
+        date(PcgSet::releaseStartDate, propertyKeys.RELEASE_DATE)
+    }
+
+    filter("year", "releaseyear", "startreleaseyear") {
+        yearByMapping(PcgSet::releaseStartDate, setStartReleaseDates, propertyKeys.RELEASE_YEAR)
+        year(PcgSet::releaseStartDate, propertyKeys.RELEASE_YEAR)
+    }
+
+    filter("enddate", "endreleasedate") {
+        dateByMapping(PcgSet::releaseEndDate, setEndReleaseDates, "DUMMY") // TODO
+        date(PcgSet::releaseEndDate, "DUMMY") // TODO
+    }
+
+    filter("endyear", "endreleaseyear") {
+        yearByMapping(PcgSet::releaseEndDate, setEndReleaseDates, "DUMMY") // TODO
+        year(PcgSet::releaseEndDate, "DUMMY") // TODO
+    }
+
+    filter("era", "block") {
+        uuid(PcgEra::id, "DUMMY") // TODO
+        string(PcgEra::name, "DUMMY") { autoValues(false) } // TODO
+    }
+
+    filter("eraid", "blockid") {
+        uuid(PcgEra::id, "DUMMY") // TODO
+    }
+
+    filter("eraname", "blockname") {
+        string(PcgEra::name, "DUMMY") { autoValues(false) } // TODO
+    }
+
+    filter("cardid", "card") { uuid(PcgCard::id, propertyKeys.CARD_ID) }
+    filter("printid", "print") { uuid(PcgPrint::id, propertyKeys.PRINT_ID) }
+
+    // TODO: is/has/not
+    // TODO: new/in
+    // TODO: prints/sets (reprints)
 }
 
 private val tableDependencies = mapOf(

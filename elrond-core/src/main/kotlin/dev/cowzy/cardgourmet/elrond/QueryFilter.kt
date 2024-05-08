@@ -3,8 +3,8 @@ package dev.cowzy.cardgourmet.elrond
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 
 class QueryFilter(
-    val keywords: Array<String>,
-    vararg val properties: SearchQueryProperty<out Any>,
-    val ignoreReferenceKeywords: Array<String> = emptyArray(),
-    val inverted: Boolean = false
+    val keywords: List<String>,
+    val properties: List<SearchQueryProperty<out Any>>,
+    val ignoreReferenceKeywords: Set<String>,
+    val inverted: Boolean
 )

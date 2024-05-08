@@ -1,15 +1,17 @@
 package dev.cowzy.cardgourmet.elrond.config.dlc
 
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.farbeagle.model.CardImage
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
@@ -71,8 +73,15 @@ fun createDlcBaseBuilder(
         }
 }
 
-fun createDlcSearchQueryExecutor(providers: DlcValueProviders): SearchQueryExecutor<DlcSearchQueryFlag> {
-    return createDlcBaseBuilder(dlcBasicSearchQueryConfig, queryBuilder, dlcNameFilter)
-        .filters(createBasicDlcSearchQueryFilters(providers))
+fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicDlcFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
+
+    return createDlcBaseBuilder(dlcBasicSearchQueryConfig, queryBuilder, defaultFilter)
+        .filters(filters)
         .build()
 }

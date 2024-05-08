@@ -7,13 +7,14 @@ import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.cardgourmet.elrond.values.MappingProvider
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlin.reflect.KProperty1
 
 class StringArrayColumnProperty(
     private vararg val columns: KProperty1<*, *>,
-    valueProvider: ValueProvider<String>? = null,
-    mappings: Map<String, String>? = null,
+    valueProvider: ValueProvider<String>,
+    mappingProvider: MappingProvider<String, String>? = null,
     private val inverted: Boolean = false,
     descriptor: PropertyDescriptor,
     key: String? = null,
@@ -26,7 +27,7 @@ class StringArrayColumnProperty(
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
-            mappings(mappings)
+            mappingsWithOperator(mappingProvider)
             values(valueProvider)
         }
     }

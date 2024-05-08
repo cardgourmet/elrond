@@ -3,9 +3,12 @@ package dev.cowzy.cardgourmet.elrond.user.config.mtg
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.mtg.*
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
+import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
@@ -36,19 +39,30 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
     applyMtgSortPostLanguage(query, builder, preferMode)
 }
 
-fun createMtgSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
-    val defaultFilter = createMtgDefaultFilter(providers)
+fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicMtgFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
 
     return createMtgBaseBuilder(mtgSearchQueryConfig, fallbackFilter = defaultFilter)
-        .filters(createBasicMtgSearchQueryFilters(providers) + defaultFilter)
+        .filters(filters)
         .build()
 }
 
-fun createMtgCollectionSearchQueryExecutor(providers: MtgValueProviders): SearchQueryExecutor<MtgSearchQueryFlag> {
-    val defaultFilter = createMtgCollectionDefaultFilter(providers)
+fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
+    val builder = SearchQueryConfigBuilder(providers) {
+        configureBasicMtgFilters()
+        configureCollectionFilters()
+        configureMtgCollectionFilters()
+    }
+
+    val filters = builder.build()
+    val defaultFilter = filters.single { it.keywords.contains("name") }
 
     return createMtgBaseBuilder(mtgSearchQueryConfig, queryBuilder, defaultFilter)
-        .filters(createMtgCollectionSearchQueryFilters())
-        .filters(createBasicMtgSearchQueryFilters(providers) + defaultFilter)
+        .filters(filters)
         .build()
 }

@@ -11,8 +11,7 @@ plugins {
 
 dependencies {
     implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
-    implementation("dev.cowzy.cardgourmet:chef-tagger:0.+")
-    implementation("dev.cowzy.cardgourmet:chef-farbeagle:0.+")
+    implementation("dev.cowzy.cardgourmet:chef-commons:0.21.2")
     implementation("dev.cowzy:kuery-orm:0.3.+")
 
     // Coroutine
