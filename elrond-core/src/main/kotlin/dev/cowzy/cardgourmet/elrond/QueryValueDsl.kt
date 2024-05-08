@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond
 
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.values.MappingProvider
@@ -148,12 +149,14 @@ inline fun <reified T : Enum<T>> enumToMappings(findKeywords: (T) -> List<String
 
 inline fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: (T) -> List<String>): Map<String, T> {
     return enumValues.map { value ->
-        val keywords = findKeywords(value)
-        keywords.map { keyword ->
+        val keywords = findKeywords(value) + value.name.lowercase()
+        keywords.filter {
+            it != value.getSerialName()
+        }.map { keyword ->
             when {
                 keyword.contains("_") -> listOf(keyword.replace("_", "") to value, keyword to value)
                 else -> listOf(keyword to value)
             }
         }.flatten()
-    }.flatten().toMap()
+    }.flatten().distinctBy { it.first }.toMap()
 }

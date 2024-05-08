@@ -10,6 +10,7 @@ import kotlin.reflect.KProperty1
 class EnumColumnProperty<ValueType : Enum<ValueType>>(
     private val column: KProperty1<*, ValueType?>,
     enumValues: Array<ValueType>,
+    aliasResolver: (ValueType) -> List<String> = { emptyList() },
     propertyKey: String
 ) : SearchQueryProperty<ValueType>(
     supportedOperators = stringQueryOperators,
@@ -19,7 +20,7 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
 
     override val valueDefinition = QueryValueDefinition<ValueType> {
         StringValue::class {
-            mappings(enumToMappings(enumValues) { emptyList() })
+            mappings(enumToMappings(enumValues, aliasResolver))
             values(enumValues.map { it.getSerialName() })
 
             transform { value ->
@@ -40,4 +41,8 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
 
 }
 
-inline fun <reified T : Enum<T>> enumColumnProperty(column: KProperty1<*, T?>, propertyKey: String) = EnumColumnProperty(column, enumValues(), propertyKey)
+inline fun <reified T : Enum<T>> enumColumnProperty(
+    column: KProperty1<*, T?>,
+    propertyKey: String,
+    noinline aliasResolver: (T) -> List<String> = { emptyList() }
+) = EnumColumnProperty(column, enumValues(), aliasResolver, propertyKey)

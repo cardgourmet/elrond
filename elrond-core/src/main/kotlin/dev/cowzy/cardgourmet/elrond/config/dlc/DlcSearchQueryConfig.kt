@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.config.dlc
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
+import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
@@ -32,8 +33,8 @@ private val propertyKeys = Strings.Query.Property
 private val dlcPropertyKeys = Strings.Query.Dlc.Property
 
 fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
-    val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it) }
-    val setMarketReleaseDates = valueProviderPool.getOrPut("dlc_set_market_release_dates") { DlcSetMarketReleaseDateMappingProvider(it) }
+    val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it, dlcSetCodeMappings) }
+    val setMarketReleaseDates = valueProviderPool.getOrPut("dlc_set_market_release_dates") { DlcSetMarketReleaseDateMappingProvider(it, dlcSetCodeMappings) }
 
     filter("name", "n") {
         simpleString(DlcCardTranslation::name, DlcCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
@@ -62,6 +63,14 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("lore", "lorevalue") {
         numeric(DlcCard::loreValue, dlcPropertyKeys.LORE)
+    }
+
+    filter("lang", "language", "printlang", "printlanguage") {
+        enum(DlcPrintTranslation::language, propertyKeys.LANGUAGE) // TODO: PRINT_LANGUAGE
+    }
+
+    filter("cardlang", "cardlanguage") {
+        enum(DlcCardTranslation::language, propertyKeys.LANGUAGE) // TODO: CARD_LANGUAGE
     }
 
     filter("keyword", "keywords", "key") {
@@ -105,7 +114,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
         string(DlcPrint::artist, propertyKeys.ARTIST)
     }
 
-    filter("set", "setcode", "s", "e", "edition") {
+    filter("set", "s", "e", "edition", "expansion") {
         uuid(DlcSet::id, "DUMMY") // TODO
         string(DlcSet::code, propertyKeys.SET_CODE) {
             autoValues()

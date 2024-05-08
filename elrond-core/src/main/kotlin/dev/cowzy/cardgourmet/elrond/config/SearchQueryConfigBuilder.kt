@@ -211,13 +211,17 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         property(YearByMappingProperty(column, DataYearMappingProvider(mappingProvider), propertyKey))
     }
 
-    inline fun <reified T : Enum<T>> enum(column: KProperty1<*, T?>, propertyKey: String) {
-        property(enumColumnProperty(column, propertyKey))
-    }
+    inline fun <reified T : Enum<T>> enum(
+        column: KProperty1<*, T?>,
+        propertyKey: String,
+        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+    ) = property(enumColumnProperty(column, propertyKey, aliasResolver))
 
-    inline fun <reified T : Enum<T>> enumArray(column: KProperty1<*, List<T>>, propertyKey: String) {
-        property(enumArrayColumnProperty(column, propertyKey))
-    }
+    inline fun <reified T : Enum<T>> enumArray(
+        column: KProperty1<*, List<T>>,
+        propertyKey: String,
+        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+    ) = property(enumArrayColumnProperty(column, propertyKey, aliasResolver))
 
     inline fun <reified T : Enum<T>> enumArrayAndCardinality(
         column: KProperty1<*, List<T>>,

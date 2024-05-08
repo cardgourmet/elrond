@@ -58,7 +58,7 @@ private val mtgPropertyKeys = Strings.Query.Mtg.Property
 
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
-    val setReleaseDates = valueProviderPool.getOrPut("mtg_set_release_dates") { MtgSetReleaseDateMappingProvider(it) }
+    val setReleaseDates = valueProviderPool.getOrPut("mtg_set_release_dates") { MtgSetReleaseDateMappingProvider(it, mtgSetCodeMappings) }
     val formatProvider = valueProviderPool.getAutoStringArrayProvider(MtgPrint::formatsLegal, MtgPrint::formatsRestricted, MtgPrint::formatsBanned)
 
     filter("name", "n") {

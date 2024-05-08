@@ -31,6 +31,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("rarity") {
+        numeric(PcgPrint::rarityValue, propertyKeys.RARITY)
         enum(PcgPrint::rarity, propertyKeys.RARITY)
     }
 
@@ -42,8 +43,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         stringArrayAndCardinality(PcgPrint::illustrators, "DUMMY", propertyKeys.ARTIST) // TODO
     }
 
-    filter("lang", "language") {
-        enum(PcgPrintTranslation::language, propertyKeys.LANGUAGE)
+    filter("lang", "language", "printlang", "printlanguage") {
+        enum(PcgPrintTranslation::language, propertyKeys.LANGUAGE) { it.keys } // TODO: PRINT_LANGUAGE
+    }
+
+    filter("cardlang", "cardlanguage") {
+        enum(PcgCardTranslation::language, propertyKeys.LANGUAGE) { it.keys } // TODO: CARD_LANGUAGE
     }
 
     filter("flavor", "flavortext") {
@@ -86,12 +91,30 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         enumArrayAndCardinality(PcgCard::ruleTypes, "DUMMY", "DUMMY") // TODO
     }
 
-    filter("weakness", "weaknesses", "weaknesstype", "weaknesstypes") {
+    filter("weakness", "weaknesses") {
+        enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
+        exactString(PcgCard::weaknessModifier, "DUMMY") { autoValues() } // TODO
+    }
+
+    filter("weaknesstype", "weaknesstypes") {
         enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
     }
 
-    filter("resistance", "resistances", "resistancetype", "resistancetypes") {
+    filter("weaknessmodifier") {
+        exactString(PcgCard::weaknessModifier, "DUMMY") { autoValues() } // TODO
+    }
+
+    filter("resistance", "resistances") {
         enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
+        exactString(PcgCard::resistanceModifier, "DUMMY") { autoValues() } // TODO
+    }
+
+    filter("resistancetype", "resistancetypes") {
+        enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
+    }
+
+    filter("resistancemodifier") {
+        exactString(PcgCard::resistanceModifier, "DUMMY") { autoValues() } // TODO
     }
 
     filter("retreat", "retreatcost") {
@@ -120,7 +143,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("region", "setregion") {
-        enum(PcgSet::region, "DUMMY") // TODO
+        enum(PcgSet::region, "DUMMY") { it.aliases } // TODO
     }
 
     filter("setprints", "publicsetprints") {

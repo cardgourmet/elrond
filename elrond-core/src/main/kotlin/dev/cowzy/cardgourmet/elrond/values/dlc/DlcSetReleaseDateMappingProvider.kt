@@ -7,9 +7,12 @@ import dev.cowzy.kuery.column.transformer.LocalDateColumnTransformer
 import dev.cowzy.kuery.query.selectBuilder
 import java.time.LocalDate
 
-class DlcSetReleaseDateMappingProvider(private val pool: SqlDatabasePool) : CachedValueProvider<Pair<String, LocalDate>>(24 * 60 * 60) {
+class DlcSetReleaseDateMappingProvider(
+    private val pool: SqlDatabasePool,
+    private val mappings: Map<String, String>
+) : CachedValueProvider<Pair<String, LocalDate>>(24 * 60 * 60) {
     override suspend fun fetchValues(): Iterable<Pair<String, LocalDate>> {
-        return pool.use {
+        val values = pool.use {
             DlcSet::class.selectBuilder()
                 .distinctOn(DlcSet::code)
                 .select(DlcSet::code)
@@ -17,6 +20,10 @@ class DlcSetReleaseDateMappingProvider(private val pool: SqlDatabasePool) : Cach
                 .get(it) { row, index ->
                     row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)!!
                 }
-        }
+        }.toMap()
+
+        return mappings.mapNotNull { (key, value) ->
+            values[value]?.let { key to it }
+        } + values.entries.map { it.toPair() }
     }
 }

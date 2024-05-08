@@ -14,6 +14,7 @@ import kotlin.reflect.KProperty1
 class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     val column: KProperty1<*, List<ValueType>>,
     enumValues: Array<ValueType>,
+    aliasResolver: (ValueType) -> List<String> = { emptyList() },
     propertyKey: String
 ) : SearchQueryProperty<ValueType>(
     supportedOperators = arrayOf(SearchQueryOperator.CONTAINS),
@@ -24,7 +25,7 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
-            mappings(enumToMappings(enumValues) { emptyList() })
+            mappings(enumToMappings(enumValues, aliasResolver))
             values(enumValues.map { it.getSerialName() })
         }
     }
@@ -41,4 +42,8 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
 
 }
 
-inline fun <reified T : Enum<T>> enumArrayColumnProperty(column: KProperty1<*, List<T>>, propertyKey: String) = EnumArrayColumnProperty(column, enumValues(), propertyKey)
+inline fun <reified T : Enum<T>> enumArrayColumnProperty(
+    column: KProperty1<*, List<T>>,
+    propertyKey: String,
+    noinline aliasResolver: (T) -> List<String> = { emptyList() }
+) = EnumArrayColumnProperty(column, enumValues(), aliasResolver, propertyKey)
