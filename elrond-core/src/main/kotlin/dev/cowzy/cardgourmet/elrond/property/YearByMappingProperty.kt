@@ -21,6 +21,7 @@ class YearByMappingProperty(
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
             mappings(mappingProvider)
+            useStrictValues = true
             display { it, _, _ -> "`$it`" }
         }
     }

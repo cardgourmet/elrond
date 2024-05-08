@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.table
 import java.time.LocalDate
@@ -20,8 +21,8 @@ class DateByMappingProperty(
 ) {
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
-            format = "date"
             mappings(mappingProvider)
+            useStrictValues = true
             display { it, _, _ -> "`${(it as LocalDate).format(DateTimeFormatter.ISO_LOCAL_DATE)}`" }
         }
     }
