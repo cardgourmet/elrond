@@ -20,7 +20,7 @@ class ArrayCardinalityProperty(
         }
 
         StringValue::class {
-            useStrictValues = true
+            useStrictValues = mappings != null
             mappingsWithOperator(mappings)
         }
     }
