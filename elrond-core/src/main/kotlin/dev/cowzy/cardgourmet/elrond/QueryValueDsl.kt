@@ -51,7 +51,7 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
     private var transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>? = { it, operator ->
         try {
             @Suppress("UNCHECKED_CAST")
-            (it as Output) to operator
+            (it.value as Output) to operator
         }  catch (e: ClassCastException) {
             null
         }
