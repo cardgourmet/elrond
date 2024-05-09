@@ -67,8 +67,17 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         numeric(PcgCard::hp, "DUMMY") // TODO
     }
 
-    filter("energy", "energytypes", "energies", "energytypes") {
-        enumArrayAndCardinality(PcgCard::energies, "DUMMY", "DUMMY") // TODO
+    filter("type") {
+        enum(PcgCard::superType, "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") // TODO
+    }
+
+    filter("supertype") {
+        enum(PcgCard::superType, "DUMMY") // TODO
+    }
+
+    filter("types", "energy", "energies", "energytypes") {
+        enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") // TODO
     }
 
     filter("stage", "evolution", "evolutionstage") {
