@@ -98,7 +98,6 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("attack", "attackname", "abilityname") {
         property(StringRegexProperty(
             PcgCardTranslation::text,
-            PcgCardTranslation::simpleText,
             { value, operator ->
                 when (operator) {
                     SearchQueryOperator.CONTAINS -> "\\[(\\S+\\s)?\"[^\"]*$value[^\"]*\"(\\s\\S+)?]"
@@ -113,7 +112,6 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("damage", "attackdamage", "abilitydamage") {
         property(StringRegexProperty(
             PcgCardTranslation::text,
-            PcgCardTranslation::simpleText,
             { value, _ -> "\\[(\\S+\\s)?\"[^\"]+\"\\s$value\\D]" }, // TODO: range checks
             propertyKey = "DUMMY" // TODO
         ))
@@ -123,7 +121,6 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("attackcost", "abilitycost") {
         property(StringRegexProperty(
             PcgCardTranslation::text,
-            PcgCardTranslation::simpleText,
             { value, operator ->
                 PcgType
 
@@ -132,7 +129,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
                 }.sortedBy { typeValue ->
                     val type = PcgType.values().find { it.keys.contains(typeValue.lowercase()) }
                     when (type) {
-                        PcgType.COLORLESS -> Int.MIN_VALUE
+                        PcgType.COLORLESS -> Int.MAX_VALUE
                         else -> type?.ordinal ?: Int.MAX_VALUE
                     }
                 }.joinToString("") { "\\{$it}" }

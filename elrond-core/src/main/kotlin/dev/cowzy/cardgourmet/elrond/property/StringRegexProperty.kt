@@ -9,13 +9,12 @@ import kotlin.reflect.KProperty1
 
 class StringRegexProperty(
     private val column: KProperty1<*, *>,
-    private val simpleColumn: KProperty1<*, *>? = null,
     private val mapPattern: (String, SearchQueryOperator) -> String,
     enableNumericOperators: Boolean = false,
     propertyKey: String,
 ) : SearchQueryProperty<StringValue>(
     supportedOperators = if (enableNumericOperators) numericQueryOperators else stringQueryOperators,
-    affectedTables = simpleColumn?.let { arrayOf(column.table(), it.table()) } ?: arrayOf(column.table()),
+    affectedTables = arrayOf(column.table()),
     descriptor = StringDescriptor(propertyKey)
 ) {
 
@@ -37,12 +36,6 @@ class StringRegexProperty(
     ) {
         val escapedValue = value.value.replace(Regex("[^\\p{L}\\p{N}]"), ".")
         val pattern = this.mapPattern(escapedValue, operator)
-
-        val column = when {
-            simpleColumn != null && !value.exact -> simpleColumn
-            else -> column
-        }
-
         builder.where(column, "~*", value = pattern)
     }
 
