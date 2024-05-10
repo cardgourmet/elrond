@@ -112,7 +112,13 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("damage", "attackdamage", "abilitydamage") {
         property(StringRegexProperty(
             PcgCardTranslation::text,
-            { value, _ -> "\\[(\\S+\\s)?\"[^\"]+\"\\s$value\\D]" }, // TODO: range checks
+            { value, operator ->
+                when (operator) {
+                    SearchQueryOperator.CONTAINS -> "\\[(\\S+\\s)?\"[^\"]+\"\\s$value\\D?]"
+                    SearchQueryOperator.EQUALS -> "\\[(\\S+\\s)?\"[^\"]+\"\\s$value]"
+                    else -> value
+                }
+            }, // TODO: range checks
             propertyKey = "DUMMY" // TODO
         ))
     }
