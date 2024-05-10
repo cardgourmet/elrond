@@ -26,6 +26,7 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
             mappings(enumToMappings(enumValues, aliasResolver))
+            transform { value -> enumValues.find { it.name.equals(value.value, true) || it.getSerialName().equals(value.value, true) } }
             values(enumValues.map { it.getSerialName() })
         }
     }

@@ -8,9 +8,11 @@ import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgEra
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetTranslation
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetEndReleaseDateMappingProvider
 import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetStartReleaseDateMappingProvider
 import dev.cowzy.kuery.query.innerJoin
@@ -67,9 +69,10 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         numeric(PcgCard::hp, "DUMMY") // TODO
     }
 
-    filter("type") {
+    filter("type", "t") {
         enum(PcgCard::superType, "DUMMY") // TODO
-        enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") // TODO
+        stringArray(PcgCard::subTypes, "DUMMY") // TODO
+        enumArray(PcgCard::types, "DUMMY") // TODO
     }
 
     filter("supertype") {
@@ -80,6 +83,10 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") // TODO
     }
 
+    filter("subtype", "subtypes") {
+        stringArrayAndCardinality(PcgCard::subTypes, "DUMMY", "DUMMY") // TODO
+    }
+
     filter("stage", "evolution", "evolutionstage") {
         enum(PcgCard::evolutionStage, "DUMMY") // TODO
     }
@@ -88,7 +95,60 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         string(PcgCard::evolvesFromName, "DUMMY") { autoValues(false) }
     }
 
+    filter("attack", "attackname", "abilityname") {
+        property(StringRegexProperty(
+            PcgCardTranslation::text,
+            PcgCardTranslation::simpleText,
+            { value, operator ->
+                when (operator) {
+                    SearchQueryOperator.CONTAINS -> "\\[(\\S+\\s)?\"[^\"]*$value[^\"]*\"(\\s\\S+)?]"
+                    SearchQueryOperator.EQUALS -> "\\[(\\S+\\s)?\"$value\"(\\s\\S+)?]"
+                    else -> value
+                }
+            },
+            propertyKey = "DUMMY" // TODO
+        ))
+    }
+
+    filter("damage", "attackdamage", "abilitydamage") {
+        property(StringRegexProperty(
+            PcgCardTranslation::text,
+            PcgCardTranslation::simpleText,
+            { value, _ -> "\\[(\\S+\\s)?\"[^\"]+\"\\s$value\\D]" }, // TODO: range checks
+            propertyKey = "DUMMY" // TODO
+        ))
+    }
+
+    // TODO: custom property for value display/transform
+    filter("attackcost", "abilitycost") {
+        property(StringRegexProperty(
+            PcgCardTranslation::text,
+            PcgCardTranslation::simpleText,
+            { value, operator ->
+                PcgType
+
+                val values = Regex("(?:\\{(.)}|(.))").findAll(value).map {
+                    it.groupValues[1].ifBlank { null } ?: it.groupValues[2]
+                }.sortedBy { typeValue ->
+                    val type = PcgType.values().find { it.keys.contains(typeValue.lowercase()) }
+                    when (type) {
+                        PcgType.COLORLESS -> Int.MIN_VALUE
+                        else -> type?.ordinal ?: Int.MAX_VALUE
+                    }
+                }.joinToString("") { "\\{$it}" }
+
+                when (operator) {
+                    SearchQueryOperator.CONTAINS -> "\\[$values\\s\"[^\"]+\"(\\s\\S+)?]"
+                    SearchQueryOperator.EQUALS -> "\\[\\S*$values\\S*\\s\"[^\"]+\"(\\s\\S+)?]"
+                    else -> value
+                }
+            },
+            propertyKey = "DUMMY" // TODO
+        ))
+    }
+
     filter("ability", "abilities", "abilitytype", "abilitytypes") {
+        ignoreReference("ability")
         enumArrayAndCardinality(PcgCard::abilityTypes, "DUMMY", "DUMMY") // TODO
     }
 
@@ -102,7 +162,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("weakness", "weaknesses") {
         enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
-        exactString(PcgCard::weaknessModifier, "DUMMY") { autoValues() } // TODO
+        string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("weaknesstype", "weaknesstypes") {
@@ -110,12 +170,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("weaknessmodifier") {
-        exactString(PcgCard::weaknessModifier, "DUMMY") { autoValues() } // TODO
+        string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("resistance", "resistances") {
         enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
-        exactString(PcgCard::resistanceModifier, "DUMMY") { autoValues() } // TODO
+        string(PcgCard::resistanceModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("resistancetype", "resistancetypes") {
@@ -123,7 +183,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("resistancemodifier") {
-        exactString(PcgCard::resistanceModifier, "DUMMY") { autoValues() } // TODO
+        string(PcgCard::resistanceModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("retreat", "retreatcost") {
