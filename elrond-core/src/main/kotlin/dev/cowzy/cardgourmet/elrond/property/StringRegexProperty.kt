@@ -35,7 +35,10 @@ class StringRegexProperty(
         operator: SearchQueryOperator,
         value: StringValue
     ) {
-        val escapedValue = value.value.map { "\\$it" }.joinToString("")
+        val escapedValue = value.value
+            .replace(Regex("\\P{L}"), ".")
+            .replace(Regex("\\P{N}"), ".")
+
         val pattern = this.mapPattern(escapedValue, operator)
 
         val column = when {
