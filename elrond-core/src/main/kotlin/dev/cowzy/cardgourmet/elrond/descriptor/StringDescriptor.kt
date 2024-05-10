@@ -26,7 +26,7 @@ class StringDescriptor(
         val negated = if (negate) !expression.negate else expression.negate
 
         val propertyKey = when (expression.value) {
-            is StringValue -> Strings.Query.Comparison.String.let {
+            is StringValue, is String -> Strings.Query.Comparison.String.let {
                 when (expression.operator) {
                     SearchQueryOperator.CONTAINS -> if (!negated) it.CONTAINS else it.NOT_CONTAINS
                     SearchQueryOperator.EQUALS -> if (!negated) it.EQUALS else it.NOT_EQUALS
