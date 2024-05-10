@@ -1,6 +1,5 @@
 package dev.cowzy.cardgourmet.elrond.property
 
-import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
@@ -12,7 +11,7 @@ class StringRegexProperty(
     private val mapPattern: (String, SearchQueryOperator) -> String,
     enableNumericOperators: Boolean = false,
     propertyKey: String,
-) : SearchQueryProperty<StringValue>(
+) : SearchQueryProperty<String>(
     supportedOperators = if (enableNumericOperators) numericQueryOperators else stringQueryOperators,
     affectedTables = arrayOf(column.table()),
     descriptor = StringDescriptor(propertyKey)
@@ -20,21 +19,16 @@ class StringRegexProperty(
 
     override val valueDefinition = QueryValueDefinition {
         StringValue::class {
-            transform {
-                when {
-                    simpleColumn != null && !it.exact -> StringValue(it.value.toSimpleString())
-                    else -> it
-                }
-            }
+            transform { it.value }
         }
     }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: StringValue
+        value: String
     ) {
-        val escapedValue = value.value.replace(Regex("[^\\p{L}\\p{N}]"), ".")
+        val escapedValue = value.replace(Regex("[^\\p{L}\\p{N}]"), ".")
         val pattern = this.mapPattern(escapedValue, operator)
         builder.where(column, "~*", value = pattern)
     }
