@@ -17,6 +17,7 @@ class ArrayCardinalityProperty(
     override val valueDefinition = QueryValueDefinition {
         NumberValue::class {
             transform { it.value }
+            match { (it as Number).toDouble() >= 0 }
         }
 
         if (mappings != null) {

@@ -164,11 +164,11 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("weakness", "weaknesses") {
-        enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
+        enumArray(PcgCard::weaknessTypes, "DUMMY") // TODO
         string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
-    filter("weaknesstype", "weaknesstypes") {
+    filter("weaknesses", "weaknesstype", "weaknesstypes") {
         enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
     }
 
@@ -176,12 +176,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
-    filter("resistance", "resistances") {
-        enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
+    filter("resistance") {
+        enumArray(PcgCard::resistanceTypes, "DUMMY") // TODO
         string(PcgCard::resistanceModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
-    filter("resistancetype", "resistancetypes") {
+    filter("resistances", "resistancetype", "resistancetypes") {
         enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
     }
 

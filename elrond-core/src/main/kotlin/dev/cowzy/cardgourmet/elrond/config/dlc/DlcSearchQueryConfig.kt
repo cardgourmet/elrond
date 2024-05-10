@@ -3,11 +3,11 @@ package dev.cowzy.cardgourmet.elrond.config.dlc
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
@@ -141,8 +141,22 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
         simpleString(DlcCardTranslation::title, DlcCardTranslation::simpleTitle, dlcPropertyKeys.TITLE) { autoValues(false) }
     }
 
-    filter("text", "description", "ability", "abilities", "action", "actions", "oracle", "oracletext", "o") {
+    filter("text", "description", "abilities", "actions", "oracle", "oracletext", "o") {
         simpleString(DlcCardTranslation::text, DlcCardTranslation::simpleText, propertyKeys.TEXT)
+    }
+
+    filter("ability", "action", "actionname", "abilityname") {
+        property(StringRegexProperty(
+            DlcCardTranslation::text,
+            { value, operator ->
+                when (operator) {
+                    SearchQueryOperator.CONTAINS -> "\\[\"[^\"]*$value[^\"]*\"]"
+                    SearchQueryOperator.EQUALS -> "\\[\"$value\"]"
+                    else -> value
+                }
+            },
+            propertyKey = "DUMMY" // TODO
+        ))
     }
 
     filter("fulltext", "fulldescription", "fulloracle", "fulloracletext", "fo") {
