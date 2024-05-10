@@ -226,10 +226,11 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
     inline fun <reified T : Enum<T>> enumArrayAndCardinality(
         column: KProperty1<*, List<T>>,
         cardinalityPropertyKey: String,
-        arrayPropertyKey: String
+        arrayPropertyKey: String,
+        noinline aliasResolver: (T) -> List<String> = { emptyList() }
     ) {
         cardinality(column, cardinalityPropertyKey)
-        enumArray(column, arrayPropertyKey)
+        enumArray(column, arrayPropertyKey, aliasResolver)
     }
 
     fun inverted(inverted: Boolean) = this.apply { this.inverted = inverted }

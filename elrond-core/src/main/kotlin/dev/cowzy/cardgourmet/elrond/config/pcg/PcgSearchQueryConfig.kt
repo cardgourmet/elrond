@@ -7,11 +7,13 @@ import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgEra
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetTranslation
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetEndReleaseDateMappingProvider
 import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetStartReleaseDateMappingProvider
@@ -24,6 +26,10 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     val setStartReleaseDates = valueProviderPool.getOrPut("pcg_set_start_release_dates") { PcgSetStartReleaseDateMappingProvider(it) }
     val setEndReleaseDates = valueProviderPool.getOrPut("pcg_set_end_release_dates") { PcgSetEndReleaseDateMappingProvider(it) }
 
+    val subTypeMappings = enumToMappings<PcgPokemonSubType> { it.keys }.mapValues { it.value.getSerialName() } +
+            enumToMappings<PcgTrainerSubType> { it.keys }.mapValues { it.value.getSerialName() } +
+            enumToMappings<PcgEnergySubType> { it.keys }.mapValues { it.value.getSerialName() }
+
     filter("name", "n") {
         simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
     }
@@ -34,7 +40,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("rarity") {
         numeric(PcgPrint::rarityValue, propertyKeys.RARITY)
-        enum(PcgPrint::rarity, propertyKeys.RARITY)
+        enum(PcgPrint::rarity, propertyKeys.RARITY) { it.keys }
     }
 
     filter("mark", "regulationmark") {
@@ -70,21 +76,23 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("type", "t") {
-        enum(PcgCard::superType, "DUMMY") // TODO
-        stringArray(PcgCard::subTypes, "DUMMY") // TODO
-        enumArray(PcgCard::types, "DUMMY") // TODO
+        enum(PcgCard::superType, "DUMMY") { it.keys } // TODO
+        stringArray(PcgCard::subTypes, "DUMMY") { autoMappings(subTypeMappings) } // TODO
+        enumArray(PcgCard::types, "DUMMY") { it.keys } // TODO
     }
 
     filter("supertype") {
-        enum(PcgCard::superType, "DUMMY") // TODO
+        enum(PcgCard::superType, "DUMMY") { it.keys } // TODO
     }
 
     filter("types", "energy", "energies", "energytypes") {
-        enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") { it.keys } // TODO
     }
 
     filter("subtype", "subtypes") {
-        stringArrayAndCardinality(PcgCard::subTypes, "DUMMY", "DUMMY") // TODO
+        stringArrayAndCardinality(PcgCard::subTypes, "DUMMY", "DUMMY") { // TODO
+            autoMappings(subTypeMappings)
+        }
     }
 
     filter("stage", "evolution", "evolutionstage") {
@@ -152,24 +160,24 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("ability", "abilities", "abilitytype", "abilitytypes") {
         ignoreReference("ability")
-        enumArrayAndCardinality(PcgCard::abilityTypes, "DUMMY", "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::abilityTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
     }
 
     filter("effect", "effects", "effecttype", "effecttypes") {
-        enumArrayAndCardinality(PcgCard::effectTypes, "DUMMY", "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::effectTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
     }
 
     filter("ruletype", "ruletypes") {
-        enumArrayAndCardinality(PcgCard::ruleTypes, "DUMMY", "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::ruleTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
     }
 
     filter("weakness", "weaknesses") {
-        enumArray(PcgCard::weaknessTypes, "DUMMY") // TODO
+        enumArray(PcgCard::weaknessTypes, "DUMMY") { it.keys }  // TODO
         string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("weaknesses", "weaknesstype", "weaknesstypes") {
-        enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
     }
 
     filter("weaknessmodifier") {
@@ -177,12 +185,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("resistance") {
-        enumArray(PcgCard::resistanceTypes, "DUMMY") // TODO
+        enumArray(PcgCard::resistanceTypes, "DUMMY") { it.keys } // TODO
         string(PcgCard::resistanceModifier, "DUMMY") { autoValues(false) } // TODO
     }
 
     filter("resistances", "resistancetype", "resistancetypes") {
-        enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") // TODO
+        enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") { it.keys } // TODO
     }
 
     filter("resistancemodifier") {
