@@ -39,10 +39,15 @@ data class SearchQueryResult<T>(
     )
 }
 
+suspend fun <E : Enum<E>> SearchQueryExecutor<E>.parse(query: String): Pair<QueryExpressionBuilderResult, Set<E>> {
+    val (strippedQuery, flags) = query.stripFlags(flags)
+    return strippedQuery.parseQueryExpression(filters, fallbackFilter) to flags
+}
+
 suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
     query: String,
     distinctBy: KProperty1<*, *>,
-    sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>,
+    sortColumns: List<ElrondSortColumn>,
     builder: SelectQueryBuilder,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     limit: Int,
@@ -54,8 +59,7 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
 ): SearchQueryResult<T> {
     var lastSearchQuery: SearchQueryExecutor.Result<E>? = null
 
-    val (strippedQuery, flags) = query.stripFlags(flags)
-    val expressionResult = strippedQuery.parseQueryExpression(filters, fallbackFilter)
+    val (expressionResult, flags) = parse(query)
 
     val innerSortColumns = if (pagination.direction == Order.ASCENDING) sortColumns else sortColumns.map { it.flipped() }
 
@@ -188,8 +192,7 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.countAttempt(
     connection: Connection,
     attempt: Int
 ): SearchQueryCountResult? {
-    val (strippedQuery, flags) = query.stripFlags(flags)
-    val expressionResult = strippedQuery.parseQueryExpression(filters, fallbackFilter)
+    val (expressionResult, flags) = parse(query)
 
     val result = this.toQueryBuilder(
         expression = expressionResult,
@@ -210,15 +213,14 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.countAttempt(
 suspend fun <T : Enum<T>> SearchQueryExecutor<T>.getPageItems(
     query: String,
     distinctBy: KProperty1<*, *>,
-    sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>,
+    sortColumns: List<ElrondSortColumn>,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     pageSize: Int,
     preferredLanguage: String,
     overrideFlags: Set<T>? = null,
     connection: Connection
 ): List<UUID?> {
-    val (strippedQuery, flags) = query.stripFlags(flags)
-    val expressionResult = strippedQuery.parseQueryExpression(filters, fallbackFilter)
+    val (expressionResult, flags) = parse(query)
 
     var attempt = 0
     while (true) {
@@ -281,7 +283,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.getPageItems(
     return listOf(null)
 }
 
-private fun List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>.apply(builder: WhereQueryBuilder<*>, index: Int = 0, values: List<Any?>, distinctBySortColumn: dev.cowzy.cardgourmet.elrond.ElrondSortColumn, inverse: Boolean = false) {
+private fun List<ElrondSortColumn>.apply(builder: WhereQueryBuilder<*>, index: Int = 0, values: List<Any?>, distinctBySortColumn: ElrondSortColumn, inverse: Boolean = false) {
     val current = this[index]
     val order = current.order
 
@@ -301,7 +303,6 @@ private fun List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>.apply(builder: W
         builder.where(columnName, operator, value)
         return
     }
-
 
     builder.where {
         if (mappedValue != null) {

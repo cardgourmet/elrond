@@ -156,8 +156,6 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         property(StringRegexProperty(
             PcgCardTranslation::text,
             { value, operator ->
-                PcgType
-
                 val values = Regex("(?:\\{(.)}|(.))").findAll(value).map {
                     it.groupValues[1].ifBlank { null } ?: it.groupValues[2]
                 }.sortedBy { typeValue ->
