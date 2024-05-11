@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.config.dlc
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
+import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgLanguage
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
@@ -66,11 +67,15 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(DlcPrintTranslation::language, propertyKeys.PRINT_LANGUAGE)
+        enum(DlcPrintTranslation::language, propertyKeys.PRINT_LANGUAGE, display = { value, i18n, locale ->
+            i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
+        })
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(DlcCardTranslation::language, propertyKeys.CARD_LANGUAGE)
+        enum(DlcCardTranslation::language, propertyKeys.CARD_LANGUAGE, display = { value, i18n, locale ->
+            i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
+        })
     }
 
     filter("keyword", "keywords", "key") {

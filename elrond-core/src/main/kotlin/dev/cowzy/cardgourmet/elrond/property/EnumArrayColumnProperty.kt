@@ -15,7 +15,7 @@ import kotlin.reflect.KProperty1
 class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     val column: KProperty1<*, List<ValueType>>,
     enumValues: Array<ValueType>,
-    aliasResolver: (ValueType) -> List<String> = { emptyList() },
+    aliasResolver: ((ValueType) -> List<String>)? = null,
     descriptor: PropertyDescriptor,
     key: String? = null,
 ) : SearchQueryProperty<ValueType>(
@@ -49,5 +49,5 @@ inline fun <reified T : Enum<T>> enumArrayColumnProperty(
     column: KProperty1<*, List<T>>,
     descriptor: PropertyDescriptor,
     key: String,
-    noinline aliasResolver: (T) -> List<String> = { emptyList() }
+    noinline aliasResolver: ((T) -> List<String>)? = null,
 ) = EnumArrayColumnProperty(column, enumValues(), aliasResolver, descriptor, key)

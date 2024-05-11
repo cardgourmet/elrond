@@ -1,5 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.config
 
+import dev.cowzy.cardgourmet.commons.getSerialName
+import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
+import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
@@ -214,27 +217,28 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
     inline fun <reified T : Enum<T>> enum(
         column: KProperty1<*, T?>,
         propertyKey: String,
-        noinline aliasResolver: (T) -> List<String> = { emptyList() }
-    ) = property(enumColumnProperty(column, propertyKey, aliasResolver))
+        noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
+        noinline aliasResolver: ((T) -> List<String>)? = null,
+    ) = property(enumColumnProperty(column, propertyKey, aliasResolver, display))
 
     inline fun <reified T : Enum<T>> enumArray(
         column: KProperty1<*, List<T>>,
         propertyKey: String,
-        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+        noinline aliasResolver: ((T) -> List<String>)? = null,
     ) = enumArray(column, IsPresentDescriptor(propertyKey), propertyKey, aliasResolver)
 
     inline fun <reified T : Enum<T>> enumArray(
         column: KProperty1<*, List<T>>,
         descriptor: PropertyDescriptor,
         key: String,
-        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+        noinline aliasResolver: ((T) -> List<String>)? = null,
     ) = property(enumArrayColumnProperty(column, descriptor, key.split(".").last(), aliasResolver))
 
     inline fun <reified T : Enum<T>> enumArrayAndCardinality(
         column: KProperty1<*, List<T>>,
         cardinalityPropertyKey: String,
         arrayPropertyKey: String,
-        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+        noinline aliasResolver: ((T) -> List<String>)? = null,
     ) {
         cardinality(column, cardinalityPropertyKey)
         enumArray(column, arrayPropertyKey, aliasResolver)
@@ -245,7 +249,7 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         cardinalityPropertyKey: String,
         descriptor: PropertyDescriptor,
         key: String,
-        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+        noinline aliasResolver: ((T) -> List<String>)? = null,
     ) {
         cardinality(column, cardinalityPropertyKey)
         enumArray(column, descriptor, key, aliasResolver)

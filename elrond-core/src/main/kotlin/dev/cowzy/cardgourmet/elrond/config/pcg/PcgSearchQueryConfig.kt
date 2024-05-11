@@ -57,11 +57,25 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(PcgPrintTranslation::language, propertyKeys.PRINT_LANGUAGE) { it.keys }
+        enum(
+            PcgPrintTranslation::language,
+            propertyKeys.PRINT_LANGUAGE,
+            aliasResolver = { it.keys },
+            display = { value, i18n, locale ->
+                i18n.translate(locale, "${Strings.Query.Pcg.Languages.KEY}.${value.getSerialName()}")
+            }
+        )
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(PcgCardTranslation::language, propertyKeys.CARD_LANGUAGE) { it.keys }
+        enum(
+            PcgCardTranslation::language,
+            propertyKeys.CARD_LANGUAGE,
+            aliasResolver = { it.keys },
+            display = { value, i18n, locale ->
+                i18n.translate(locale, "${Strings.Query.Pcg.Languages.KEY}.${value.getSerialName()}")
+            }
+        )
     }
 
     filter("flavor", "flavortext") {

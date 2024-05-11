@@ -143,13 +143,13 @@ class TransformMappingProvider<Value, T, Output>(private val valueProvider: Mapp
     override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (transform(it.second.first) to it.second.second) }.toSet()
 }
 
-inline fun <reified T : Enum<T>> enumToMappings(findKeywords: (T) -> List<String>): Map<String, T> {
+inline fun <reified T : Enum<T>> enumToMappings(noinline findKeywords: (T) -> List<String>): Map<String, T> {
     return enumToMappings(enumValues<T>(), findKeywords)
 }
 
-inline fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: (T) -> List<String>): Map<String, T> {
+fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: ((T) -> List<String>)? = null): Map<String, T> {
     return enumValues.map { value ->
-        (findKeywords(value) + value.name)
+        ((findKeywords?.invoke(value) ?: emptyList()) + value.name)
             .filter { it != value.getSerialName() }
             .map { it.lowercase() }.map { keyword ->
                 when {
