@@ -17,7 +17,6 @@ import dev.cowzy.cardgourmet.elrond.descriptor.mtg.FormatDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
-import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
 import dev.cowzy.cardgourmet.elrond.values.mtg.*
 import dev.cowzy.kuery.query.innerJoin
@@ -133,7 +132,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("watermark", "watermarks", "wm") {
-        stringArrayAndCardinality(MtgPrint::watermarks, "DUMMY", mtgPropertyKeys.WATERMARK) // TODO
+        stringArrayAndCardinality(MtgPrint::watermarks, mtgPropertyKeys.WATERMARK_COUNT, mtgPropertyKeys.WATERMARK)
     }
 
     filter("keyword", "keywords", "key") {
@@ -176,19 +175,19 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("legal", "legalformats", "legalin", "format") {
-        stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.FORMATS_LEGAL_COUNT, FormatDescriptor(FormatDescriptor.Type.LEGAL), "legal_formats") {
+        stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.LEGAL), "legal_format") {
             values(formatProvider)
         }
     }
 
     filter("restricted", "restrictedformats", "restrictedin") {
-        stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.FORMATS_RESTRICTED_COUNT, FormatDescriptor(FormatDescriptor.Type.RESTRICTED), "restricted_formats") {
+        stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.RESTRICTED), "restricted_format") {
             values(formatProvider)
         }
     }
 
     filter("banned", "bannedformats", "bannedin") {
-        stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.FORMATS_BANNED_COUNT, FormatDescriptor(FormatDescriptor.Type.BANNED), "banned_formats") {
+        stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.BANNED), "banned_format") {
             values(formatProvider)
         }
     }
@@ -210,7 +209,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("set", "s", "e", "edition", "expansion") {
-        uuid(MtgSet::id, "DUMMY") // TODO
+        uuid(MtgSet::id, propertyKeys.SET_ID)
         string(MtgSet::code, propertyKeys.SET_CODE) {
             autoValues()
             mappings(mtgSetCodeMappings)
@@ -224,7 +223,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         }
     }
 
-    filter("setid") { uuid(MtgSet::id, "DUMMY") } // TODO
+    filter("setid") { uuid(MtgSet::id, propertyKeys.SET_ID) }
     filter("setname") { string(MtgSet::name, propertyKeys.SET_NAME) { autoValues(false) } }
     filter("settype") { exactString(MtgSet::type, mtgPropertyKeys.SET_TYPE) { autoValues() } }
 
@@ -243,15 +242,15 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("basetype", "basetypes") {
-        stringArrayAndCardinality(MtgCardFace::types, "DUMMY", mtgPropertyKeys.TYPE) // TODO
+        stringArrayAndCardinality(MtgCardFace::types, mtgPropertyKeys.TYPE_COUNT, mtgPropertyKeys.TYPE)
     }
 
     filter("supertype", "supertypes") {
-        stringArrayAndCardinality(MtgCardFace::superTypes, "DUMMY", mtgPropertyKeys.SUPER_TYPE) // TODO
+        stringArrayAndCardinality(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE_COUNT, mtgPropertyKeys.SUPER_TYPE)
     }
 
     filter("subtype", "subtypes") {
-        stringArrayAndCardinality(MtgCardFace::subTypes, "DUMMY", mtgPropertyKeys.SUB_TYPE) // TODO
+        stringArrayAndCardinality(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE_COUNT, mtgPropertyKeys.SUB_TYPE)
     }
 
     filter("oracle", "oracletext", "o") {
@@ -312,12 +311,12 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("block", "era") {
-        uuid(MtgBlock::id, "DUMMY") // TODO
-        string(MtgBlock::name, "DUMMY") { autoValues(false) } // TODO
+        uuid(MtgBlock::id, mtgPropertyKeys.BLOCK_ID)
+        string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues(false) }
     }
 
-    filter("blockid", "eraid") { uuid(MtgBlock::id, "DUMMY") } // TODO
-    filter("blockname", "eraname") { string(MtgBlock::name, "DUMMY") { autoValues() } } // TODO
+    filter("blockid", "eraid") { uuid(MtgBlock::id, mtgPropertyKeys.BLOCK_ID) }
+    filter("blockname", "eraname") { string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues() } }
 
     filter("print", "printid") { uuid(MtgPrint::id, propertyKeys.PRINT_ID) }
     filter("card", "cardid", "oracleid") { uuid(MtgCard::id, propertyKeys.CARD_ID) }

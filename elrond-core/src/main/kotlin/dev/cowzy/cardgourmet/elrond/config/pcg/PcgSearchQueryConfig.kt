@@ -13,6 +13,7 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetEndReleaseDateMappingProvider
@@ -21,6 +22,7 @@ import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
+private val pcgPropertyKeys = Strings.Query.Pcg.Property
 
 fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     val setStartReleaseDates = valueProviderPool.getOrPut("pcg_set_start_release_dates") { PcgSetStartReleaseDateMappingProvider(it) }
@@ -29,6 +31,9 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     val subTypeMappings = enumToMappings<PcgPokemonSubType> { it.keys }.mapValues { it.value.getSerialName() } +
             enumToMappings<PcgTrainerSubType> { it.keys }.mapValues { it.value.getSerialName() } +
             enumToMappings<PcgEnergySubType> { it.keys }.mapValues { it.value.getSerialName() }
+
+    val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)
+    val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE)
 
     filter("name", "n") {
         simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
@@ -44,19 +49,33 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("mark", "regulationmark") {
-        exactString(PcgPrint::regulationMark, "DUMMY") { autoValues() }
+        exactString(PcgPrint::regulationMark, pcgPropertyKeys.REGULATION_MARK) { autoValues() }
     }
 
     filter("artist", "illustrator", "artists", "illustrators") {
-        stringArrayAndCardinality(PcgPrint::illustrators, "DUMMY", propertyKeys.ARTIST) // TODO
+        stringArrayAndCardinality(PcgPrint::illustrators, propertyKeys.ARTIST_COUNT, propertyKeys.ARTIST)
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(PcgPrintTranslation::language, propertyKeys.LANGUAGE) { it.keys } // TODO: PRINT_LANGUAGE
+        enum(
+            PcgPrintTranslation::language,
+            propertyKeys.PRINT_LANGUAGE,
+            aliasResolver = { it.keys },
+            display = { value, i18n, locale ->
+                i18n.translate(locale, "${Strings.Query.Pcg.Languages.KEY}.${value.getSerialName()}")
+            }
+        )
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(PcgCardTranslation::language, propertyKeys.LANGUAGE) { it.keys } // TODO: CARD_LANGUAGE
+        enum(
+            PcgCardTranslation::language,
+            propertyKeys.CARD_LANGUAGE,
+            aliasResolver = { it.keys },
+            display = { value, i18n, locale ->
+                i18n.translate(locale, "${Strings.Query.Pcg.Languages.KEY}.${value.getSerialName()}")
+            }
+        )
     }
 
     filter("flavor", "flavortext") {
@@ -68,39 +87,40 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("reminder", "reminders", "rule", "rules") {
-        simpleString(PcgCardTranslation::reminderText, PcgCardTranslation::simpleReminderText, "DUMMY") // TODO
+        cardinality(PcgCard::ruleTypes, pcgPropertyKeys.RULE_COUNT)
+        simpleString(PcgCardTranslation::reminderText, PcgCardTranslation::simpleReminderText, pcgPropertyKeys.RULE)
     }
 
-    filter("hp", "health", "healthpoints") {
-        numeric(PcgCard::hp, "DUMMY") // TODO
+    filter("hp", "hitpoints", "health", "healthpoints") {
+        numeric(PcgCard::hp, pcgPropertyKeys.HIT_POINTS)
     }
 
     filter("type", "t") {
-        enum(PcgCard::superType, "DUMMY") { it.keys } // TODO
-        stringArray(PcgCard::subTypes, "DUMMY") { autoMappings(subTypeMappings) } // TODO
-        enumArray(PcgCard::types, "DUMMY") { it.keys } // TODO
+        enum(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
+        stringArray(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE) { autoMappings(subTypeMappings) }
+        enumArray(PcgCard::types, pcgPropertyKeys.ENERGY_TYPE) { it.keys }
     }
 
     filter("supertype") {
-        enum(PcgCard::superType, "DUMMY") { it.keys } // TODO
+        enum(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
     }
 
-    filter("types", "energy", "energies", "energytypes") {
-        enumArrayAndCardinality(PcgCard::types, "DUMMY", "DUMMY") { it.keys } // TODO
+    filter("types", "energy", "energies", "energytypes", "color", "c", "colors") {
+        enumArrayAndCardinality(PcgCard::types, pcgPropertyKeys.ENERGY_TYPE_COUNT, pcgPropertyKeys.ENERGY_TYPE) { it.keys }
     }
 
     filter("subtype", "subtypes") {
-        stringArrayAndCardinality(PcgCard::subTypes, "DUMMY", "DUMMY") { // TODO
+        stringArrayAndCardinality(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE_COUNT, pcgPropertyKeys.SUBTYPE) {
             autoMappings(subTypeMappings)
         }
     }
 
     filter("stage", "evolution", "evolutionstage") {
-        enum(PcgCard::evolutionStage, "DUMMY") // TODO
+        enum(PcgCard::evolutionStage, pcgPropertyKeys.EVOLUTION_STAGE)
     }
 
     filter("evolves", "evolvesfrom") {
-        string(PcgCard::evolvesFromName, "DUMMY") { autoValues(false) }
+        string(PcgCard::evolvesFromName, pcgPropertyKeys.EVOLVES_FROM) { autoValues(false) }
     }
 
     filter("attack", "attackname", "abilityname") {
@@ -113,11 +133,11 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
                     else -> value
                 }
             },
-            propertyKey = "DUMMY" // TODO
+            propertyKey = pcgPropertyKeys.ABILITY_NAME
         ))
     }
 
-    filter("damage", "attackdamage", "abilitydamage") {
+    filter("damage", "attackdamage") {
         property(StringRegexProperty(
             PcgCardTranslation::text,
             { value, operator ->
@@ -127,17 +147,15 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
                     else -> value
                 }
             }, // TODO: range checks
-            propertyKey = "DUMMY" // TODO
+            propertyKey = pcgPropertyKeys.ATTACK_DAMAGE
         ))
     }
 
     // TODO: custom property for value display/transform
-    filter("attackcost", "abilitycost") {
+    filter("attackcost") {
         property(StringRegexProperty(
             PcgCardTranslation::text,
             { value, operator ->
-                PcgType
-
                 val values = Regex("(?:\\{(.)}|(.))").findAll(value).map {
                     it.groupValues[1].ifBlank { null } ?: it.groupValues[2]
                 }.sortedBy { typeValue ->
@@ -154,62 +172,59 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
                     else -> value
                 }
             },
-            propertyKey = "DUMMY" // TODO
+            propertyKey = pcgPropertyKeys.ATTACK_COST
         ))
     }
 
     filter("ability", "abilities", "abilitytype", "abilitytypes") {
         ignoreReference("ability")
-        enumArrayAndCardinality(PcgCard::abilityTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
+        enumArrayAndCardinality(PcgCard::abilityTypes, pcgPropertyKeys.ABILITY_COUNT, pcgPropertyKeys.ABILITY_TYPE) { it.keys }
     }
 
     filter("effect", "effects", "effecttype", "effecttypes") {
-        enumArrayAndCardinality(PcgCard::effectTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
+        enumArrayAndCardinality(PcgCard::effectTypes, pcgPropertyKeys.EFFECT_COUNT, pcgPropertyKeys.EFFECT_TYPE) { it.keys }
     }
 
     filter("ruletype", "ruletypes") {
-        enumArrayAndCardinality(PcgCard::ruleTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
+        enumArrayAndCardinality(PcgCard::ruleTypes, pcgPropertyKeys.RULE_COUNT, pcgPropertyKeys.RULE_TYPE) { it.keys }
     }
 
     filter("weakness", "weaknesses") {
-        enumArray(PcgCard::weaknessTypes, "DUMMY") { it.keys }  // TODO
-        string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
+        enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, weaknessDescriptor, "weakness_type") { it.keys }
+        string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER) { autoValues(false) }
     }
 
-    filter("weaknesses", "weaknesstype", "weaknesstypes") {
-        enumArrayAndCardinality(PcgCard::weaknessTypes, "DUMMY", "DUMMY") { it.keys }  // TODO
+    filter("weaknesstype", "weaknesstypes") {
+        enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, weaknessDescriptor, "weakness_type") { it.keys }
     }
 
     filter("weaknessmodifier") {
-        string(PcgCard::weaknessModifier, "DUMMY") { autoValues(false) } // TODO
+        string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER) { autoValues(false) }
     }
 
-    filter("resistance") {
-        enumArray(PcgCard::resistanceTypes, "DUMMY") { it.keys } // TODO
-        string(PcgCard::resistanceModifier, "DUMMY") { autoValues(false) } // TODO
+    filter("resistance", "resistances") {
+        enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, resistanceDescriptor, "resistance_type") { it.keys }
+        string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER) { autoValues(false) }
     }
 
-    filter("resistances", "resistancetype", "resistancetypes") {
-        enumArrayAndCardinality(PcgCard::resistanceTypes, "DUMMY", "DUMMY") { it.keys } // TODO
+    filter("resistancetype", "resistancetypes") {
+        enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, resistanceDescriptor, "resistance_type") { it.keys }
     }
 
     filter("resistancemodifier") {
-        string(PcgCard::resistanceModifier, "DUMMY") { autoValues(false) } // TODO
+        string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER) { autoValues(false) }
     }
 
     filter("retreat", "retreatcost") {
-        numeric(PcgCard::retreatCosts, "DUMMY") // TODO
+        numeric(PcgCard::retreatCosts, pcgPropertyKeys.RETREAT_COST)
     }
 
     filter("set", "s", "edition", "e", "expansion") {
-        uuid(PcgSet::id, "DUMMY") // TODO
+        uuid(PcgSet::id, propertyKeys.SET_ID)
         string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues() }
     }
 
-    filter("setid") {
-        uuid(PcgSet::id, "DUMMY") // TODO
-    }
-
+    filter("setid") { uuid(PcgSet::id, propertyKeys.SET_ID) }
     filter("setname") {
         string(PcgSetTranslation::name, propertyKeys.SET_NAME) { autoValues(false) }
     }
@@ -218,53 +233,46 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues() }
     }
 
-    filter("settype") {
-        enum(PcgSet::type, "DUMMY") // TODO
-    }
+    filter("settype") { enum(PcgSet::type, propertyKeys.SET_TYPE) }
 
     filter("region", "setregion") {
-        enum(PcgSet::region, "DUMMY") { it.aliases } // TODO
+        enum(PcgSet::region, pcgPropertyKeys.REGION) { it.aliases }
     }
 
-    filter("setprints", "publicsetprints") {
-        numeric(PcgSet::printedPublicly, "DUMMY") // TODO
-    }
-
-    filter("allsetprints", "totalsetprints") {
-        numeric(PcgSet::printedTotal, "DUMMY") // TODO
-    }
+    filter("setprints", "publicsetprints") { numeric(PcgSet::printedPublicly, pcgPropertyKeys.PUBLIC_PRINT_COUNT) }
+    filter("allsetprints", "totalsetprints") { numeric(PcgSet::printedTotal, pcgPropertyKeys.TOTAL_PRINT_COUNT) }
 
     filter("date", "releasedate", "startreleasedate") {
-        dateByMapping(PcgSet::releaseStartDate, setStartReleaseDates, propertyKeys.RELEASE_DATE)
-        date(PcgSet::releaseStartDate, propertyKeys.RELEASE_DATE)
+        dateByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_DATE)
+        date(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_DATE)
     }
 
     filter("year", "releaseyear", "startreleaseyear") {
-        yearByMapping(PcgSet::releaseStartDate, setStartReleaseDates, propertyKeys.RELEASE_YEAR)
-        year(PcgSet::releaseStartDate, propertyKeys.RELEASE_YEAR)
+        yearByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_YEAR)
+        year(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_YEAR)
     }
 
     filter("enddate", "endreleasedate") {
-        dateByMapping(PcgSet::releaseEndDate, setEndReleaseDates, "DUMMY") // TODO
-        date(PcgSet::releaseEndDate, "DUMMY") // TODO
+        dateByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_DATE)
+        date(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_DATE)
     }
 
     filter("endyear", "endreleaseyear") {
-        yearByMapping(PcgSet::releaseEndDate, setEndReleaseDates, "DUMMY") // TODO
-        year(PcgSet::releaseEndDate, "DUMMY") // TODO
+        yearByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_YEAR)
+        year(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_YEAR)
     }
 
     filter("era", "block") {
-        uuid(PcgEra::id, "DUMMY") // TODO
-        string(PcgEra::name, "DUMMY") { autoValues(false) } // TODO
+        uuid(PcgEra::id, pcgPropertyKeys.ERA_ID)
+        string(PcgEra::name, pcgPropertyKeys.ERA_NAME) { autoValues(false) }
     }
 
     filter("eraid", "blockid") {
-        uuid(PcgEra::id, "DUMMY") // TODO
+        uuid(PcgEra::id, pcgPropertyKeys.ERA_ID) // TODO
     }
 
     filter("eraname", "blockname") {
-        string(PcgEra::name, "DUMMY") { autoValues(false) } // TODO
+        string(PcgEra::name, pcgPropertyKeys.ERA_NAME) { autoValues(false) }
     }
 
     filter("cardid", "card") { uuid(PcgCard::id, propertyKeys.CARD_ID) }
