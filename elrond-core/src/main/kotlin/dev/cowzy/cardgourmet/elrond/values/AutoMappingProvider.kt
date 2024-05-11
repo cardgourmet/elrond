@@ -11,7 +11,7 @@ class AutoMappingProvider(
         val mappings = customMappings?.entries?.map { (key, value) -> key to (value to null) }?.toMutableList() ?: mutableListOf()
         val values = provider.getValues().filter { it.contains("_") }
         mappings.addAll(values.map { it.replace("_", "") to (it to null) })
-        return mappings
+        return mappings.distinctBy { it.first.lowercase() }
     }
 
 }

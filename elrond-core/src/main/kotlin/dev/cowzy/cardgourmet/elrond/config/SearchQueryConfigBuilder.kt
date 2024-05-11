@@ -157,7 +157,7 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
                 valueProvider = config.valueProvider ?: valueProviderPool.getAutoStringArrayProvider(column),
                 mappingProvider = config.mappingsProvider,
                 descriptor = descriptor,
-                key = key
+                key = key.split(".").last()
             )
         )
     }

@@ -149,14 +149,14 @@ inline fun <reified T : Enum<T>> enumToMappings(findKeywords: (T) -> List<String
 
 inline fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: (T) -> List<String>): Map<String, T> {
     return enumValues.map { value ->
-        val keywords = findKeywords(value) + value.name.lowercase()
-        keywords.filter {
-            it != value.getSerialName()
-        }.map { keyword ->
-            when {
-                keyword.contains("_") -> listOf(keyword.replace("_", "") to value, keyword to value)
-                else -> listOf(keyword to value)
+        (findKeywords(value) + value.name)
+            .filter { it != value.getSerialName() }
+            .map { it.lowercase() }.map { keyword ->
+                when {
+                    keyword.contains("_") -> listOf(keyword.replace("_", "") to value, keyword to value)
+                    else -> listOf(keyword to value)
+                }
             }
-        }.flatten()
-    }.flatten().distinctBy { it.first }.toMap()
+            .flatten()
+    }.flatten().distinctBy { it.first.lowercase() }.toMap()
 }
