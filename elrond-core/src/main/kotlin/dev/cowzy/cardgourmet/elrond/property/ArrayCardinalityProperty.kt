@@ -6,11 +6,11 @@ import dev.cowzy.cardgourmet.elrond.*
 import kotlin.reflect.KProperty1
 
 class ArrayCardinalityProperty(
-    private val column: KProperty1<*, *>,
+    private vararg val columns: KProperty1<*, *>,
     mappings: Map<String, Pair<Number, SearchQueryOperator>>? = null,
     propertyKey: String
 ) : NumericSearchQueryProperty(
-    affectedTables = arrayOf(column.table()),
+    affectedTables = columns.map { it.table() }.distinct().toTypedArray(),
     descriptorSubjectKey = propertyKey
 ) {
 
@@ -28,6 +28,6 @@ class ArrayCardinalityProperty(
         }
     }
 
-    override fun getRawSql() = "cardinality(${column.columnName()})"
+    override fun getRawSql() = columns.joinToString(" + ") { "cardinality(${it.columnName()})" }
 
 }

@@ -235,6 +235,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("typeline", "type", "types", "t") {
+        cardinality(MtgCardFace::types, MtgCardFace::superTypes, MtgCardFace::subTypes, propertyKey = mtgPropertyKeys.TYPE_COUNT)
         stringArray(MtgCardFace::types, mtgPropertyKeys.TYPE)
         stringArray(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE)
         stringArray(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE)

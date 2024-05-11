@@ -194,6 +194,14 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         property(ArrayCardinalityProperty(column, mappings = mappings, propertyKey = propertyKey))
     }
 
+    fun cardinality(
+        vararg columns: KProperty1<*, List<*>?>,
+        propertyKey: String,
+        mappings: Map<String, Pair<Number, SearchQueryOperator>>? = null
+    ) {
+        property(ArrayCardinalityProperty(columns = columns, mappings = mappings, propertyKey = propertyKey))
+    }
+
     fun uuid(column: KProperty1<*, UUID?>, propertyKey: String) {
         property(UuidColumnProperty(column, descriptor = EqualsDescriptor(propertyKey)))
     }
