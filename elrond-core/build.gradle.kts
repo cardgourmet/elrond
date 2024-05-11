@@ -2,6 +2,7 @@ val artifactVersion: String by project
 val ktorVersion: String by project
 val logbackVersion: String by project
 val commonsVersion: String by project
+val chefVersion: String by project
 
 plugins {
     kotlin("jvm") version "1.8.21"
@@ -11,7 +12,7 @@ plugins {
 
 dependencies {
     implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
-    implementation("dev.cowzy.cardgourmet:chef-commons:0.21.2")
+    implementation("dev.cowzy.cardgourmet:chef-commons:$chefVersion")
     implementation("dev.cowzy:kuery-orm:0.3.+")
 
     // Coroutine

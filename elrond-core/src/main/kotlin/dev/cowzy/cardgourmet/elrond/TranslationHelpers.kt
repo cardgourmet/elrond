@@ -82,7 +82,7 @@ suspend fun QueryExpression.explain(
     val subjectWithExtras = when {
         withExtras -> i18n.translate(locale, Strings.Query.Skeleton.WITH_EXTRAS, mappedSubject)
         else -> i18n.translate(locale, Strings.Query.Skeleton.WITHOUT_EXTRAS, mappedSubject)
-    }.trim()
+    }.trim().replaceFirstChar { it.uppercase() }
 
     val subjectWithLanguage = when {
         preferredLanguageKey == null -> subjectWithExtras
