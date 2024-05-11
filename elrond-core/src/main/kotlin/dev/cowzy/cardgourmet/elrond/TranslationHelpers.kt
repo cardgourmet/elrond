@@ -67,7 +67,7 @@ suspend fun QueryExpression.explain(
     i18n: LocalizationService,
     locale: UserLanguage,
     subjectKey: String,
-    amount: Int,
+    amount: Int?,
     withExtras: Boolean,
     preferredLanguageKey: String?,
 ): ExplainResult {
@@ -76,13 +76,13 @@ suspend fun QueryExpression.explain(
     val mappedSubject = i18n.translate(
         locale,
         if (amount == 1) "$subjectKey.singular" else "$subjectKey.plural",
-        amount
+        amount ?: ""
     )
 
     val subjectWithExtras = when {
         withExtras -> i18n.translate(locale, Strings.Query.Skeleton.WITH_EXTRAS, mappedSubject)
         else -> i18n.translate(locale, Strings.Query.Skeleton.WITHOUT_EXTRAS, mappedSubject)
-    }
+    }.trim()
 
     val subjectWithLanguage = when {
         preferredLanguageKey == null -> subjectWithExtras
