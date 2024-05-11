@@ -19,7 +19,7 @@ class MtgPrintLanguageProperty(
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table(), *languageColumns.map { it.table() }.toTypedArray()),
-    descriptor = EqualsDescriptor(propertyKey = Strings.Query.Property.LANGUAGE),
+    descriptor = EqualsDescriptor(propertyKey = Strings.Query.Property.PRINT_LANGUAGE),
 ) {
 
     override val valueDefinition = mtgPrintLanguageValueDefinition

@@ -66,11 +66,11 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(DlcPrintTranslation::language, propertyKeys.LANGUAGE) // TODO: PRINT_LANGUAGE
+        enum(DlcPrintTranslation::language, propertyKeys.PRINT_LANGUAGE)
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(DlcCardTranslation::language, propertyKeys.LANGUAGE) // TODO: CARD_LANGUAGE
+        enum(DlcCardTranslation::language, propertyKeys.CARD_LANGUAGE)
     }
 
     filter("keyword", "keywords", "key") {
@@ -78,12 +78,12 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("class", "classes", "classification", "classifications", "trait", "traits", "subtype", "subtypes") {
-        stringArrayAndCardinality(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION_COUNT, dlcPropertyKeys.CLASSIFICATIONS)
+        stringArrayAndCardinality(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION_COUNT, dlcPropertyKeys.CLASSIFICATION)
     }
 
     filter("type", "t", "types") {
         string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
-        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS)
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION)
     }
 
     filter("supertype") {
@@ -115,13 +115,14 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("set", "s", "e", "edition", "expansion") {
-        uuid(DlcSet::id, "DUMMY") // TODO
+        uuid(DlcSet::id, propertyKeys.SET_ID)
         string(DlcSet::code, propertyKeys.SET_CODE) {
             autoValues()
             mappings(dlcSetCodeMappings)
         }
     }
 
+    filter("setid") { uuid(DlcSet::id, propertyKeys.SET_ID) }
     filter("setname") {
         string(DlcSet::name, propertyKeys.SET_NAME) { autoValues(false) }
     }
@@ -155,7 +156,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
                     else -> value
                 }
             },
-            propertyKey = "DUMMY" // TODO
+            propertyKey = dlcPropertyKeys.ABILITY_NAME
         ))
     }
 
@@ -186,13 +187,13 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("tag", "tags", "is", "has") {
         string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
-        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS) { autoValues() }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION) { autoValues() }
     }
 
     filter("not") {
         inverted(true)
         string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
-        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATIONS) { autoValues() }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION) { autoValues() }
     }
 
     filter("print", "printid") {
@@ -205,7 +206,6 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     // TODO: new/in
     // TODO: is/has/not properties
-    // TODO: lang/langs
     // TODO: rarity
     // TODO: prints/sets (reprints)
     // TODO: new/in
