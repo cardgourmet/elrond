@@ -1,6 +1,5 @@
 package dev.cowzy.cardgourmet.elrond.property.mtg
 
-import dev.cowzy.cardgourmet.commons.catalogue.MtgRarity
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table

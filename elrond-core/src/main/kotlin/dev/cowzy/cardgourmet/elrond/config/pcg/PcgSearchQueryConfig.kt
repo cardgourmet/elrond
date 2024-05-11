@@ -13,6 +13,7 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
@@ -59,7 +60,8 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("lang", "language", "printlang", "printlanguage") {
         enum(
             PcgPrintTranslation::language,
-            propertyKeys.PRINT_LANGUAGE,
+            AvailableInDescriptor(propertyKeys.PRINT),
+            "print_language",
             aliasResolver = { it.keys },
             display = { value, i18n, locale ->
                 i18n.translate(locale, "${Strings.Query.Pcg.Languages.KEY}.${value.getSerialName()}")
@@ -70,7 +72,8 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("cardlang", "cardlanguage") {
         enum(
             PcgCardTranslation::language,
-            propertyKeys.CARD_LANGUAGE,
+            AvailableInDescriptor(propertyKeys.PRINT),
+            "card_language",
             aliasResolver = { it.keys },
             display = { value, i18n, locale ->
                 i18n.translate(locale, "${Strings.Query.Pcg.Languages.KEY}.${value.getSerialName()}")

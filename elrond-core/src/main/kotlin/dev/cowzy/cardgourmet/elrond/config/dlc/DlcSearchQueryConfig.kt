@@ -12,6 +12,7 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
@@ -67,13 +68,14 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(DlcPrintTranslation::language, propertyKeys.PRINT_LANGUAGE, display = { value, i18n, locale ->
+
+        enum(DlcPrintTranslation::language, AvailableInDescriptor(propertyKeys.PRINT), "print_language", display = { value, i18n, locale ->
             i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
         })
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(DlcCardTranslation::language, propertyKeys.CARD_LANGUAGE, display = { value, i18n, locale ->
+        enum(DlcCardTranslation::language, AvailableInDescriptor(propertyKeys.CARD), "card_language", display = { value, i18n, locale ->
             i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
         })
     }

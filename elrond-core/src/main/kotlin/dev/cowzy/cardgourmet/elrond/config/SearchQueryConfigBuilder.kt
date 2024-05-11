@@ -219,7 +219,15 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         propertyKey: String,
         noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
         noinline aliasResolver: ((T) -> List<String>)? = null,
-    ) = property(enumColumnProperty(column, propertyKey, aliasResolver, display))
+    ) = enum(column, EqualsDescriptor(propertyKey), propertyKey, display, aliasResolver)
+
+    inline fun <reified T : Enum<T>> enum(
+        column: KProperty1<*, T?>,
+        descriptor: PropertyDescriptor,
+        key: String,
+        noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
+        noinline aliasResolver: ((T) -> List<String>)? = null,
+    ) = property(enumColumnProperty(column, descriptor, key.split(".").last(), aliasResolver, display))
 
     inline fun <reified T : Enum<T>> enumArray(
         column: KProperty1<*, List<T>>,
