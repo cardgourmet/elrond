@@ -221,7 +221,14 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         column: KProperty1<*, List<T>>,
         propertyKey: String,
         noinline aliasResolver: (T) -> List<String> = { emptyList() }
-    ) = property(enumArrayColumnProperty(column, propertyKey, aliasResolver))
+    ) = enumArray(column, IsPresentDescriptor(propertyKey), propertyKey, aliasResolver)
+
+    inline fun <reified T : Enum<T>> enumArray(
+        column: KProperty1<*, List<T>>,
+        descriptor: PropertyDescriptor,
+        key: String,
+        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+    ) = property(enumArrayColumnProperty(column, descriptor, key.split(".").last(), aliasResolver))
 
     inline fun <reified T : Enum<T>> enumArrayAndCardinality(
         column: KProperty1<*, List<T>>,
@@ -231,6 +238,17 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
     ) {
         cardinality(column, cardinalityPropertyKey)
         enumArray(column, arrayPropertyKey, aliasResolver)
+    }
+
+    inline fun <reified T : Enum<T>> enumArrayAndCardinality(
+        column: KProperty1<*, List<T>>,
+        cardinalityPropertyKey: String,
+        descriptor: PropertyDescriptor,
+        key: String,
+        noinline aliasResolver: (T) -> List<String> = { emptyList() }
+    ) {
+        cardinality(column, cardinalityPropertyKey)
+        enumArray(column, descriptor, key, aliasResolver)
     }
 
     fun inverted(inverted: Boolean) = this.apply { this.inverted = inverted }

@@ -13,6 +13,7 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetEndReleaseDateMappingProvider
@@ -31,6 +32,9 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
             enumToMappings<PcgTrainerSubType> { it.keys }.mapValues { it.value.getSerialName() } +
             enumToMappings<PcgEnergySubType> { it.keys }.mapValues { it.value.getSerialName() }
 
+    val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)
+    val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE)
+
     filter("name", "n") {
         simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
     }
@@ -45,7 +49,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("mark", "regulationmark") {
-        exactString(PcgPrint::regulationMark, "DUMMY") { autoValues() }
+        exactString(PcgPrint::regulationMark, pcgPropertyKeys.REGULATION_MARK) { autoValues() }
     }
 
     filter("artist", "illustrator", "artists", "illustrators") {
@@ -174,12 +178,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("weakness", "weaknesses") {
-        enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, "DUMMY") { it.keys } // TODO: custom descriptor
+        enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, weaknessDescriptor, "weakness_type") { it.keys }
         string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER) { autoValues(false) }
     }
 
     filter("weaknesstype", "weaknesstypes") {
-        enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, "DUMMY") { it.keys } // TODO: custom descriptor
+        enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, weaknessDescriptor, "weakness_type") { it.keys }
     }
 
     filter("weaknessmodifier") {
@@ -187,12 +191,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("resistance", "resistances") {
-        enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, "DUMMY") { it.keys } // TODO: custom descriptor
+        enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, resistanceDescriptor, "resistance_type") { it.keys }
         string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER) { autoValues(false) }
     }
 
     filter("resistancetype", "resistancetypes") {
-        enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, "DUMMY") { it.keys } // TODO: custom descriptor
+        enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, resistanceDescriptor, "resistance_type") { it.keys }
     }
 
     filter("resistancemodifier") {

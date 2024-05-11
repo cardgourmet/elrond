@@ -5,6 +5,7 @@ import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
+import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.placeholder
@@ -15,12 +16,13 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     val column: KProperty1<*, List<ValueType>>,
     enumValues: Array<ValueType>,
     aliasResolver: (ValueType) -> List<String> = { emptyList() },
-    propertyKey: String
+    descriptor: PropertyDescriptor,
+    key: String? = null,
 ) : SearchQueryProperty<ValueType>(
     supportedOperators = arrayOf(SearchQueryOperator.CONTAINS),
     affectedTables = arrayOf(column.table()),
-    descriptor = IsPresentDescriptor(propertyKey),
-    key = propertyKey
+    descriptor = descriptor,
+    key = key
 ) {
 
     override val valueDefinition = QueryValueDefinition {
@@ -45,6 +47,7 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
 
 inline fun <reified T : Enum<T>> enumArrayColumnProperty(
     column: KProperty1<*, List<T>>,
-    propertyKey: String,
+    descriptor: PropertyDescriptor,
+    key: String,
     noinline aliasResolver: (T) -> List<String> = { emptyList() }
-) = EnumArrayColumnProperty(column, enumValues(), aliasResolver, propertyKey)
+) = EnumArrayColumnProperty(column, enumValues(), aliasResolver, descriptor, key)

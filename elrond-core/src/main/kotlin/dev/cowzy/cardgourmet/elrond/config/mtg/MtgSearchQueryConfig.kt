@@ -175,19 +175,19 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("legal", "legalformats", "legalin", "format") {
-        stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.LEGAL), "legal_formats") {
+        stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.LEGAL), "legal_format") {
             values(formatProvider)
         }
     }
 
     filter("restricted", "restrictedformats", "restrictedin") {
-        stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.RESTRICTED), "restricted_formats") {
+        stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.RESTRICTED), "restricted_format") {
             values(formatProvider)
         }
     }
 
     filter("banned", "bannedformats", "bannedin") {
-        stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.BANNED), "banned_formats") {
+        stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.BANNED), "banned_format") {
             values(formatProvider)
         }
     }
