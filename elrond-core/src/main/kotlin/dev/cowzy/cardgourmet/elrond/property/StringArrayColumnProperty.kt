@@ -7,9 +7,6 @@ import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.values.MappingProvider
-import dev.cowzy.cardgourmet.elrond.values.PropertyProvider
-import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlin.reflect.KProperty1
 
 class StringArrayColumnProperty(

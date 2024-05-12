@@ -1,17 +1,14 @@
 package dev.cowzy.cardgourmet.elrond.config
 
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.toSimpleString
-import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.query.*
-import dev.cowzy.cardgourmet.elrond.values.DynamicStringValueProvider
+import dev.cowzy.cardgourmet.elrond.query.QueryExpressionBuilderResult
+import dev.cowzy.cardgourmet.elrond.query.SearchQuery
+import dev.cowzy.cardgourmet.elrond.query.SearchQuerySqlBuilder
+import dev.cowzy.cardgourmet.elrond.query.toQueryBuilder
 import dev.cowzy.cardgourmet.elrond.values.ProvidedValue
-import dev.cowzy.cardgourmet.elrond.values.ValueProvider
+import dev.cowzy.kuery.query.SelectQueryBuilder
 import kotlinx.serialization.Serializable
-import java.io.Serial
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -209,29 +206,29 @@ data class SearchQueryExecutor<T : Enum<T>>(
 //        return FilterValues(mappings.sortedBy { it.first }.take(takeMappings), values.sorted().take(takeValues))
     }
 
-    private suspend fun <T : Pair<*, Pair<*, SearchQueryOperator?>>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {
-        val simpleQuery = query?.toSimpleString()
-        return this.getValues().filter { value ->
-            simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true
-        }.map {
-            val key = it.first.toString()
-            val value = it.second.first
-            key to when (value) {
-                is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
-                is Enum<*> -> value.getSerialName()
-                is QueryValue<*> -> value.value.toString()
-                else -> value.toString()
-            }
-        }
-    }
-
-    private suspend fun <T> ValueProvider<T>.getValues(limit: Int, query: String?): Iterable<String> {
-        val simpleQuery = query?.toSimpleString()
-        return when (this) {
-            is DynamicStringValueProvider -> this.getValues(limit, query)
-            else -> this.getValues().filter { value -> simpleQuery?.let { value.toString().toSimpleString().contains(it) } ?: true }.map { it.toString() }
-        }
-    }
+//    private suspend fun <T : Pair<*, Pair<*, SearchQueryOperator?>>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {
+//        val simpleQuery = query?.toSimpleString()
+//        return this.getValues().filter { value ->
+//            simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true
+//        }.map {
+//            val key = it.first.toString()
+//            val value = it.second.first
+//            key to when (value) {
+//                is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
+//                is Enum<*> -> value.getSerialName()
+//                is QueryValue<*> -> value.value.toString()
+//                else -> value.toString()
+//            }
+//        }
+//    }
+//
+//    private suspend fun <T> ValueProvider<T>.getValues(limit: Int, query: String?): Iterable<String> {
+//        val simpleQuery = query?.toSimpleString()
+//        return when (this) {
+//            is DynamicStringValueProvider -> this.getValues(limit, query)
+//            else -> this.getValues().filter { value -> simpleQuery?.let { value.toString().toSimpleString().contains(it) } ?: true }.map { it.toString() }
+//        }
+//    }
 }
 
 typealias SearchQueryTransformer<T> = (SearchQuery<T>) -> SearchQuery<T>?

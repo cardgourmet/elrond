@@ -14,6 +14,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.typeOf
 
+data class ProviderEntry<T>(
+    val provider: (Connection) -> Map<String, T>,
+    val type: String
+)
+
 class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
 
     private var cacheTimeToLife = 3600L
@@ -82,7 +87,7 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         }
     }
 
-    fun values(entry: ProviderPoolEntry<T>, autoAlias: Boolean = false) {
+    fun values(entry: ProviderEntry<T>, autoAlias: Boolean = false) {
         applyValues.add { connection, values, displayTransform ->
             val mappings = entry.provider(connection)
             mappings.forEach { (input, value) ->
@@ -163,17 +168,17 @@ fun ValueProviderBuilder<String>.autoArrayValues(
     values(getAutoStringArrayProvider(column, type = type), autoAlias)
 }
 
-fun getAutoStringProvider(vararg columns: KProperty1<*, *>, type: String): ProviderPoolEntry<String> {
-    return ProviderPoolEntry(provider = { connection ->
+fun getAutoStringProvider(vararg columns: KProperty1<*, *>, type: String): ProviderEntry<String> {
+    return ProviderEntry(provider = { connection ->
         selectStrings(columns, connection) {
             it.table().selectBuilder().select(it)
         }.associateBy { it }
     }, type)
 }
 
-fun getAutoStringArrayProvider(vararg columns: KProperty1<*, List<*>?>, type: String): ProviderPoolEntry<String> {
+fun getAutoStringArrayProvider(vararg columns: KProperty1<*, List<*>?>, type: String): ProviderEntry<String> {
     val key = columns.joinToString("-") { it.columnName() }
-    return ProviderPoolEntry(provider = { connection ->
+    return ProviderEntry(provider = { connection ->
         selectStrings(columns, connection) {
             it.table().selectBuilder().selectRaw("unnest(${it.columnName()})")
         }.associateBy { it }

@@ -13,7 +13,6 @@ import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
 import dev.cowzy.cardgourmet.elrond.config.pcg.pcgBasicSearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
