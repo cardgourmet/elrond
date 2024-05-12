@@ -173,15 +173,14 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("mechanic", "mechanics", "function", "otag", "oracletag") {
         stringArrayAndCardinality(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC_COUNT, propertyKeys.MECHANIC) {
-            autoValues(MtgPrintFace::propertyTags, "property_tag", true)
-            values(mtgPropertyMappings, "property_tag")
+            autoValues(MtgPrintFace::propertyTags, "mechanic", true)
         }
     }
 
     filter("property", "properties") {
         stringArrayAndCardinality(MtgPrintFace::propertyTags, propertyKeys.PROPERTY_COUNT, propertyKeys.PROPERTY) {
-            autoValues(MtgPrintFace::propertyTags, "property_tag", true)
-            values(mtgPropertyMappings, "property_tag")
+            autoValues(MtgPrintFace::propertyTags, "property", true)
+            values(mtgPropertyMappings, "property")
         }
     }
 
@@ -191,11 +190,13 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
         exactString(MtgCard::layout, mtgPropertyKeys.LAYOUT) {
+            strict(true)
             autoValues(MtgCard::layout, "layout", autoAlias = true)
             values(mtgLayoutMappings, "layout")
         }
         property(MtgRarityProperty(valueProviderPool))
         stringArray(MtgPrint::finishes, propertyKeys.FINISH) {
+            strict(true)
             autoValues(MtgPrint::finishes, "finish", true)
             values(mtgFinishMappings, "finish")
         }
@@ -207,8 +208,8 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
         stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC)
         stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
-            autoValues(MtgPrintFace::propertyTags, "property_tag", true)
-            values(mtgPropertyMappings, "property_tag")
+            autoValues(MtgPrintFace::propertyTags, "property", true)
+            values(mtgPropertyMappings, "property")
         }
     }
 

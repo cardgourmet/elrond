@@ -12,6 +12,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
     }
 
     fun add(value: ProvidedValue<T>) {
+        value.aliases.removeIf { it.equals(value.input, true) }
         values.add(value)
         valuesByTypeAndValue[value.type to value.resolvesTo.value] = value
     }

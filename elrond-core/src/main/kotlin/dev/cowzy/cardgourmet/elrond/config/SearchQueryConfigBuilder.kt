@@ -10,6 +10,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.*
+import dev.cowzy.kuery.reflection.simpleColumnName
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -197,8 +198,16 @@ class QueryFilterBuilder(
                 key = key.split(".").last()
             ),
             configureProvider ?: {
+                // Basic plural removal
+                val valueType = column.simpleColumnName().let {
+                    when {
+                        it.endsWith("s") -> it.dropLast(1)
+                        else -> it
+                    }
+                }
+
                 strict(true)
-                autoArrayValues(column, autoAlias = true)
+                autoArrayValues(column, valueType, autoAlias = true)
             }
         )
     }
