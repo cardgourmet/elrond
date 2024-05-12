@@ -15,18 +15,39 @@ import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.autoValues
+import dev.cowzy.kuery.column.transformer.LocalDateColumnTransformer
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
+import dev.cowzy.kuery.query.selectBuilder
+import java.sql.Connection
+import java.time.format.DateTimeFormatter
 
 val dlcSetCodeMappings = mapOf("promo" to "P1", "tfc" to "1", "rof" to "2", "ink" to "3", "urs" to "4")
 
 private val propertyKeys = Strings.Query.Property
 private val dlcPropertyKeys = Strings.Query.Dlc.Property
 
-fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
-//    val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it, dlcSetCodeMappings) }
-//    val setMarketReleaseDates = valueProviderPool.getOrPut("dlc_set_market_release_dates") { DlcSetMarketReleaseDateMappingProvider(it, dlcSetCodeMappings) }
+private val getSetReleaseDates = { connection: Connection ->
+    DlcSet::class.selectBuilder()
+        .distinctOn(DlcSet::code)
+        .select(DlcSet::code)
+        .select(DlcSet::releaseDate)
+        .get(connection) { row, index ->
+            row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)!!
+        }.toMap()
+}
 
+private val getSetMarketReleaseDates = { connection: Connection ->
+    DlcSet::class.selectBuilder()
+        .distinctOn(DlcSet::code)
+        .select(DlcSet::code)
+        .select(DlcSet::marketReleaseDate)
+        .get(connection) { row, index ->
+            row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)!!
+        }.toMap()
+}
+
+fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     filter("name", "n") {
         simpleString(DlcCardTranslation::name, DlcCardTranslation::simpleName, propertyKeys.NAME) {
             autoValues(DlcCardTranslation::name)
@@ -95,30 +116,26 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("date", "releasedate") {
-//        dateByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
         date(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE) {
-            // TODO: add set release date mappings
+            values(getSetReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
         }
     }
 
     filter("year", "releaseyear") {
-//        yearByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
         year(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR) {
-            // TODO: add set release date mappings
+            values(getSetReleaseDates, { it.year }, "set_code")
         }
     }
 
     filter("marketdate", "marketreleasedate") {
-//        dateByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
-        date(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR) {
-            // TODO: add set release date mappings
+        date(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE) {
+            values(getSetMarketReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
         }
     }
 
     filter("marketyear", "marketreleaseyear") {
-//        yearByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
         year(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR) {
-            // TODO: add set release date mappings
+            values(getSetMarketReleaseDates, { it.year }, "set_code")
         }
     }
 

@@ -3,15 +3,14 @@ package dev.cowzy.cardgourmet.elrond.property.mtg
 import dev.cowzy.cardgourmet.commons.catalogue.MtgRarity
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
-import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 
 class MtgRarityProperty(
-    propertyProviderPool: PropertyProviderPool
+    valueProviderPool: ValueProviderPool
 ) : SearchQueryProperty<MtgRarity>(
     supportedOperators = numericQueryOperators,
     affectedTables = arrayOf(MtgPrint::class),
@@ -19,7 +18,7 @@ class MtgRarityProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition<MtgRarity> {
-        provider("mtg_rarity", propertyProviderPool) {
+        provider("mtg_rarity", valueProviderPool) {
             strict(true)
             enumValues<MtgRarity>("rarity", findKeywords = { it.keywords.toList() })
         }

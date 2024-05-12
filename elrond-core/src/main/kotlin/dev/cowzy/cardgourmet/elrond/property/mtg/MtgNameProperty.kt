@@ -8,7 +8,6 @@ import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
-import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 
 class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     supportedOperators = stringQueryOperators,

@@ -16,7 +16,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.typeOf
 
 class SearchQueryConfigBuilder(
-    val propertyProviderPool: PropertyProviderPool,
+    val valueProviderPool: ValueProviderPool,
     init: SearchQueryConfigBuilder.() -> Unit
 ) {
 
@@ -31,7 +31,7 @@ class SearchQueryConfigBuilder(
         filters.removeAll(existingFilters)
 
         val filterBuilder =
-            QueryFilterBuilder(keywords.toList(), propertyProviderPool).apply(builder)
+            QueryFilterBuilder(keywords.toList(), valueProviderPool).apply(builder)
         val filter = filterBuilder.build()
         filters.add(filter)
     }
@@ -42,7 +42,7 @@ class SearchQueryConfigBuilder(
 
 class QueryFilterBuilder(
     private val keywords: List<String>,
-    private val propertyProviderPool: PropertyProviderPool
+    private val valueProviderPool: ValueProviderPool
 ) {
 
     private val properties = mutableListOf<SearchQueryProperty<out Any>>()
@@ -51,7 +51,7 @@ class QueryFilterBuilder(
 
     fun <T : Any> property(
         property: SearchQueryProperty<T>,
-        provider: PropertyProvider<T>?
+        provider: ValueProvider<T>?
     ) {
         if (properties.contains(property)) throw IllegalArgumentException("Filter already contains property: $property")
 
@@ -73,7 +73,7 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<T>.() -> Unit)? = null
     ) {
         val provider = configureProvider?.let {
-            propertyProviderPool.getOrPut(property.key) { pool ->
+            valueProviderPool.getOrPut(property.key) { pool ->
                 ValueProviderBuilder<T>(pool).apply {
                     it.invoke(this)
                 }.build()
@@ -117,7 +117,7 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
-        val provider = propertyProviderPool.getOrPut(property.key) {
+        val provider = valueProviderPool.getOrPut(property.key) {
             ValueProviderBuilder<String>(it).apply {
                 configureProvider?.invoke(this)
             }.build()
@@ -139,7 +139,7 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
-        val provider = propertyProviderPool.getOrPut(property.key) {
+        val provider = valueProviderPool.getOrPut(property.key) {
             ValueProviderBuilder<String>(it).apply {
                 configureProvider?.invoke(this)
             }.build()
@@ -160,7 +160,7 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
-        val provider = propertyProviderPool.getOrPut(property.key) {
+        val provider = valueProviderPool.getOrPut(property.key) {
             ValueProviderBuilder<String>(it).apply {
                 configureProvider?.invoke(this)
             }.build()

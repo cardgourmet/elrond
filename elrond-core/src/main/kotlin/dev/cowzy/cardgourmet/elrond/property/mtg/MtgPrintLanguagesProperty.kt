@@ -9,12 +9,12 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
-import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import kotlin.reflect.KProperty1
 
 class MtgPrintLanguagesProperty(
     private val languagesColumn: KProperty1<*, *>,
-    propertyProviderPool: PropertyProviderPool
+    valueProviderPool: ValueProviderPool
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table()),
@@ -22,7 +22,7 @@ class MtgPrintLanguagesProperty(
     key = "language"
 ) {
 
-    override val valueDefinition = createMtgPrintLanguageValueDefinition(propertyProviderPool)
+    override val valueDefinition = createMtgPrintLanguageValueDefinition(valueProviderPool)
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,

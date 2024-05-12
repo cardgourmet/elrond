@@ -18,16 +18,41 @@ import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
 import dev.cowzy.cardgourmet.elrond.values.autoValues
+import dev.cowzy.kuery.column.transformer.LocalDateColumnTransformer
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
+import dev.cowzy.kuery.query.selectBuilder
+import java.sql.Connection
+import java.time.format.DateTimeFormatter
 
 private val propertyKeys = Strings.Query.Property
 private val pcgPropertyKeys = Strings.Query.Pcg.Property
 
-fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
-//    val setStartReleaseDates = valueProviderPool.getOrPut("pcg_set_start_release_dates") { PcgSetStartReleaseDateMappingProvider(it) }
-//    val setEndReleaseDates = valueProviderPool.getOrPut("pcg_set_end_release_dates") { PcgSetEndReleaseDateMappingProvider(it) }
+private val getSetStartReleaseDates = { connection: Connection ->
+    PcgSet::class.selectBuilder()
+        .distinctOn(PcgSet::setCode)
+        .select(PcgSet::setCode)
+        .select(PcgSet::releaseStartDate)
+        .get(connection) { row, index ->
+            row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)
+        }.mapNotNull { entry ->
+            entry.second?.let { entry.first to it }
+        }.toMap()
+}
 
+private val getSetEndReleaseDates = { connection: Connection ->
+    PcgSet::class.selectBuilder()
+        .distinctOn(PcgSet::setCode)
+        .select(PcgSet::setCode)
+        .select(PcgSet::releaseEndDate)
+        .get(connection) { row, index ->
+            row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)
+        }.mapNotNull { entry ->
+            entry.second?.let { entry.first to it }
+        }.toMap()
+}
+
+fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)
     val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE)
 
@@ -252,30 +277,26 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("allsetprints", "totalsetprints") { numeric(PcgSet::printedTotal, pcgPropertyKeys.TOTAL_PRINT_COUNT) }
 
     filter("date", "releasedate", "startreleasedate") {
-//        dateByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_DATE)
         date(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_DATE) {
-            // TODO: add set release date mappings
+            values(getSetStartReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
         }
     }
 
     filter("year", "releaseyear", "startreleaseyear") {
-//        yearByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_YEAR)
         year(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_YEAR) {
-            // TODO: add set release date mappings
+            values(getSetStartReleaseDates, { it.year }, "set_code")
         }
     }
 
     filter("enddate", "endreleasedate") {
-//        dateByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_DATE)
         date(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_DATE) {
-            // TODO: add set release date mappings
+            values(getSetEndReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
         }
     }
 
     filter("endyear", "endreleaseyear") {
-//        yearByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_YEAR)
         year(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_YEAR) {
-            // TODO: add set release date mappings
+            values(getSetEndReleaseDates, { it.year }, "set_code")
         }
     }
 

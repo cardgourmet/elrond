@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.elrond.values
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class BangerValueCache<T : Any>(
+class ValueCache<T : Any>(
     private val ttl: Long = 3600,
     private val compute: suspend () -> Iterable<ProvidedValue<T>>,
 ) {

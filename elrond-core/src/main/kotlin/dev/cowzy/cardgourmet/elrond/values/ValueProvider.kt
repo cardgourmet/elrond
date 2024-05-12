@@ -1,16 +1,60 @@
 package dev.cowzy.cardgourmet.elrond.values
 
-interface ValueProvider<T> {
+import dev.cowzy.cardgourmet.commons.database.SqlDatabasePool
+import java.sql.Connection
 
-    suspend fun getValues(): Iterable<T>
+class ValueProvider<T : Any>(
+    val strictValues: Boolean,
+    ttl: Long = 3600,
+    applyValues: suspend (ValueGroup<T>) -> Unit
+) {
+
+    private val cache = ValueCache(ttl) {
+        val valueGroup = ValueGroup<T>()
+        applyValues(valueGroup)
+        valueGroup.getValues()
+    }
+
+    constructor(
+        dbPool: SqlDatabasePool,
+        applyValues: List<(Connection, ValueGroup<T>, (T) -> String) -> Unit>,
+        displayTransform: (T) -> String,
+        strictValues: Boolean,
+        ttl: Long = 3600
+    ) : this(
+        strictValues,
+        ttl,
+        { valueGroup -> dbPool.use { connection -> applyValues.forEach { it(connection, valueGroup, displayTransform) } } }
+    )
+
+    suspend fun getValues(): Iterable<ProvidedValue<T>> = cache.getAll()
+
+    suspend fun getValues(filter: String): Iterable<ProvidedValue<T>> {
+        return getValues().filter {
+            it.input.contains(filter, ignoreCase = true) || it.aliases.any { alias -> alias.contains(filter, ignoreCase = true) }
+        }
+    }
+
+    suspend fun findValue(value: String) = cache.find(value.trim())
 
 }
 
-interface DynamicStringValueProvider : ValueProvider<String> {
-
-    suspend fun getValues(limit: Int, filter: String? = null): List<String>
-
-    override suspend fun getValues(): Iterable<String> = getValues(50, null).toSet()
-
+fun <Input : Any, Output : Any> ValueProvider<Input>.withTransform(transform: (Input) -> Output): ValueProvider<Output> {
+    return ValueProvider(
+        this.strictValues,
+        -1L,
+    ) { valueGroup ->
+        this.getValues().map {
+            ProvidedValue(
+                input = it.input,
+                aliases = it.aliases,
+                type = it.type,
+                resolvesTo = ResolvedValue(
+                    value = transform(it.resolvesTo.value),
+                    display = it.resolvesTo.display,
+                    operator = it.resolvesTo.operator
+                )
+            )
+        }.forEach(valueGroup::add)
+    }
 }
-
