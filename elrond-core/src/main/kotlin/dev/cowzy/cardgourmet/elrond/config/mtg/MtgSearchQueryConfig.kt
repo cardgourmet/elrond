@@ -9,7 +9,9 @@ import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
+import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
@@ -21,9 +23,14 @@ import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
 import dev.cowzy.cardgourmet.elrond.values.autoValues
-import dev.cowzy.cardgourmet.elrond.values.mtg.*
+import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
+import dev.cowzy.kuery.query.selectBuilder
+import dev.cowzy.kuery.reflection.parse
+import java.sql.Connection
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 val manaCardinalityMappings = mapOf(
     "colorless" to (0 to SearchQueryOperator.EQUALS),
@@ -58,14 +65,34 @@ val mtgSetCodeMappings = mapOf("plist" to "plst", "ulist" to "ulst")
 private val propertyKeys = Strings.Query.Property
 private val mtgPropertyKeys = Strings.Query.Mtg.Property
 
-fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
-//    val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
-//    val setReleaseDates = valueProviderPool.getOrPut("mtg_set_release_dates") { MtgSetReleaseDateMappingProvider(it, mtgSetCodeMappings) }
-//    val formatProvider = valueProviderPool.getAutoStringArrayProvider(MtgPrint::formatsLegal, MtgPrint::formatsRestricted, MtgPrint::formatsBanned)
+private val getSetReleaseDates = { connection: Connection ->
+    MtgSet::class.selectBuilder()
+        .distinctOn(MtgSet::code)
+        .select(MtgSet::code)
+        .select(MtgSet::releaseDate)
+        .get(it) { row, index ->
+            val setCode = MtgSet::code.parse(row, index)
+            val date = MtgSet::releaseDate.parse(row, index)
+            setCode to date
+        }
+        .toMap()
+}
 
+private val getNames = { connection: Connection ->
+    QueryBuilder.selectBuilder("mtg.search_names")
+        .distinct()
+        .select("mtg.search_names.name")
+        .orderBy("mtg.search_names.name")
+        .get(connection) { row, index ->
+            val name = row.getString(index.getAndIncrement())
+            name to name
+        }
+        .toMap()
+}
+
+fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("name", "n") {
-        // TODO: value provider
-        property(MtgNameProperty())
+        property(MtgNameProperty()) { values(getNames, { StringValue(it) }, "name") }
     }
 
     filter("cmc", "mv", "manavalue", "manacost") { numeric(MtgCardFace::manaValue, mtgPropertyKeys.MANA_VALUE) }
@@ -117,16 +144,14 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("face", "facenumber") { numeric(MtgCardFace::index, propertyKeys.FACE_NUMBER, 1.0) }
 
     filter("year", "releaseyear") {
-//        yearByMapping(MtgSet::releaseDate, setReleaseDates, propertyKeys.RELEASE_YEAR)
         year(MtgPrint::releaseDate, propertyKeys.RELEASE_YEAR) {
-            // TODO: add set release date mappings
+            values(getSetReleaseDates, { it.year }, "set_code")
         }
     }
 
     filter("date", "releasedate") {
-//        dateByMapping(MtgPrint::releaseDate, setReleaseDates, propertyKeys.RELEASE_DATE)
         date(MtgPrint::releaseDate, propertyKeys.RELEASE_DATE) {
-            // TODO: add set release date mappings
+            values(getSetReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
         }
     }
 

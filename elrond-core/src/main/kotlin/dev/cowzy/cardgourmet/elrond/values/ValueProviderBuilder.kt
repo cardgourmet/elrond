@@ -87,6 +87,17 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         }
     }
 
+    fun <V> values(provider: (Connection) -> Map<String, V>, transform: (V) -> T, type: String, autoAlias: Boolean = false) {
+        applyValues.add { connection, values, displayTransform ->
+            val mappings = provider(connection)
+            mappings.forEach { (input, value) ->
+                val transformedValue = transform(value)
+                val display = displayTransform(transformedValue)
+                values.addOrUpdate(input, transformedValue, display, null, type, autoAlias)
+            }
+        }
+    }
+
     fun values(entry: ProviderEntry<T>, autoAlias: Boolean = false) {
         applyValues.add { connection, values, displayTransform ->
             val mappings = entry.provider(connection)
