@@ -11,7 +11,7 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 
     private val mappings = mutableMapOf<KClass<out QueryValue<*>>, QueryValueMapping<*, out QueryValue<*>, Output>>()
 
-    var provider: PropertyProvider<Output>? = null
+    var provider: ValueProvider<Output>? = null
 
     val supportedValueTypes get() = mappings.keys
 
@@ -19,19 +19,19 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
         init.invoke(this)
     }
 
-    fun provider(provider: PropertyProvider<Output>?) {
+    fun provider(provider: ValueProvider<Output>?) {
         this.provider = provider
     }
 
-    fun provider(key: String, pool: PropertyProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
+    fun provider(key: String, pool: ValueProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
         this.provider = pool.getOrPut(key) { ValueProviderBuilder<Output>(it).apply(init).build() }
     }
 
-    fun provider(column: KProperty1<*, *>, pool: PropertyProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
+    fun provider(column: KProperty1<*, *>, pool: ValueProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
         this.provider = pool.getOrPut(column) { ValueProviderBuilder<Output>(it).apply(init).build() }
     }
 
-    fun provider(vararg columns: KProperty1<*, *>, pool: PropertyProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
+    fun provider(vararg columns: KProperty1<*, *>, pool: ValueProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
         this.provider = pool.getOrPut(columns = columns) { ValueProviderBuilder<Output>(it).apply(init).build() }
     }
 

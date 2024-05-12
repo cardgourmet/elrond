@@ -135,8 +135,8 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         enumValues(type.simpleName!!, findKeywords, transform)
     }
 
-    fun build(): PropertyProvider<T> {
-        return PropertyProvider(
+    fun build(): ValueProvider<T> {
+        return ValueProvider(
             dbPool,
             applyValues,
             displayTransform,

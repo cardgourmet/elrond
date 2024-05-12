@@ -3,11 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
-import dev.cowzy.cardgourmet.elrond.StringValue
-import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.enumToMappings
-import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table

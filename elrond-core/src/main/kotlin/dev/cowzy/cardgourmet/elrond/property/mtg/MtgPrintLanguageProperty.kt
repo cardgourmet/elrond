@@ -9,21 +9,21 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
-import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.orWhere
 import kotlin.reflect.KProperty1
 
 class MtgPrintLanguageProperty(
     private val languagesColumn: KProperty1<*, *>,
     private vararg val languageColumns: KProperty1<*, *>,
-    propertyProviderPool: PropertyProviderPool
+    valueProviderPool: ValueProviderPool
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table(), *languageColumns.map { it.table() }.toTypedArray()),
     descriptor = EqualsDescriptor(propertyKey = Strings.Query.Property.PRINT_LANGUAGE),
 ) {
 
-    override val valueDefinition = createMtgPrintLanguageValueDefinition(propertyProviderPool)
+    override val valueDefinition = createMtgPrintLanguageValueDefinition(valueProviderPool)
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
@@ -43,8 +43,8 @@ class MtgPrintLanguageProperty(
 
 }
 
-fun createMtgPrintLanguageValueDefinition(propertyProviderPool: PropertyProviderPool) = QueryValueDefinition<MtgLanguage> {
-    provider("mtg_print_language", propertyProviderPool) {
+fun createMtgPrintLanguageValueDefinition(valueProviderPool: ValueProviderPool) = QueryValueDefinition<MtgLanguage> {
+    provider("mtg_print_language", valueProviderPool) {
         strict(true)
         enumValues<MtgLanguage>("language", findKeywords = { it.aliases })
     }

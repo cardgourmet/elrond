@@ -5,9 +5,7 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 

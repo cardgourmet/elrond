@@ -9,7 +9,6 @@ import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
@@ -29,7 +28,6 @@ import dev.cowzy.kuery.query.leftJoin
 import dev.cowzy.kuery.query.selectBuilder
 import dev.cowzy.kuery.reflection.parse
 import java.sql.Connection
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 val manaCardinalityMappings = mapOf(
@@ -70,12 +68,11 @@ private val getSetReleaseDates = { connection: Connection ->
         .distinctOn(MtgSet::code)
         .select(MtgSet::code)
         .select(MtgSet::releaseDate)
-        .get(it) { row, index ->
+        .get(connection) { row, index ->
             val setCode = MtgSet::code.parse(row, index)
             val date = MtgSet::releaseDate.parse(row, index)
             setCode to date
-        }
-        .toMap()
+        }.toMap()
 }
 
 private val getNames = { connection: Connection ->
@@ -86,8 +83,7 @@ private val getNames = { connection: Connection ->
         .get(connection) { row, index ->
             val name = row.getString(index.getAndIncrement())
             name to name
-        }
-        .toMap()
+        }.toMap()
 }
 
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
@@ -198,7 +194,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
             autoValues(MtgCard::layout, "layout", autoAlias = true)
             values(mtgLayoutMappings, "layout")
         }
-        property(MtgRarityProperty(propertyProviderPool))
+        property(MtgRarityProperty(valueProviderPool))
         stringArray(MtgPrint::finishes, propertyKeys.FINISH) {
             autoValues(MtgPrint::finishes, "finish", true)
             values(mtgFinishMappings, "finish")
@@ -354,15 +350,15 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         numericAndString(MtgPrint::collectorNumberValue, MtgPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
     }
 
-    filter("rarity", "r") { property(MtgRarityProperty(propertyProviderPool)) }
+    filter("rarity", "r") { property(MtgRarityProperty(valueProviderPool)) }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        property(MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, propertyProviderPool = propertyProviderPool))
+        property(MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, valueProviderPool = valueProviderPool))
     }
 
     filter("langs", "languages", "printlangs", "printlanguages") {
         cardinality(MtgPrint::languages, propertyKeys.LANGUAGE_COUNT)
-        property(MtgPrintLanguagesProperty(MtgPrint::languages, propertyProviderPool))
+        property(MtgPrintLanguagesProperty(MtgPrint::languages, valueProviderPool))
     }
 
     filter("eur") { numeric(MtgPrintPrice::priceEur, propertyKeys.PRICE_EUR) }
