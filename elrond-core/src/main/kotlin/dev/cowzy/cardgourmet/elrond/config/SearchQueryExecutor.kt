@@ -6,8 +6,10 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.values.DynamicStringValueProvider
+import dev.cowzy.cardgourmet.elrond.values.ProvidedValue
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 import kotlinx.serialization.Serializable
+import java.io.Serial
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
@@ -92,8 +94,19 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
     @Serializable
     data class FilterValues(
-        val mappings: List<Pair<String, String>>,
-        val values: List<String>,
+        val matchCount: Int,
+        val values: List<FilterValue>
+//        val mappings: List<Pair<String, String>>,
+//        val values: List<String>,
+    )
+
+    @Serializable
+    data class FilterValue(
+        val value: String,
+        val type: String,
+        val aliases: List<String>,
+        val resolvesTo: String?,
+        val resolvesToOperator: SearchQueryOperator?,
     )
 
     fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
@@ -119,26 +132,20 @@ data class SearchQueryExecutor<T : Enum<T>>(
                     }
 
                     ValueType(valueType, definition.format)
-                }
+                }.toMutableSet()
 
                 val operators = property.supportedOperators.map { it.value }
 
-                valueDefinitions.values.forEach { definition ->
-                    val mappings = definition.mappingsProvider
-                    if (mappings != null) {
-                        providesValues = true
-                    }
-
-                    val valueProvider = definition.valueProvider
-                    if (valueProvider != null) {
-                        providesValues = true
-                        allowsAnyValue = allowsAnyValue || !definition.useStrictValues
-                    } else {
-                        allowsAnyValue = true
-                    }
+                val provider = property.valueDefinition.provider
+                if (provider != null) {
+                    allowsAnyValue = allowsAnyValue || !provider.strictValues
+                    providesValues = true
+                    valueTypes.add(ValueType("string", null))
+                } else {
+                    allowsAnyValue = true
                 }
 
-                SearchQueryProperty(property.key, valueTypes, operators)
+                SearchQueryProperty(property.key, valueTypes.sortedBy { it.type }, operators)
             }
 
             SearchQueryFilter(filter.keywords.sorted(), properties, providesValues, !allowsAnyValue, filter.inverted)
@@ -148,34 +155,58 @@ data class SearchQueryExecutor<T : Enum<T>>(
     suspend fun getFilterValues(keyword: String, amount: Int, query: String?): FilterValues? {
         val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
 
-        val valueDefinitions = filter.properties.map { property ->
-            property.valueDefinition.supportedValueTypes.map { type ->
-                property.valueDefinition.getDefinition(type)
-            }
-        }.flatten()
+        val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
 
-        val mappings = mutableSetOf<Pair<String, String>>()
-        val values = mutableSetOf<String>()
+        val providedValues = mutableListOf<ProvidedValue<*>>()
 
-        val mappingProviders = valueDefinitions.mapNotNull { it.mappingsProvider }
-        for (provider in mappingProviders) {
-            if (mappings.size >= amount) break
-            mappings.addAll(provider.getMappingValues(query))
-        }
+        // First find any exact matches
+        val exactMatches = providers.mapNotNull { it.findValue(keyword) }
+        providedValues.addAll(exactMatches.take(amount))
 
-        val valueProviders = valueDefinitions.mapNotNull { it.valueProvider }
-        for (provider in valueProviders) {
-            val remaining = amount - values.size
-            if (remaining <= 0) break
-            values.addAll(provider.getValues(remaining, query))
-        }
+        // Next find any values that contain the keyword
+        val fuzzyMatches = providers.map { it.getValues(keyword) }.flatten() - exactMatches.toSet()
+        providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
-        mappings.removeIf { values.contains(it.first) }
+        val totalMatches = providedValues.size + fuzzyMatches.size
 
-        val takeMappings = minOf(amount, mappings.size)
-        val takeValues = minOf(amount - takeMappings, values.size)
+        return FilterValues(totalMatches, providedValues.map { value ->
+            FilterValue(
+                value.input,
+                value.type,
+                value.aliases.sorted(),
+                value.resolvesTo.display,
+                value.resolvesTo.operator
+            )
+        })
 
-        return FilterValues(mappings.sortedBy { it.first }.take(takeMappings), values.sorted().take(takeValues))
+//        val valueDefinitions = filter.properties.map { property ->
+//            property.valueDefinition.supportedValueTypes.map { type ->
+//                property.valueDefinition.getDefinition(type)
+//            }
+//        }.flatten()
+//
+//        val mappings = mutableSetOf<Pair<String, String>>()
+//        val values = mutableSetOf<String>()
+//
+//        val mappingProviders = valueDefinitions.mapNotNull { it.mappingsProvider }
+//        for (provider in mappingProviders) {
+//            if (mappings.size >= amount) break
+//            mappings.addAll(provider.getMappingValues(query))
+//        }
+//
+//        val valueProviders = valueDefinitions.mapNotNull { it.valueProvider }
+//        for (provider in valueProviders) {
+//            val remaining = amount - values.size
+//            if (remaining <= 0) break
+//            values.addAll(provider.getValues(remaining, query))
+//        }
+//
+//        mappings.removeIf { values.contains(it.first) }
+//
+//        val takeMappings = minOf(amount, mappings.size)
+//        val takeValues = minOf(amount - takeMappings, values.size)
+//
+//        return FilterValues(mappings.sortedBy { it.first }.take(takeMappings), values.sorted().take(takeValues))
     }
 
     private suspend fun <T : Pair<*, Pair<*, SearchQueryOperator?>>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {

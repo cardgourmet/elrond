@@ -28,7 +28,6 @@ class DateProperty(
             pattern = dateRegex.pattern
             transform { it.value }
             match { it.matches(dateRegex) }
-            display { it, _, _ -> "`$it`" }
         }
     }
 

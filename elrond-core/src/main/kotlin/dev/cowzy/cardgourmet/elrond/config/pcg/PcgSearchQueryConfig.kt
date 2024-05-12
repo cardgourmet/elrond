@@ -15,10 +15,9 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.enumToMappings
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
-import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetEndReleaseDateMappingProvider
-import dev.cowzy.cardgourmet.elrond.values.pcg.PcgSetStartReleaseDateMappingProvider
+import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
+import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
@@ -26,18 +25,16 @@ private val propertyKeys = Strings.Query.Property
 private val pcgPropertyKeys = Strings.Query.Pcg.Property
 
 fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
-    val setStartReleaseDates = valueProviderPool.getOrPut("pcg_set_start_release_dates") { PcgSetStartReleaseDateMappingProvider(it) }
-    val setEndReleaseDates = valueProviderPool.getOrPut("pcg_set_end_release_dates") { PcgSetEndReleaseDateMappingProvider(it) }
-
-    val subTypeMappings = enumToMappings<PcgPokemonSubType> { it.keys }.mapValues { it.value.getSerialName() } +
-            enumToMappings<PcgTrainerSubType> { it.keys }.mapValues { it.value.getSerialName() } +
-            enumToMappings<PcgEnergySubType> { it.keys }.mapValues { it.value.getSerialName() }
+//    val setStartReleaseDates = valueProviderPool.getOrPut("pcg_set_start_release_dates") { PcgSetStartReleaseDateMappingProvider(it) }
+//    val setEndReleaseDates = valueProviderPool.getOrPut("pcg_set_end_release_dates") { PcgSetEndReleaseDateMappingProvider(it) }
 
     val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)
     val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE)
 
     filter("name", "n") {
-        simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
+        simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) {
+            autoValues(PcgCardTranslation::name)
+        }
     }
 
     filter("cn", "number", "collectornumber") {
@@ -50,7 +47,10 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("mark", "regulationmark") {
-        exactString(PcgPrint::regulationMark, pcgPropertyKeys.REGULATION_MARK) { autoValues() }
+        exactString(PcgPrint::regulationMark, pcgPropertyKeys.REGULATION_MARK) {
+            strict(true)
+            autoValues(PcgPrint::regulationMark)
+        }
     }
 
     filter("artist", "illustrator", "artists", "illustrators") {
@@ -100,7 +100,10 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("type", "t") {
         enum(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
-        stringArray(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE) { autoMappings(subTypeMappings) }
+        stringArray(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE) {
+            strict(true)
+            autoArrayValues(PcgCard::subTypes, "subtype", true)
+        }
         enumArray(PcgCard::types, pcgPropertyKeys.ENERGY_TYPE) { it.keys }
     }
 
@@ -114,7 +117,8 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("subtype", "subtypes") {
         stringArrayAndCardinality(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE_COUNT, pcgPropertyKeys.SUBTYPE) {
-            autoMappings(subTypeMappings)
+            strict(true)
+            autoArrayValues(PcgCard::subTypes, "subtype", true)
         }
     }
 
@@ -123,7 +127,9 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("evolves", "evolvesfrom") {
-        string(PcgCard::evolvesFromName, pcgPropertyKeys.EVOLVES_FROM) { autoValues(false) }
+        string(PcgCard::evolvesFromName, pcgPropertyKeys.EVOLVES_FROM) {
+            autoValues(PcgCard::evolvesFromName)
+        }
     }
 
     filter("attack", "attackname", "abilityname") {
@@ -194,7 +200,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("weakness", "weaknesses") {
         enumArrayAndCardinality(PcgCard::weaknessTypes, pcgPropertyKeys.WEAKNESS_COUNT, weaknessDescriptor, "weakness_type") { it.keys }
-        string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER) { autoValues(false) }
+        string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER)
     }
 
     filter("weaknesstype", "weaknesstypes") {
@@ -202,12 +208,12 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("weaknessmodifier") {
-        string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER) { autoValues(false) }
+        string(PcgCard::weaknessModifier, pcgPropertyKeys.WEAKNESS_MODIFIER)
     }
 
     filter("resistance", "resistances") {
         enumArrayAndCardinality(PcgCard::resistanceTypes, pcgPropertyKeys.RESISTANCE_COUNT, resistanceDescriptor, "resistance_type") { it.keys }
-        string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER) { autoValues(false) }
+        string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER)
     }
 
     filter("resistancetype", "resistancetypes") {
@@ -215,7 +221,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("resistancemodifier") {
-        string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER) { autoValues(false) }
+        string(PcgCard::resistanceModifier, pcgPropertyKeys.RESISTANCE_MODIFIER)
     }
 
     filter("retreat", "retreatcost") {
@@ -224,16 +230,16 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("set", "s", "edition", "e", "expansion") {
         uuid(PcgSet::id, propertyKeys.SET_ID)
-        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues() }
+        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues(PcgSet::setCode) }
     }
 
     filter("setid") { uuid(PcgSet::id, propertyKeys.SET_ID) }
     filter("setname") {
-        string(PcgSetTranslation::name, propertyKeys.SET_NAME) { autoValues(false) }
+        string(PcgSetTranslation::name, propertyKeys.SET_NAME) { autoValues(PcgSetTranslation::name) }
     }
 
     filter("setcode") {
-        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues() }
+        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues(PcgSet::setCode) }
     }
 
     filter("settype") { enum(PcgSet::type, propertyKeys.SET_TYPE) }
@@ -246,28 +252,36 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("allsetprints", "totalsetprints") { numeric(PcgSet::printedTotal, pcgPropertyKeys.TOTAL_PRINT_COUNT) }
 
     filter("date", "releasedate", "startreleasedate") {
-        dateByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_DATE)
-        date(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_DATE)
+//        dateByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_DATE)
+        date(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_DATE) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("year", "releaseyear", "startreleaseyear") {
-        yearByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_YEAR)
-        year(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_YEAR)
+//        yearByMapping(PcgSet::releaseStartDate, setStartReleaseDates, pcgPropertyKeys.START_RELEASE_YEAR)
+        year(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_YEAR) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("enddate", "endreleasedate") {
-        dateByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_DATE)
-        date(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_DATE)
+//        dateByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_DATE)
+        date(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_DATE) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("endyear", "endreleaseyear") {
-        yearByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_YEAR)
-        year(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_YEAR)
+//        yearByMapping(PcgSet::releaseEndDate, setEndReleaseDates, pcgPropertyKeys.END_RELEASE_YEAR)
+        year(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_YEAR) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("era", "block") {
         uuid(PcgEra::id, pcgPropertyKeys.ERA_ID)
-        string(PcgEra::name, pcgPropertyKeys.ERA_NAME) { autoValues(false) }
+        string(PcgEra::name, pcgPropertyKeys.ERA_NAME) { autoValues(PcgEra::name) }
     }
 
     filter("eraid", "blockid") {
@@ -275,7 +289,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("eraname", "blockname") {
-        string(PcgEra::name, pcgPropertyKeys.ERA_NAME) { autoValues(false) }
+        string(PcgEra::name, pcgPropertyKeys.ERA_NAME) { autoValues(PcgEra::name) }
     }
 
     filter("cardid", "card") { uuid(PcgCard::id, propertyKeys.CARD_ID) }
@@ -294,13 +308,13 @@ private val tableDependencies = mapOf(
         builder.innerJoin(PcgCardTranslation::class) { it.whereColumn(PcgCard::id, PcgCardTranslation::cardId) }
     },
     PcgPrintTranslation::class to TableDependency(PcgPrint::class) { builder ->
-        builder.innerJoin(PcgPrintTranslation::class) { it.whereColumn(PcgPrint::id, PcgPrintTranslation::printId) }
+        builder.leftJoin(PcgPrintTranslation::class) { it.whereColumn(PcgPrint::id, PcgPrintTranslation::printId) }
     },
     PcgSet::class to TableDependency(PcgPrint::class) { builder ->
         builder.innerJoin(PcgSet::class) { it.whereColumn(PcgPrint::setId, PcgSet::id) }
     },
     PcgSetTranslation::class to TableDependency(PcgSet::class) { builder ->
-        builder.innerJoin(PcgSetTranslation::class) { it.whereColumn(PcgSet::id, PcgSetTranslation::setId) }
+        builder.leftJoin(PcgSetTranslation::class) { it.whereColumn(PcgSet::id, PcgSetTranslation::setId) }
     },
     PcgEra::class to TableDependency(PcgSet::class) { builder ->
         builder.innerJoin(PcgEra::class) { it.whereColumn(PcgEra::id, PcgSet::eraId) }

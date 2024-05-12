@@ -3,14 +3,15 @@ package dev.cowzy.cardgourmet.elrond
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
-import dev.cowzy.cardgourmet.elrond.values.MappingProvider
-import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
-import dev.cowzy.cardgourmet.elrond.values.ValueProvider
+import dev.cowzy.cardgourmet.elrond.values.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 
 class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -> Unit = {}) {
 
     private val mappings = mutableMapOf<KClass<out QueryValue<*>>, QueryValueMapping<*, out QueryValue<*>, Output>>()
+
+    var provider: PropertyProvider<Output>? = null
 
     val supportedValueTypes get() = mappings.keys
 
@@ -18,10 +19,28 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
         init.invoke(this)
     }
 
+    fun provider(provider: PropertyProvider<Output>?) {
+        this.provider = provider
+    }
+
+    fun provider(key: String, pool: PropertyProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
+        this.provider = pool.getOrPut(key) { ValueProviderBuilder<Output>(it).apply(init).build() }
+    }
+
+    fun provider(column: KProperty1<*, *>, pool: PropertyProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
+        this.provider = pool.getOrPut(column) { ValueProviderBuilder<Output>(it).apply(init).build() }
+    }
+
+    fun provider(vararg columns: KProperty1<*, *>, pool: PropertyProviderPool, init: ValueProviderBuilder<Output>.() -> Unit) {
+        this.provider = pool.getOrPut(columns = columns) { ValueProviderBuilder<Output>(it).apply(init).build() }
+    }
+
     operator fun <Value : Any, Input : QueryValue<Value>> KClass<Input>.invoke(init: QueryValueMappingBuilder<Value, Input, Output>.() -> Unit) {
-        val builder = QueryValueMappingBuilder<Value, Input, Output>(this).apply(init)
+        val builder = QueryValueMappingBuilder<Value, Input, Output>().apply(init)
         mappings[this] = builder.build()
     }
+
+    operator fun <Value : Any, Input : QueryValue<Value>> KClass<Input>.invoke() = invoke { }
 
     @Suppress("UNCHECKED_CAST")
     fun <Input : QueryValue<*>> getDefinition(type: KClass<Input>): QueryValueMapping<*, Input, Output> {
@@ -34,20 +53,13 @@ data class QueryValueMapping<Value : Any, Input : QueryValue<Value>, Output>(
     val transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>?,
     val match: suspend (Output) -> Boolean,
     val display: suspend (Output, LocalizationService, UserLanguage) -> String,
-    val format: String?,
-    val valueProvider: ValueProvider<Value>?,
-    val useStrictValues: Boolean,
-    val mappingsProvider: ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>?,
+    val format: String?
 )
 
-class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : Any>(private val type: KClass<Input>) {
+class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : Any> {
 
     var format: String? = null
     var pattern: String? = null
-
-    var mappingsProvider: MappingProvider<Value, Output>? = null
-    var valueProvider: ValueProvider<Value>? = null
-    var useStrictValues: Boolean = false
 
     private var transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>? = { it, operator ->
         try {
@@ -86,61 +98,13 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
         this.display = transform
     }
 
-    fun values(values: Iterable<Value>, strict: Boolean = true) = values(StaticValueProvider(values.toSet()), strict)
-
-    fun values(valueProvider: ValueProvider<Value>?, strict: Boolean = true) {
-        this.valueProvider = valueProvider
-        this.useStrictValues = valueProvider != null && strict
-    }
-
-    fun mappings(mappings: Map<Value, Output>?) {
-        if (mappings == null) return
-        mappings(StaticValueProvider(mappings.entries.map { it.key to it.value }.toSet()))
-    }
-
-    fun mappings(mappings: Iterable<Pair<Value, Output>>?) {
-        if (mappings == null) return
-        mappings(StaticValueProvider(mappings.toSet()))
-    }
-
-    fun mappings(mappingsProvider: ValueProvider<Pair<Value, Output>>?) {
-        if (mappingsProvider == null) return
-        mappingsWithOperator(WrapOperatorValueProvider(mappingsProvider))
-    }
-
-    fun mappingsWithOperator(mappings: Map<Value, Pair<Output, SearchQueryOperator?>>?) {
-        if (mappings == null) return
-        this.mappingsProvider = StaticValueProvider(mappings.entries.map { it.toPair() }.toSet())
-    }
-
-    fun mappingsWithOperator(mappingsProvider: MappingProvider<Value, Output>?) {
-        if (mappingsProvider == null) return
-        this.mappingsProvider = mappingsProvider
-    }
-
-    fun <T> mappingsWithOperator(mappingsProvider: MappingProvider<Value, T>?, transform: (T) -> Output) {
-        if (mappingsProvider == null) return
-        this.mappingsProvider = TransformMappingProvider(mappingsProvider, transform)
-    }
-
     internal fun build() = QueryValueMapping(
         transform = transform,
         match = match,
         display = display,
-        format = format,
-        valueProvider = valueProvider,
-        useStrictValues = useStrictValues,
-        mappingsProvider = mappingsProvider
+        format = format
     )
 
-}
-
-class WrapOperatorValueProvider<Value, Output>(private val valueProvider: ValueProvider<Pair<Value, Output>>) : ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>> {
-    override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (it.second to null as SearchQueryOperator?) }.toSet()
-}
-
-class TransformMappingProvider<Value, T, Output>(private val valueProvider: MappingProvider<Value, T>, private val transform: (T) -> Output) : ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>> {
-    override suspend fun getValues(): Iterable<Pair<Value, Pair<Output, SearchQueryOperator?>>> = valueProvider.getValues().map { it.first to (transform(it.second.first) to it.second.second) }.toSet()
 }
 
 inline fun <reified T : Enum<T>> enumToMappings(noinline findKeywords: (T) -> List<String>): Map<String, T> {

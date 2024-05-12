@@ -9,19 +9,21 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.query.orWhere
 import kotlin.reflect.KProperty1
 
 class MtgPrintLanguageProperty(
     private val languagesColumn: KProperty1<*, *>,
-    private vararg val languageColumns: KProperty1<*, *>
+    private vararg val languageColumns: KProperty1<*, *>,
+    propertyProviderPool: PropertyProviderPool
 ) : SearchQueryProperty<MtgLanguage>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(languagesColumn.table(), *languageColumns.map { it.table() }.toTypedArray()),
     descriptor = EqualsDescriptor(propertyKey = Strings.Query.Property.PRINT_LANGUAGE),
 ) {
 
-    override val valueDefinition = mtgPrintLanguageValueDefinition
+    override val valueDefinition = createMtgPrintLanguageValueDefinition(propertyProviderPool)
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
@@ -41,17 +43,15 @@ class MtgPrintLanguageProperty(
 
 }
 
-val mtgPrintLanguageValueDefinition = QueryValueDefinition {
+fun createMtgPrintLanguageValueDefinition(propertyProviderPool: PropertyProviderPool) = QueryValueDefinition<MtgLanguage> {
+    provider("mtg_print_language", propertyProviderPool) {
+        strict(true)
+        enumValues<MtgLanguage>("language", findKeywords = { it.aliases })
+    }
+
     StringValue::class {
-        mappings(enumToMappings<MtgLanguage> { it.aliases })
-        values(MtgLanguage.values().map { it.getSerialName() })
-
-        transform { value ->
-            MtgLanguage.values().find { it.getSerialName() == value.value }
-        }
-
         display { language, i18n, locale ->
-            i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${(language as MtgLanguage).getSerialName()}")
+            i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${language.getSerialName()}")
         }
     }
 }

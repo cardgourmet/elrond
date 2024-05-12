@@ -7,7 +7,9 @@ import dev.cowzy.cardgourmet.elrond.RegexValue
 import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.values.MappingProvider
+import dev.cowzy.cardgourmet.elrond.values.PropertyProvider
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
+import dev.cowzy.cardgourmet.elrond.values.withTransform
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.table
@@ -15,9 +17,6 @@ import kotlin.reflect.KProperty1
 
 open class StringColumnProperty(
     protected val column: KProperty1<*, *>,
-    valueProvider: ValueProvider<String>? = null,
-    useStrictValues: Boolean = false,
-    mappingProvider: MappingProvider<String, String>? = null,
     private val simpleColumn: KProperty1<*, *>? = null,
     mapContainsToEquals: Boolean = false,
     descriptor: PropertyDescriptor,
@@ -30,9 +29,6 @@ open class StringColumnProperty(
 
     override val valueDefinition = QueryValueDefinition<QueryValue<*>> {
         StringValue::class {
-            mappingsWithOperator(mappingProvider, ::StringValue)
-            values(valueProvider, useStrictValues)
-
             transform {
                 return@transform when {
                     simpleColumn == null || it.exact -> it

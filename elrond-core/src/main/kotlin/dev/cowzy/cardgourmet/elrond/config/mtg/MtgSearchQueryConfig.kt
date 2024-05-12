@@ -3,9 +3,11 @@ package dev.cowzy.cardgourmet.elrond.config.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
@@ -18,6 +20,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
+import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.cardgourmet.elrond.values.mtg.*
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
@@ -56,12 +59,13 @@ private val propertyKeys = Strings.Query.Property
 private val mtgPropertyKeys = Strings.Query.Mtg.Property
 
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
-    val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
-    val setReleaseDates = valueProviderPool.getOrPut("mtg_set_release_dates") { MtgSetReleaseDateMappingProvider(it, mtgSetCodeMappings) }
-    val formatProvider = valueProviderPool.getAutoStringArrayProvider(MtgPrint::formatsLegal, MtgPrint::formatsRestricted, MtgPrint::formatsBanned)
+//    val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
+//    val setReleaseDates = valueProviderPool.getOrPut("mtg_set_release_dates") { MtgSetReleaseDateMappingProvider(it, mtgSetCodeMappings) }
+//    val formatProvider = valueProviderPool.getAutoStringArrayProvider(MtgPrint::formatsLegal, MtgPrint::formatsRestricted, MtgPrint::formatsBanned)
 
     filter("name", "n") {
-        property(MtgNameProperty(nameValueProvider))
+        // TODO: value provider
+        property(MtgNameProperty())
     }
 
     filter("cmc", "mv", "manavalue", "manacost") { numeric(MtgCardFace::manaValue, mtgPropertyKeys.MANA_VALUE) }
@@ -113,13 +117,17 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("face", "facenumber") { numeric(MtgCardFace::index, propertyKeys.FACE_NUMBER, 1.0) }
 
     filter("year", "releaseyear") {
-        yearByMapping(MtgSet::releaseDate, setReleaseDates, propertyKeys.RELEASE_YEAR)
-        year(MtgPrint::releaseDate, propertyKeys.RELEASE_YEAR)
+//        yearByMapping(MtgSet::releaseDate, setReleaseDates, propertyKeys.RELEASE_YEAR)
+        year(MtgPrint::releaseDate, propertyKeys.RELEASE_YEAR) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("date", "releasedate") {
-        dateByMapping(MtgPrint::releaseDate, setReleaseDates, propertyKeys.RELEASE_DATE)
-        date(MtgPrint::releaseDate, propertyKeys.RELEASE_DATE)
+//        dateByMapping(MtgPrint::releaseDate, setReleaseDates, propertyKeys.RELEASE_DATE)
+        date(MtgPrint::releaseDate, propertyKeys.RELEASE_DATE) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("prints", "printcount") { property(MtgPrintCountProperty()) }
@@ -128,7 +136,10 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("papersets", "papersetcount") { property(MtgPaperSetCountProperty()) }
 
     filter("finishes", "finish") {
-        stringArrayAndCardinality(MtgPrint::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) { autoMappings(mtgFinishMappings) }
+        stringArrayAndCardinality(MtgPrint::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
+            autoValues(MtgPrint::finishes, "finish", true)
+            values(mtgFinishMappings, "finish")
+        }
     }
 
     filter("watermark", "watermarks", "wm") {
@@ -140,11 +151,17 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("mechanic", "mechanics", "function", "otag", "oracletag") {
-        stringArrayAndCardinality(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC_COUNT, propertyKeys.MECHANIC) { autoMappings() }
+        stringArrayAndCardinality(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC_COUNT, propertyKeys.MECHANIC) {
+            autoValues(MtgPrintFace::propertyTags, "property_tag", true)
+            values(mtgPropertyMappings, "property_tag")
+        }
     }
 
     filter("property", "properties") {
-        stringArrayAndCardinality(MtgPrintFace::propertyTags, propertyKeys.PROPERTY_COUNT, propertyKeys.PROPERTY) { autoMappings(mtgPropertyMappings) }
+        stringArrayAndCardinality(MtgPrintFace::propertyTags, propertyKeys.PROPERTY_COUNT, propertyKeys.PROPERTY) {
+            autoValues(MtgPrintFace::propertyTags, "property_tag", true)
+            values(mtgPropertyMappings, "property_tag")
+        }
     }
 
     filter("art") {
@@ -153,19 +170,25 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
         exactString(MtgCard::layout, mtgPropertyKeys.LAYOUT) {
-            autoValues()
-            autoMappings(mtgLayoutMappings)
+            autoValues(MtgCard::layout, "layout", autoAlias = true)
+            values(mtgLayoutMappings, "layout")
         }
-        property(MtgRarityProperty())
-        stringArray(MtgPrint::finishes, propertyKeys.FINISH) { autoMappings(mtgFinishMappings) }
+        property(MtgRarityProperty(propertyProviderPool))
+        stringArray(MtgPrint::finishes, propertyKeys.FINISH) {
+            autoValues(MtgPrint::finishes, "finish", true)
+            values(mtgFinishMappings, "finish")
+        }
         stringArray(MtgPrint::promoTypes, mtgPropertyKeys.PROMO_TYPE)
         stringArray(MtgPrint::mediums, propertyKeys.MEDIUM)
         stringArray(MtgCardFace::types, mtgPropertyKeys.TYPE)
         stringArray(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE)
         stringArray(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE)
-        stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT) { autoMappings() }
-        stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC) { autoMappings() }
-        stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) { autoMappings(mtgPropertyMappings) }
+        stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
+        stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC)
+        stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
+            autoValues(MtgPrintFace::propertyTags, "property_tag", true)
+            values(mtgPropertyMappings, "property_tag")
+        }
     }
 
     filter("is", "has", "tag", "tags") { applyTagProperties() }
@@ -176,24 +199,27 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("legal", "legalformats", "legalin", "format") {
         stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.LEGAL), "legal_format") {
-            values(formatProvider)
+            enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("restricted", "restrictedformats", "restrictedin") {
         stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.RESTRICTED), "restricted_format") {
-            values(formatProvider)
+            enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("banned", "bannedformats", "bannedin") {
         stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.BANNED), "banned_format") {
-            values(formatProvider)
+            enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("medium", "mediums", "game", "games") {
-        stringArrayAndCardinality(MtgPrint::mediums, propertyKeys.MEDIUM_COUNT, propertyKeys.MEDIUM) { autoMappings(mtgMediumMappings) }
+        stringArrayAndCardinality(MtgPrint::mediums, propertyKeys.MEDIUM_COUNT, propertyKeys.MEDIUM) {
+            enumValues<MtgMedium>("medium", findKeywords = { it.keys }, transform = { it.getSerialName() })
+            values(mtgMediumMappings, "medium")
+        }
     }
 
     filter("new") {
@@ -211,26 +237,26 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("set", "s", "e", "edition", "expansion") {
         uuid(MtgSet::id, propertyKeys.SET_ID)
         string(MtgSet::code, propertyKeys.SET_CODE) {
-            autoValues()
-            mappings(mtgSetCodeMappings)
+            autoValues(MtgSet::code, "set_code")
+            values(mtgSetCodeMappings, "set_code")
         }
     }
 
     filter("setcode") {
         string(MtgSet::code, propertyKeys.SET_CODE) {
-            autoValues()
-            mappings(mtgSetCodeMappings)
+            autoValues(MtgSet::code, "set_code")
+            values(mtgSetCodeMappings, "set_code")
         }
     }
 
     filter("setid") { uuid(MtgSet::id, propertyKeys.SET_ID) }
-    filter("setname") { string(MtgSet::name, propertyKeys.SET_NAME) { autoValues(false) } }
-    filter("settype") { exactString(MtgSet::type, mtgPropertyKeys.SET_TYPE) { autoValues() } }
+    filter("setname") { string(MtgSet::name, propertyKeys.SET_NAME) { autoValues(MtgSet::name, "set_name") } }
+    filter("settype") { exactString(MtgSet::type, mtgPropertyKeys.SET_TYPE) { autoValues(MtgSet::type, "set_type") } }
 
     filter("layout") {
         exactString(MtgCard::layout, mtgPropertyKeys.LAYOUT) {
-            autoValues()
-            autoMappings(mtgLayoutMappings)
+            autoValues(MtgCard::layout, "layout", autoAlias = true)
+            values(mtgLayoutMappings, "layout")
         }
     }
 
@@ -271,18 +297,29 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     filter("frame") {
-        stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT) { autoMappings() }
-        exactString(MtgPrint::frame, mtgPropertyKeys.FRAME) { autoValues() }
-    }
-
-    filter("frameffect", "frameeffects") {
-        stringArrayAndCardinality(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT_COUNT, mtgPropertyKeys.FRAME_EFFECT) {
-            autoMappings()
+        stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
+        exactString(MtgPrint::frame, mtgPropertyKeys.FRAME) {
+            strict(true)
+            autoValues(MtgPrint::frame)
         }
     }
 
-    filter("stamp") { exactString(MtgPrint::stamp, mtgPropertyKeys.STAMP) { autoValues() } }
-    filter("border") { exactString(MtgPrint::border, mtgPropertyKeys.BORDER) { autoValues() } }
+    filter("frameffect", "frameeffects") {
+        stringArrayAndCardinality(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT_COUNT, mtgPropertyKeys.FRAME_EFFECT)
+    }
+
+    filter("stamp") {
+        exactString(MtgPrint::stamp, mtgPropertyKeys.STAMP) {
+            strict(true)
+            autoValues(MtgPrint::stamp)
+        }
+    }
+    filter("border") {
+        exactString(MtgPrint::border, mtgPropertyKeys.BORDER) {
+            strict(true)
+            autoValues(MtgPrint::border)
+        }
+    }
 
     filter("artist", "artists", "illustrator", "illustrators") {
         string(MtgPrint::artist, propertyKeys.ARTIST)
@@ -292,15 +329,15 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         numericAndString(MtgPrint::collectorNumberValue, MtgPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
     }
 
-    filter("rarity", "r") { property(MtgRarityProperty()) }
+    filter("rarity", "r") { property(MtgRarityProperty(propertyProviderPool)) }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        property(MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language))
+        property(MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, propertyProviderPool = propertyProviderPool))
     }
 
     filter("langs", "languages", "printlangs", "printlanguages") {
         cardinality(MtgPrint::languages, propertyKeys.LANGUAGE_COUNT)
-        property(MtgPrintLanguagesProperty(MtgPrint::languages))
+        property(MtgPrintLanguagesProperty(MtgPrint::languages, propertyProviderPool))
     }
 
     filter("eur") { numeric(MtgPrintPrice::priceEur, propertyKeys.PRICE_EUR) }
@@ -313,11 +350,11 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("block", "era") {
         uuid(MtgBlock::id, mtgPropertyKeys.BLOCK_ID)
-        string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues(false) }
+        string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues(MtgBlock::name, "block_name") }
     }
 
     filter("blockid", "eraid") { uuid(MtgBlock::id, mtgPropertyKeys.BLOCK_ID) }
-    filter("blockname", "eraname") { string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues() } }
+    filter("blockname", "eraname") { string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues(MtgBlock::name, "block_name") } }
 
     filter("print", "printid") { uuid(MtgPrint::id, propertyKeys.PRINT_ID) }
     filter("card", "cardid", "oracleid") { uuid(MtgCard::id, propertyKeys.CARD_ID) }

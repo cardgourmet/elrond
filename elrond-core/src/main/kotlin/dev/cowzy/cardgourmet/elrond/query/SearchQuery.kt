@@ -15,7 +15,7 @@ import kotlin.reflect.full.isSubclassOf
 data class SearchQuery<T : Enum<T>>(
     val expression: QueryExpression,
     val distinctBy: KProperty1<*, *>,
-    val sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>,
+    val sortColumns: List<ElrondSortColumn>,
     val flags: Set<T>,
     val preferredLanguage: String?
 )
@@ -28,7 +28,7 @@ data class SearchQuerySqlBuilder<T : Enum<T>>(
 suspend fun <T : Enum<T>> SearchQuery<T>.toQueryBuilder(
     config: SearchQueryConfig,
     distinctBy: KProperty1<*, *>,
-    sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>,
+    sortColumns: List<ElrondSortColumn>,
     sqlBuilder: SearchQuerySqlBuilder<T>? = null,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
 ): SelectQueryBuilder {
@@ -92,7 +92,7 @@ fun <T : Enum<T>> SearchQuery<T>.toPaginationValueQueryBuilder(
     config: SearchQueryConfig,
     distinctBy: KProperty1<*, *>,
     id: UUID,
-    sortColumns: List<dev.cowzy.cardgourmet.elrond.ElrondSortColumn>,
+    sortColumns: List<ElrondSortColumn>,
     sqlBuilder: SearchQuerySqlBuilder<T>? = null,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
 ): SelectQueryBuilder {

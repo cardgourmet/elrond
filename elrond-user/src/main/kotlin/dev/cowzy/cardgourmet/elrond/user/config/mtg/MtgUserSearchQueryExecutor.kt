@@ -8,6 +8,7 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.mtg.*
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
@@ -39,7 +40,7 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
     applyMtgSortPostLanguage(query, builder, preferMode)
 }
 
-fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
+fun createMtgSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicMtgFilters()
     }
@@ -52,7 +53,7 @@ fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
         .build()
 }
 
-fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
+fun createMtgCollectionSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicMtgFilters()
         configureCollectionFilters()

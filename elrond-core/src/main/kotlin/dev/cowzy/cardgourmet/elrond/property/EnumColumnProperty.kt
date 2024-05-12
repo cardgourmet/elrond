@@ -7,13 +7,12 @@ import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 
 class EnumColumnProperty<ValueType : Enum<ValueType>>(
     private val column: KProperty1<*, ValueType?>,
-    enumValues: Array<ValueType>,
-    aliasResolver: ((ValueType) -> List<String>)? = null,
     display: ((ValueType, LocalizationService, UserLanguage) -> String)? = null,
     descriptor: PropertyDescriptor,
     key: String,
@@ -26,13 +25,6 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
 
     override val valueDefinition = QueryValueDefinition<ValueType> {
         StringValue::class {
-            mappings(enumToMappings(enumValues, aliasResolver))
-            values(enumValues.map { it.getSerialName() })
-
-            transform { value ->
-                enumValues.find { it.getSerialName().equals(value.value, ignoreCase = true) }
-            }
-
             display { value, i18n, locale -> display?.invoke(value, i18n, locale) ?: "`${value.getSerialName()}`" }
         }
     }
@@ -51,6 +43,5 @@ inline fun <reified T : Enum<T>> enumColumnProperty(
     column: KProperty1<*, T?>,
     descriptor: PropertyDescriptor,
     key: String,
-    noinline aliasResolver: ((T) -> List<String>)? = null,
     noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
-) = EnumColumnProperty(column, enumValues(), aliasResolver, display, descriptor, key)
+) = EnumColumnProperty(column, display, descriptor, key)

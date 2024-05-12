@@ -1,12 +1,14 @@
 package dev.cowzy.cardgourmet.elrond
 
+import kotlinx.serialization.SerialName
+
 enum class SearchQueryOperator(val value: String) {
-    CONTAINS(":"),
-    GREATER_THAN_OR_EQUALS(">="),
-    GREATER_THAN(">"),
-    LESS_THAN_OR_EQUALS("<="),
-    LESS_THAN("<"),
-    EQUALS("=");
+    @SerialName(":") CONTAINS(":"),
+    @SerialName(">=") GREATER_THAN_OR_EQUALS(">="),
+    @SerialName(">") GREATER_THAN(">"),
+    @SerialName("<=") LESS_THAN_OR_EQUALS("<="),
+    @SerialName("<") LESS_THAN("<"),
+    @SerialName("=") EQUALS("=");
 
     companion object {
         fun tryParse(value: String) = SearchQueryOperator.values().find { it.value == value }

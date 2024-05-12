@@ -11,6 +11,7 @@ import dev.cowzy.cardgourmet.elrond.config.pcg.configureBasicPcgFilters
 import dev.cowzy.cardgourmet.elrond.config.pcg.createPcgBaseBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
@@ -40,7 +41,7 @@ private val queryBuilder: ((SearchQuery<PcgSearchQueryFlag>, SelectQueryBuilder)
     applyPcgSort(query, builder)
 }
 
-fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
+fun createPcgSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicPcgFilters()
     }
@@ -53,7 +54,7 @@ fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
         .build()
 }
 
-fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
+fun createPcgCollectionSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<PcgSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicPcgFilters()
         configureCollectionFilters()

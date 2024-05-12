@@ -8,22 +8,23 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 
-class MtgRarityProperty : SearchQueryProperty<MtgRarity>(
+class MtgRarityProperty(
+    propertyProviderPool: PropertyProviderPool
+) : SearchQueryProperty<MtgRarity>(
     supportedOperators = numericQueryOperators,
     affectedTables = arrayOf(MtgPrint::class),
     descriptor = NumericDescriptor(Strings.Query.Property.RARITY)
 ) {
 
     override val valueDefinition = QueryValueDefinition<MtgRarity> {
+        provider("mtg_rarity", propertyProviderPool) {
+            strict(true)
+            enumValues<MtgRarity>("rarity", findKeywords = { it.keywords.toList() })
+        }
+
         StringValue::class {
-            mappings(enumToMappings<MtgRarity> { it.keywords.toList() })
-            values(MtgRarity.values().map { it.getSerialName() })
-
-            transform { value ->
-                MtgRarity.values().find { it.keywords.any { keyword -> keyword.equals(value.value, ignoreCase = true) } }
-            }
-
             display { rarity, _, _ -> "`${rarity.keywords.first()}`" }
         }
     }
