@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.elrond.config.dlc
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgLanguage
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
@@ -15,19 +14,9 @@ import dev.cowzy.cardgourmet.elrond.config.TableDependency
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
-import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
-import dev.cowzy.cardgourmet.elrond.values.dlc.DlcSetMarketReleaseDateMappingProvider
-import dev.cowzy.cardgourmet.elrond.values.dlc.DlcSetReleaseDateMappingProvider
+import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
-
-val dlcFinishes = StaticValueProvider(setOf("nonfoil", "foil"))
-val dlcMediums = StaticValueProvider(setOf("paper"))
-val dlcLanguages = StaticValueProvider(DlcLanguage.values().map { it.getSerialName() }.toSet())
-
-val dlcLanguageMappings = DlcLanguage.values().associate { language ->
-    language.name to language.getSerialName()
-}
 
 val dlcSetCodeMappings = mapOf("promo" to "P1", "tfc" to "1", "rof" to "2", "ink" to "3", "urs" to "4")
 
@@ -35,11 +24,13 @@ private val propertyKeys = Strings.Query.Property
 private val dlcPropertyKeys = Strings.Query.Dlc.Property
 
 fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
-    val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it, dlcSetCodeMappings) }
-    val setMarketReleaseDates = valueProviderPool.getOrPut("dlc_set_market_release_dates") { DlcSetMarketReleaseDateMappingProvider(it, dlcSetCodeMappings) }
+//    val setReleaseDates = valueProviderPool.getOrPut("dlc_set_release_dates") { DlcSetReleaseDateMappingProvider(it, dlcSetCodeMappings) }
+//    val setMarketReleaseDates = valueProviderPool.getOrPut("dlc_set_market_release_dates") { DlcSetMarketReleaseDateMappingProvider(it, dlcSetCodeMappings) }
 
     filter("name", "n") {
-        simpleString(DlcCardTranslation::name, DlcCardTranslation::simpleName, propertyKeys.NAME) { autoValues(false) }
+        simpleString(DlcCardTranslation::name, DlcCardTranslation::simpleName, propertyKeys.NAME) {
+            autoValues(DlcCardTranslation::name)
+        }
     }
 
     filter("cost") {
@@ -89,32 +80,46 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("type", "t", "types") {
-        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
+        string(DlcCard::type, dlcPropertyKeys.TYPE) {
+            strict(true)
+            autoValues(DlcCard::type, autoAlias = true)
+        }
         stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION)
     }
 
     filter("supertype") {
-        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
+        string(DlcCard::type, dlcPropertyKeys.TYPE) {
+            strict(true)
+            autoValues(DlcCard::type, autoAlias = true)
+        }
     }
 
     filter("date", "releasedate") {
-        dateByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
-        date(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE)
+//        dateByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_DATE)
+        date(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("year", "releaseyear") {
-        yearByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
-        year(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR)
+//        yearByMapping(DlcSet::releaseDate, setReleaseDates, propertyKey = propertyKeys.RELEASE_YEAR)
+        year(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("marketdate", "marketreleasedate") {
-        dateByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
-        date(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+//        dateByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE)
+        date(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("marketyear", "marketreleaseyear") {
-        yearByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
-        year(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+//        yearByMapping(DlcSet::marketReleaseDate, setMarketReleaseDates, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR)
+        year(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR) {
+            // TODO: add set release date mappings
+        }
     }
 
     filter("artist", "illustrator") {
@@ -124,20 +129,22 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     filter("set", "s", "e", "edition", "expansion") {
         uuid(DlcSet::id, propertyKeys.SET_ID)
         string(DlcSet::code, propertyKeys.SET_CODE) {
-            autoValues()
-            mappings(dlcSetCodeMappings)
+            strict(true)
+            autoValues(DlcSet::code)
+            values(dlcSetCodeMappings, "set_code")
         }
     }
 
     filter("setid") { uuid(DlcSet::id, propertyKeys.SET_ID) }
     filter("setname") {
-        string(DlcSet::name, propertyKeys.SET_NAME) { autoValues(false) }
+        string(DlcSet::name, propertyKeys.SET_NAME) { autoValues(DlcSet::name) }
     }
 
     filter("setcode") {
         string(DlcSet::code, propertyKeys.SET_CODE) {
-            autoValues()
-            mappings(dlcSetCodeMappings)
+            strict(true)
+            autoValues(DlcSet::code)
+            values(dlcSetCodeMappings, "set_code")
         }
     }
 
@@ -146,7 +153,9 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("title") {
-        simpleString(DlcCardTranslation::title, DlcCardTranslation::simpleTitle, dlcPropertyKeys.TITLE) { autoValues(false) }
+        simpleString(DlcCardTranslation::title, DlcCardTranslation::simpleTitle, dlcPropertyKeys.TITLE) {
+            autoValues(DlcCardTranslation::title)
+        }
     }
 
     filter("text", "description", "abilities", "actions", "oracle", "oracletext", "o") {
@@ -176,11 +185,16 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("separator") {
-        exactString(DlcPrint::separator, dlcPropertyKeys.SEPARATOR) { autoValues() }
+        exactString(DlcPrint::separator, dlcPropertyKeys.SEPARATOR) {
+            strict(true)
+            autoValues(DlcPrint::separator, autoAlias = true)
+        }
     }
 
     filter("franchise") {
-        string(DlcCard::franchise, dlcPropertyKeys.FRANCHISE) { autoValues(false) }
+        string(DlcCard::franchise, dlcPropertyKeys.FRANCHISE) {
+            autoValues(DlcCard::franchise)
+        }
     }
 
     filter("is:inkwell") {
@@ -192,17 +206,6 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
         property(StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell"))
     }
 
-    filter("tag", "tags", "is", "has") {
-        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
-        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION) { autoValues() }
-    }
-
-    filter("not") {
-        inverted(true)
-        string(DlcCard::type, dlcPropertyKeys.TYPE) { autoValues() }
-        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION) { autoValues() }
-    }
-
     filter("print", "printid") {
         uuid(DlcPrint::id, propertyKeys.PRINT_ID)
     }
@@ -212,7 +215,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     // TODO: new/in
-    // TODO: is/has/not properties
+    // TODO: is/has/not
     // TODO: rarity
     // TODO: prints/sets (reprints)
     // TODO: new/in
@@ -226,7 +229,7 @@ private val tableDependencies = mapOf(
         builder.innerJoin(DlcCardTranslation::class) { it.whereColumn(DlcCard::id, DlcCardTranslation::cardId) }
     },
     DlcPrintTranslation::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcPrintTranslation::class) { it.whereColumn(DlcPrint::id, DlcPrintTranslation::printId) }
+        builder.leftJoin(DlcPrintTranslation::class) { it.whereColumn(DlcPrint::id, DlcPrintTranslation::printId) }
     },
     DlcPrintIdentifier::class to TableDependency(DlcPrint::class) { builder ->
         builder.innerJoin(DlcPrintIdentifier::class) { it.whereColumn(DlcPrint::id, DlcPrintIdentifier::printId) }

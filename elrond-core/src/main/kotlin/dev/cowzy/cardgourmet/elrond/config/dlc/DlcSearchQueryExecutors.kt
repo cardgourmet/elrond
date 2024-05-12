@@ -11,7 +11,7 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
@@ -73,7 +73,7 @@ fun createDlcBaseBuilder(
         }
 }
 
-fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
+fun createDlcSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicDlcFilters()
     }

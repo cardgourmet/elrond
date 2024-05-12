@@ -1,7 +1,5 @@
 package dev.cowzy.cardgourmet.elrond.values
 
-import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
-
 interface ValueProvider<T> {
 
     suspend fun getValues(): Iterable<T>
@@ -16,4 +14,3 @@ interface DynamicStringValueProvider : ValueProvider<String> {
 
 }
 
-typealias MappingProvider<Value, Output> = ValueProvider<Pair<Value, Pair<Output, SearchQueryOperator?>>>

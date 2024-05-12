@@ -111,7 +111,12 @@ suspend fun String.parseQueryExpression(
         }
 
         val supportedValueTypes = filter.properties
-            .map { prop -> prop.valueDefinition.supportedValueTypes }
+            .map { prop ->
+                when {
+                    prop.valueDefinition.provider?.getValues()?.any() == true -> prop.valueDefinition.supportedValueTypes + StringValue::class
+                    else -> prop.valueDefinition.supportedValueTypes
+                }
+            }
             .flatten()
             .distinct()
             .toTypedArray()
@@ -165,48 +170,16 @@ suspend fun String.parseQueryExpression(
                     if (!prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }) return@inner null
 
                     val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
+                    val provider = prop.valueDefinition.provider
 
-                    val mappingsProvider = definition.mappingsProvider
-                    if (mappingsProvider != null) {
-                        val mapping = mappingsProvider.getValues().find {
-                            when (value) {
-                                is StringValue -> it.first.toString().equals(value.value, true)
-                                else -> it.first == value.value
-                            }
-                        }
-
-                        if (mapping != null) {
-                            return@inner prop to mapping.second
-                        }
-                    }
-
-                    var localValue = value
-                    val valueProvider = definition.valueProvider
-                    if (valueProvider != null) {
-                        val matchingValue = valueProvider.getValues().find {
-                            when (value) {
-                                is StringValue -> it.toString().equals(value.value, true)
-                                else -> it == value.value
-                            }
-                        }
-
-                        if (matchingValue != null) {
-                            localValue = when (value) {
-                                is StringValue -> StringValue(matchingValue.toString(), exact = true)
-                                is RegexValue -> RegexValue(matchingValue as? Regex ?: Regex(matchingValue.toString()))
-                                is NumberValue -> NumberValue(matchingValue as? Number ?: matchingValue.toString().toDouble())
-                                else -> throw UnsupportedOperationException()
-                            }
-                        } else {
-                            if (definition.useStrictValues) return@inner null
-                        }
-                    } else {
-                        // If there is no value provider and no matching mapping was found, the value is invalid.
-                        if (definition.useStrictValues) return@inner null
+                    if (value is StringValue && provider != null) {
+                        val matchingValue = provider.findValue(value.value)
+                        if (matchingValue != null) return@inner prop to (matchingValue.resolvesTo.value to matchingValue.resolvesTo.operator)
+                        if (provider.strictValues) return@inner null
                     }
 
                     try {
-                        val transformedValue = definition.transform(localValue, expressionOperator)
+                        val transformedValue = definition.transform(value, expressionOperator)
                         if (transformedValue == null || !definition.match(transformedValue.first)) return@inner null
                         return@inner prop to transformedValue
                     } catch (ex: Exception) {
@@ -500,9 +473,9 @@ private fun String.parseExpressionValues(
 ): List<Pair<String, QueryValue<*>?>> {
     val valueRegex = Regex("((\"(?:\\\\\"|[^\"])*?\")|(\'(?:\\\\\'|[^\'])*?\')|((?:\\/(?:\\\\\\/|[^\\/])*?\\/))|([^\\s,\\[\\]()\"]+))")
 
-    return valueRegex.findAll(this).mapNotNull {
-        if (it.groupValues[5].isNotEmpty()) {
-            val value = it.groupValues[5].trim() //.cleanup()
+    return valueRegex.findAll(this).mapNotNull { match ->
+        if (match.groupValues[5].isNotEmpty()) {
+            val value = match.groupValues[5].trim()
 
             if (value.isBlank()) return@mapNotNull value to null
 
@@ -516,23 +489,23 @@ private fun String.parseExpressionValues(
             if (numberValue != null && supportedValueTypes.contains(NumberValue::class)) {
                 return@mapNotNull value to NumberValue(numberValue)
             } else if (supportedValueTypes.contains(StringValue::class)) {
-                if (it.groupValues[5].isEmpty()) return@mapNotNull null
-                return@mapNotNull value to StringValue(it.groupValues[5])
+                if (match.groupValues[5].isEmpty()) return@mapNotNull null
+                return@mapNotNull value to StringValue(match.groupValues[5])
             } else {
                 return@mapNotNull value to null
             }
-        } else if (it.groupValues[2].isNotEmpty() && supportedValueTypes.contains(StringValue::class)) {
-            val string = it.groupValues[2]
+        } else if (match.groupValues[2].isNotEmpty() && supportedValueTypes.contains(StringValue::class)) {
+            val string = match.groupValues[2]
             val value = string.substring(1, string.length - 1)
             if (value.isEmpty()) return@mapNotNull null
             return@mapNotNull value to StringValue(value, true)
-        } else if (it.groupValues[3].isNotEmpty() && supportedValueTypes.contains(StringValue::class)) {
-            val string = it.groupValues[3]
+        } else if (match.groupValues[3].isNotEmpty() && supportedValueTypes.contains(StringValue::class)) {
+            val string = match.groupValues[3]
             val value = string.substring(1, string.length - 1)
             if (value.isEmpty()) return@mapNotNull null
             return@mapNotNull value to StringValue(value, true)
-        } else if (it.groupValues[4].isNotEmpty() && supportedValueTypes.contains(RegexValue::class)) {
-            val value = it.groupValues[4]
+        } else if (match.groupValues[4].isNotEmpty() && supportedValueTypes.contains(RegexValue::class)) {
+            val value = match.groupValues[4]
                 .replace("\\\"", "\"")
                 .replace("\\/", "/")
 
@@ -541,9 +514,7 @@ private fun String.parseExpressionValues(
 
             return@mapNotNull value to RegexValue(Regex(pattern))
         } else {
-            return@mapNotNull it.value to null
+            return@mapNotNull match.value to null
         }
     }.toList()
 }
-
-//private fun String.cleanup() = this.replace(Regex("[^\\w.]+"), "")

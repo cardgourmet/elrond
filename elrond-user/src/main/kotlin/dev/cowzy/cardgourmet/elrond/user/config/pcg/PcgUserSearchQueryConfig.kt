@@ -13,25 +13,20 @@ import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
 import dev.cowzy.cardgourmet.elrond.config.pcg.pcgBasicSearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.values.StaticValueProvider
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-private val pcgLanguages = StaticValueProvider(PcgLanguage.values().map { it.getSerialName() }.toSet())
-private val pcgLanguageMappings = PcgLanguage.values().associate { language -> language.name to language.getSerialName() }
-
 fun SearchQueryConfigBuilder.configurePcgCollectionFilters() {
     filter("medium", "mediums") {
-        exactString(UserCard::medium, propertyKeys.MEDIUM) { values(listOf("paper")) }
+        exactString(UserCard::medium, propertyKeys.MEDIUM) { values("paper", type = "medium") }
     }
 
     filter("lang", "language", "userlang", "userlanguage") {
         exactString(UserCard::language, collectionPropertyKeys.LANGUAGE) {
-            values(pcgLanguages)
-            mappings(pcgLanguageMappings)
+            enumValues<PcgLanguage>("language", findKeywords = { it.keys }, transform = { it.getSerialName() })
         }
     }
 

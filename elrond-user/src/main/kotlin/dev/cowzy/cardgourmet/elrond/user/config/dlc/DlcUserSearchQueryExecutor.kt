@@ -8,7 +8,7 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.dlc.*
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
-import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
@@ -38,7 +38,7 @@ private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder)
 }
 
 
-fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
+fun createDlcSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicDlcFilters()
     }
@@ -51,7 +51,7 @@ fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
         .build()
 }
 
-fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
+fun createDlcCollectionSearchQueryExecutor(providers: PropertyProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
     val builder = SearchQueryConfigBuilder(providers) {
         configureBasicDlcFilters()
         configureCollectionFilters()

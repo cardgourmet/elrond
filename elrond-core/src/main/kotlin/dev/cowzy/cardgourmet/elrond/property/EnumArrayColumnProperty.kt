@@ -7,6 +7,7 @@ import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.enumToMappings
+import dev.cowzy.cardgourmet.elrond.values.PropertyProviderPool
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
@@ -14,8 +15,6 @@ import kotlin.reflect.KProperty1
 
 class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     val column: KProperty1<*, List<ValueType>>,
-    enumValues: Array<ValueType>,
-    aliasResolver: ((ValueType) -> List<String>)? = null,
     descriptor: PropertyDescriptor,
     key: String? = null,
 ) : SearchQueryProperty<ValueType>(
@@ -25,13 +24,7 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     key = key
 ) {
 
-    override val valueDefinition = QueryValueDefinition {
-        StringValue::class {
-            mappings(enumToMappings(enumValues, aliasResolver))
-            transform { value -> enumValues.find { it.name.equals(value.value, true) || it.getSerialName().equals(value.value, true) } }
-            values(enumValues.map { it.getSerialName() })
-        }
-    }
+    override val valueDefinition = QueryValueDefinition<ValueType>()
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
@@ -49,5 +42,4 @@ inline fun <reified T : Enum<T>> enumArrayColumnProperty(
     column: KProperty1<*, List<T>>,
     descriptor: PropertyDescriptor,
     key: String,
-    noinline aliasResolver: ((T) -> List<String>)? = null,
-) = EnumArrayColumnProperty(column, enumValues(), aliasResolver, descriptor, key)
+) = EnumArrayColumnProperty(column, descriptor, key)

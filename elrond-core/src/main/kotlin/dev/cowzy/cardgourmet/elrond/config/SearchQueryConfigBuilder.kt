@@ -1,8 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.config
 
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
+import dev.cowzy.cardgourmet.commons.snakecase
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.EqualsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.IsPresentDescriptor
@@ -10,14 +10,13 @@ import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.*
-import dev.cowzy.kuery.reflection.columnName
-import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.typeOf
 
 class SearchQueryConfigBuilder(
-    val valueProviderPool: ValueProviderPool,
+    val propertyProviderPool: PropertyProviderPool,
     init: SearchQueryConfigBuilder.() -> Unit
 ) {
 
@@ -31,7 +30,8 @@ class SearchQueryConfigBuilder(
         val existingFilters = filters.filter { filter -> keywords.any(filter.keywords::contains) }
         filters.removeAll(existingFilters)
 
-        val filterBuilder = QueryFilterBuilder(keywords.toList(), valueProviderPool).apply(builder)
+        val filterBuilder =
+            QueryFilterBuilder(keywords.toList(), propertyProviderPool).apply(builder)
         val filter = filterBuilder.build()
         filters.add(filter)
     }
@@ -40,13 +40,19 @@ class SearchQueryConfigBuilder(
 
 }
 
-class QueryFilterBuilder(private val keywords: List<String>, private val valueProviderPool: ValueProviderPool) {
+class QueryFilterBuilder(
+    private val keywords: List<String>,
+    private val propertyProviderPool: PropertyProviderPool
+) {
 
     private val properties = mutableListOf<SearchQueryProperty<out Any>>()
     private val ignoreReferenceKeywords = mutableSetOf<String>()
     private var inverted = false
 
-    fun property(property: SearchQueryProperty<out Any>) {
+    fun <T : Any> property(
+        property: SearchQueryProperty<T>,
+        provider: PropertyProvider<T>?
+    ) {
         if (properties.contains(property)) throw IllegalArgumentException("Filter already contains property: $property")
 
         val valueTypes = property.valueDefinition.supportedValueTypes
@@ -55,51 +61,74 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
             throw IllegalArgumentException("All supported value types are already handled by other properties: $property")
         }
 
-        // Validate that all properties requiring strict values have at least one value/mapping provider set.
-        valueTypes.forEach { type ->
-            val definition = property.valueDefinition.getDefinition(type)
-            if (definition.useStrictValues) {
-                if (definition.valueProvider == null && definition.mappingsProvider == null) {
-                    throw IllegalArgumentException("Property requires strict values but no provider is set for values or mappings: $property")
-                }
-            }
+        if (provider != null) {
+            property.valueDefinition.provider(provider)
         }
 
         properties.add(property)
     }
 
-    fun numeric(column: KProperty1<*, Number?>, propertyKey: String, offset: Double = 0.0) {
-        property(NumericColumnProperty(column, offset = offset, propertyKey = propertyKey))
+    fun <T : Any> property(
+        property: SearchQueryProperty<T>,
+        configureProvider: (ValueProviderBuilder<T>.() -> Unit)? = null
+    ) {
+        val provider = configureProvider?.let {
+            propertyProviderPool.getOrPut(property.key) { pool ->
+                ValueProviderBuilder<T>(pool).apply {
+                    it.invoke(this)
+                }.build()
+            }
+        }
+
+        property(property, provider)
     }
 
-    fun numeric(vararg columns: KProperty1<*, Number?>, propertyKey: String, offset: Double = 0.0) {
-        property(NumericColumnProperty(*columns, offset = offset, propertyKey = propertyKey))
+    fun numeric(
+        column: KProperty1<*, Number?>,
+        propertyKey: String,
+        offset: Double = 0.0,
+        configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = null
+    ) {
+        property(NumericColumnProperty(column, offset = offset, propertyKey = propertyKey), configureProvider)
+    }
+
+    fun numeric(
+        vararg columns: KProperty1<*, Number?>,
+        propertyKey: String,
+        offset: Double = 0.0,
+        configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = null
+    ) {
+        property(NumericColumnProperty(*columns, offset = offset, propertyKey = propertyKey), configureProvider)
     }
 
     fun numericAndString(
         numericColumn: KProperty1<*, Number?>,
         stringColumn: KProperty1<*, String?>,
         propertyKey: String,
-        configure: (StringPropertyConfig.() -> Unit)? = null
+        configureStringProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         numeric(numericColumn, propertyKey)
-        string(stringColumn, propertyKey, configure = configure)
+        string(stringColumn, propertyKey, configureProvider = configureStringProvider)
     }
 
     fun string(
         column: KProperty1<*, String?>,
         propertyKey: String,
-        configure: (StringPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
-        val config = StringPropertyConfig(column, valueProviderPool).apply { configure?.invoke(this) }
+        val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
+        val provider = propertyProviderPool.getOrPut(property.key) {
+            ValueProviderBuilder<String>(it).apply {
+                configureProvider?.invoke(this)
+            }.build()
+        }
+
         property(
             StringColumnProperty(
                 column,
                 descriptor = StringDescriptor(propertyKey),
-                mappingProvider = config.mappingsProvider,
-                valueProvider = config.valueProvider,
-                useStrictValues = config.useStrictValues,
-            )
+            ),
+            provider.withTransform { StringValue(it) }
         )
     }
 
@@ -107,61 +136,70 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         column: KProperty1<*, String?>,
         simpleColumn: KProperty1<*, String?>,
         propertyKey: String,
-        configure: (StringPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
-        val config = StringPropertyConfig(column, valueProviderPool).apply { configure?.invoke(this) }
+        val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
+        val provider = propertyProviderPool.getOrPut(property.key) {
+            ValueProviderBuilder<String>(it).apply {
+                configureProvider?.invoke(this)
+            }.build()
+        }
+
         property(
             StringColumnProperty(
                 column,
                 simpleColumn = simpleColumn,
                 descriptor = StringDescriptor(propertyKey),
-                mappingProvider = config.mappingsProvider,
-                useStrictValues = config.useStrictValues,
-                valueProvider = config.valueProvider
-            )
+            ),
+            provider.withTransform { StringValue(it) }
         )
     }
 
     fun exactString(
         column: KProperty1<*, String?>, propertyKey: String,
-        configure: (StringPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
-        val config = StringPropertyConfig(column, valueProviderPool).apply { configure?.invoke(this) }
+        val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
+        val provider = propertyProviderPool.getOrPut(property.key) {
+            ValueProviderBuilder<String>(it).apply {
+                configureProvider?.invoke(this)
+            }.build()
+        }
+
         property(
             StringColumnProperty(
                 column,
                 mapContainsToEquals = true,
-                valueProvider = config.valueProvider,
-                useStrictValues = config.valueProvider != null,
-                mappingProvider = config.mappingsProvider,
                 descriptor = EqualsDescriptor(propertyKey)
-            )
+            ),
+            provider.withTransform { StringValue(it) }
         )
     }
 
     fun stringArray(
         column: KProperty1<*, List<String>?>,
         propertyKey: String,
-        configure: (StringArrayPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
-        stringArray(column, IsPresentDescriptor(propertyKey), propertyKey, configure)
+        stringArray(column, IsPresentDescriptor(propertyKey), propertyKey, configureProvider)
     }
 
     fun stringArray(
         column: KProperty1<*, List<String>?>,
         descriptor: PropertyDescriptor,
         key: String,
-        configure: (StringArrayPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
-        val config = StringArrayPropertyConfig(column, valueProviderPool).apply { configure?.invoke(this) }
         property(
             StringArrayColumnProperty(
                 column,
-                valueProvider = config.valueProvider ?: valueProviderPool.getAutoStringArrayProvider(column),
-                mappingProvider = config.mappingsProvider,
                 descriptor = descriptor,
                 key = key.split(".").last()
-            )
+            ),
+            configureProvider ?: {
+                strict(true)
+                autoArrayValues(column, autoAlias = true)
+            }
         )
     }
 
@@ -169,10 +207,10 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         column: KProperty1<*, List<String>?>,
         cardinalityPropertyKey: String,
         arrayPropertyKey: String,
-        configure: (StringArrayPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         cardinality(column, cardinalityPropertyKey)
-        stringArray(column, arrayPropertyKey, configure)
+        stringArray(column, arrayPropertyKey, configureProvider)
     }
 
     fun stringArrayAndCardinality(
@@ -180,46 +218,56 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         cardinalityPropertyKey: String,
         descriptor: PropertyDescriptor,
         contentKey: String,
-        configure: (StringArrayPropertyConfig.() -> Unit)? = null
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         cardinality(column, cardinalityPropertyKey)
-        stringArray(column, descriptor, contentKey, configure)
+        stringArray(column, descriptor, contentKey, configureProvider)
     }
 
     fun cardinality(
         column: KProperty1<*, List<*>?>,
         propertyKey: String,
-        mappings: Map<String, Pair<Number, SearchQueryOperator>>? = null
+        mappings: Map<String, Pair<Number, SearchQueryOperator?>>? = null,
+        mappingsType: String = "string"
     ) {
-        property(ArrayCardinalityProperty(column, mappings = mappings, propertyKey = propertyKey))
+        val configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = mappings?.let {
+            { valuesWithOperator(mappings, mappingsType) }
+        }
+
+        property(ArrayCardinalityProperty(column, propertyKey = propertyKey), configureProvider)
     }
 
     fun cardinality(
         vararg columns: KProperty1<*, List<*>?>,
         propertyKey: String,
-        mappings: Map<String, Pair<Number, SearchQueryOperator>>? = null
+        mappings: Map<String, Pair<Number, SearchQueryOperator?>>? = null,
+        mappingsType: String = "string"
     ) {
-        property(ArrayCardinalityProperty(columns = columns, mappings = mappings, propertyKey = propertyKey))
+        val configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = mappings?.let {
+            { valuesWithOperator(mappings, mappingsType) }
+        }
+
+        property(ArrayCardinalityProperty(columns = columns, propertyKey = propertyKey), configureProvider)
     }
 
     fun uuid(column: KProperty1<*, UUID?>, propertyKey: String) {
         property(UuidColumnProperty(column, descriptor = EqualsDescriptor(propertyKey)))
     }
 
-    fun date(column: KProperty1<*, *>, propertyKey: String) {
-        property(DateProperty(column, propertyKey))
+    fun date(
+        column: KProperty1<*, *>,
+        propertyKey: String,
+        configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
+    ) {
+        property(DateProperty(column, propertyKey), configureProvider)
     }
 
-    fun year(column: KProperty1<*, *>, propertyKey: String) {
-        property(YearOfDateProperty(column, propertyKey))
-    }
-
-    fun dateByMapping(column: KProperty1<*, *>, mappingProvider: ValueProvider<Pair<String, LocalDate>>, propertyKey: String) {
-        property(DateByMappingProperty(column, mappingProvider, propertyKey))
-    }
-
-    fun yearByMapping(column: KProperty1<*, *>, mappingProvider: ValueProvider<Pair<String, LocalDate>>, propertyKey: String) {
-        property(YearByMappingProperty(column, DataYearMappingProvider(mappingProvider), propertyKey))
+    fun year(
+        column: KProperty1<*, *>,
+        propertyKey: String,
+        configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = null
+    ) {
+        property(YearOfDateProperty(column, propertyKey), configureProvider)
     }
 
     inline fun <reified T : Enum<T>> enum(
@@ -229,13 +277,19 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         noinline aliasResolver: ((T) -> List<String>)? = null,
     ) = enum(column, EqualsDescriptor(propertyKey), propertyKey, display, aliasResolver)
 
+    @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Enum<T>> enum(
         column: KProperty1<*, T?>,
         descriptor: PropertyDescriptor,
         key: String,
         noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
         noinline aliasResolver: ((T) -> List<String>)? = null,
-    ) = property(enumColumnProperty(column, descriptor, key.split(".").last(), aliasResolver, display))
+    ) = property(enumColumnProperty(column, descriptor, key.split(".").last(), display)) {
+        val type = (typeOf<T>().classifier as KClass<T>).simpleName!!.snakecase()
+
+        strict(true)
+        enumValues(type, kotlin.enumValues<T>(), aliasResolver ?: { emptyList() })
+    }
 
     inline fun <reified T : Enum<T>> enumArray(
         column: KProperty1<*, List<T>>,
@@ -243,12 +297,18 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         noinline aliasResolver: ((T) -> List<String>)? = null,
     ) = enumArray(column, IsPresentDescriptor(propertyKey), propertyKey, aliasResolver)
 
+    @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Enum<T>> enumArray(
         column: KProperty1<*, List<T>>,
         descriptor: PropertyDescriptor,
         key: String,
         noinline aliasResolver: ((T) -> List<String>)? = null,
-    ) = property(enumArrayColumnProperty(column, descriptor, key.split(".").last(), aliasResolver))
+    ) = property(enumArrayColumnProperty(column, descriptor, key.split(".").last())) {
+        val type = (typeOf<T>().classifier as KClass<T>).simpleName!!.snakecase()
+
+        strict(true)
+        enumValues(type, kotlin.enumValues<T>(), aliasResolver ?: { emptyList() })
+    }
 
     inline fun <reified T : Enum<T>> enumArrayAndCardinality(
         column: KProperty1<*, List<T>>,
@@ -292,57 +352,12 @@ class QueryFilterBuilder(private val keywords: List<String>, private val valuePr
         val matchingProperties = properties.filter { it.valueDefinition.supportedValueTypes.contains(valueType) }
         if (matchingProperties.isEmpty()) return false
 
-        // Check if any of the properties allows arbitrary values
-        // If so, the value type is handled.
-        val allowsArbitraryValues = matchingProperties.any { !it.valueDefinition.getDefinition(valueType).useStrictValues }
-        return allowsArbitraryValues
-    }
-
-}
-
-open class StringPropertyConfig(protected val column: KProperty1<*, *>, protected val pool: ValueProviderPool) {
-
-    var valueProvider: ValueProvider<String>? = null
-    var mappingsProvider: MappingProvider<String, String>? = null
-    var useStrictValues = false
-
-    fun values(values: Iterable<String>, strict: Boolean = true) = values(StaticValueProvider(values.toSet()), strict)
-
-    fun values(valueProvider: ValueProvider<String>?, strict: Boolean = true) {
-        this.valueProvider = valueProvider
-        this.useStrictValues = valueProvider != null && strict
-    }
-
-    open fun autoValues(strict: Boolean = true) {
-        this.valueProvider = pool.getOrPut(column) { AutoStringValueProvider(it, column) }
-        this.useStrictValues = strict
-    }
-
-    fun mappings(mappings: Map<String, String>?) {
-        if (mappings == null) return
-        mappings(StaticValueProvider(mappings.entries.map { it.key to (it.value to null) }.toSet()))
-    }
-
-    fun mappings(mappingsProvider: MappingProvider<String, String>?) {
-        if (mappingsProvider == null) return
-        this.mappingsProvider = mappingsProvider
-    }
-
-    fun autoMappings(customMappings: Map<String, String>? = null) {
-        if (valueProvider == null) {
-            autoValues()
+        val allowsArbitraryValues = when (valueType) {
+            StringValue::class -> matchingProperties.any { it.valueDefinition.provider?.strictValues != true }
+            else -> true
         }
 
-        mappingsProvider = pool.getOrPut("${column.columnName()}-mappings") { AutoMappingProvider(valueProvider!!, customMappings) }
-    }
-
-}
-
-class StringArrayPropertyConfig(column: KProperty1<*, List<String>?>, pool: ValueProviderPool) : StringPropertyConfig(column, pool) {
-
-    override fun autoValues(strict: Boolean) {
-        this.valueProvider = pool.getOrPut(column) { AutoStringArrayValueProvider(it, column) }
-        this.useStrictValues = strict
+        return allowsArbitraryValues
     }
 
 }

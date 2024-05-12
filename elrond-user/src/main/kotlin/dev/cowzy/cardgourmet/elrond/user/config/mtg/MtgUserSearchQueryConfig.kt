@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.user.config.mtg
 
+import dev.cowzy.cardgourmet.commons.catalogue.MtgFinish
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgCardFaceTranslation
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgLanguage
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgMedium
@@ -13,8 +14,7 @@ import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.mtg.*
-import dev.cowzy.cardgourmet.elrond.enumToMappings
+import dev.cowzy.cardgourmet.elrond.config.mtg.mtgBasicSearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.user.property.mtg.MtgUserCardFoilProperty
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
@@ -23,8 +23,6 @@ private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
 fun SearchQueryConfigBuilder.configureMtgCollectionFilters() {
-    val languageValueProvider = valueProviderPool.getAutoStringProvider(MtgCardFaceTranslation::language)
-
 //    val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
 //    filter("name", "n") {
 //        property(MtgUserNameProperty(nameValueProvider))
@@ -32,21 +30,19 @@ fun SearchQueryConfigBuilder.configureMtgCollectionFilters() {
 
     filter("finishes", "finish") {
         stringArrayAndCardinality(UserCard::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
-            autoMappings(mtgFinishMappings)
+            enumValues<MtgFinish>("finish", findKeywords = { it.keys }, transform = { it.getSerialName() })
         }
     }
 
     filter("medium", "mediums") {
         exactString(UserCard::medium, propertyKeys.MEDIUM) {
-            values(MtgMedium.values().map { it.getSerialName() })
-            mappings(mtgMediumMappings)
+            enumValues<MtgMedium>("medium", findKeywords = { it.keys }, transform = { it.getSerialName() })
         }
     }
 
     filter("lang", "language", "userlang", "userlanguage") {
         exactString(UserCard::language, collectionPropertyKeys.LANGUAGE) {
-            values(languageValueProvider)
-            mappings(enumToMappings<MtgLanguage> { it.aliases }.entries.associate { it.key to it.value.getSerialName() })
+            enumValues<MtgLanguage>("language", findKeywords = { it.keys }, transform = { it.getSerialName() })
         }
     }
 

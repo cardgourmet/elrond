@@ -10,9 +10,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 
-class MtgNameProperty(
-    valueProvider: ValueProvider<String>?,
-) : SearchQueryProperty<QueryValue<*>>(
+class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(MtgCardFaceTranslation::class),
     descriptor = StringDescriptor(Strings.Query.Property.NAME)
@@ -22,8 +20,6 @@ class MtgNameProperty(
 
     override val valueDefinition = QueryValueDefinition<QueryValue<*>> {
         StringValue::class {
-            values(valueProvider, false)
-
             transform {
                 when {
                     !it.exact -> StringValue(it.value.toSimpleString())
