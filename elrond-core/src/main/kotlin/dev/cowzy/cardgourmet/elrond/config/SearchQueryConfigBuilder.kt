@@ -117,10 +117,10 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
-        val provider = valueProviderPool.getOrPut(property.key) {
-            ValueProviderBuilder<String>(it).apply {
-                configureProvider?.invoke(this)
-            }.build()
+        val provider = configureProvider?.let { configure ->
+            valueProviderPool.getOrPut(property.key) {
+                ValueProviderBuilder<String>(it).apply(configure).build()
+            }
         }
 
         property(
@@ -128,7 +128,7 @@ class QueryFilterBuilder(
                 column,
                 descriptor = StringDescriptor(propertyKey),
             ),
-            provider.withTransform { StringValue(it) }
+            provider?.withTransform { StringValue(it) }
         )
     }
 
@@ -139,10 +139,10 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
-        val provider = valueProviderPool.getOrPut(property.key) {
-            ValueProviderBuilder<String>(it).apply {
-                configureProvider?.invoke(this)
-            }.build()
+        val provider = configureProvider?.let { configure ->
+            valueProviderPool.getOrPut(property.key) {
+                ValueProviderBuilder<String>(it).apply(configure).build()
+            }
         }
 
         property(
@@ -151,7 +151,7 @@ class QueryFilterBuilder(
                 simpleColumn = simpleColumn,
                 descriptor = StringDescriptor(propertyKey),
             ),
-            provider.withTransform { StringValue(it) }
+            provider?.withTransform { StringValue(it) }
         )
     }
 
@@ -160,10 +160,10 @@ class QueryFilterBuilder(
         configureProvider: (ValueProviderBuilder<String>.() -> Unit)? = null
     ) {
         val property = StringColumnProperty(column, descriptor = StringDescriptor(propertyKey))
-        val provider = valueProviderPool.getOrPut(property.key) {
-            ValueProviderBuilder<String>(it).apply {
-                configureProvider?.invoke(this)
-            }.build()
+        val provider = configureProvider?.let { configure ->
+            valueProviderPool.getOrPut(property.key) {
+                ValueProviderBuilder<String>(it).apply(configure).build()
+            }
         }
 
         property(
@@ -172,7 +172,7 @@ class QueryFilterBuilder(
                 mapContainsToEquals = true,
                 descriptor = EqualsDescriptor(propertyKey)
             ),
-            provider.withTransform { StringValue(it) }
+            provider?.withTransform { StringValue(it) }
         )
     }
 
