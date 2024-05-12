@@ -155,16 +155,23 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
 
         val providedValues = mutableListOf<ProvidedValue<*>>()
+        val totalMatches: Int
 
-        // First find any exact matches
-        val exactMatches = providers.mapNotNull { it.findValue(keyword) }
-        providedValues.addAll(exactMatches.take(amount))
+        if (query != null) {
+            // First find any exact matches
+            val exactMatches = providers.mapNotNull { it.findValue(query) }
+            providedValues.addAll(exactMatches.take(amount))
 
-        // Next find any values that contain the keyword
-        val fuzzyMatches = providers.map { it.getValues(keyword) }.flatten() - exactMatches.toSet()
-        providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
+            // Next find any values that contain the keyword
+            val fuzzyMatches = providers.map { it.getValues(query) }.flatten() - exactMatches.toSet()
+            providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
-        val totalMatches = providedValues.size + fuzzyMatches.size
+            totalMatches = providedValues.size + fuzzyMatches.size
+        } else {
+            val values = providers.map { it.getValues() }.flatten()
+            providedValues.addAll(values.take(amount))
+            totalMatches = values.size
+        }
 
         return FilterValues(totalMatches, providedValues.map { value ->
             FilterValue(
