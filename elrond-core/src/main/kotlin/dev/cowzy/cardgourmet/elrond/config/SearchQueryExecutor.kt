@@ -178,7 +178,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
                 value.input,
                 value.type,
                 value.aliases.sorted(),
-                value.resolvesTo.display,
+                value.resolvesTo.display.takeIf { value.resolvesTo.display != value.input },
                 value.resolvesTo.operator
             )
         })
