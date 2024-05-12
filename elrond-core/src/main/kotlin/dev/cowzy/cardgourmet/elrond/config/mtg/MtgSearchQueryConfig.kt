@@ -58,7 +58,7 @@ val mtgPropertyMappings = mapOf(
 
 val mtgMediumMappings = mapOf("online" to "mtgo")
 val mtgFinishMappings = mapOf("foil" to "traditional_foil")
-val mtgSetCodeMappings = mapOf("plist" to "plst", "ulist" to "ulst")
+val mtgSetCodeMappings = mapOf("PLIST" to "PLST", "ULIST" to "ULST")
 
 private val propertyKeys = Strings.Query.Property
 private val mtgPropertyKeys = Strings.Query.Mtg.Property
