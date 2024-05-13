@@ -172,7 +172,14 @@ suspend fun String.parseQueryExpression(
 
                     if (value is StringValue && provider != null) {
                         val matchingValue = provider.findValue(value.value)
-                        if (matchingValue != null) return@inner prop to (matchingValue.resolvesTo.value to matchingValue.resolvesTo.operator)
+                        if (matchingValue != null) {
+                            val mappedOperator = when (expressionOperator) {
+                                SearchQueryOperator.CONTAINS -> matchingValue.resolvesTo.operator
+                                else -> expressionOperator
+                            }
+
+                            return@inner prop to (matchingValue.resolvesTo.value to mappedOperator)
+                        }
                         if (provider.strictValues) return@inner null
                     }
 
