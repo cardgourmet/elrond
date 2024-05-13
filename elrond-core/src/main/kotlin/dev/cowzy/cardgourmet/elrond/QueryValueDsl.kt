@@ -107,10 +107,6 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
 
 }
 
-inline fun <reified T : Enum<T>> enumToMappings(noinline findKeywords: (T) -> List<String>): Map<String, T> {
-    return enumToMappings(enumValues<T>(), findKeywords)
-}
-
 fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: ((T) -> List<String>)? = null): Map<String, T> {
     return enumValues.map { value ->
         ((findKeywords?.invoke(value) ?: emptyList()) + value.name)

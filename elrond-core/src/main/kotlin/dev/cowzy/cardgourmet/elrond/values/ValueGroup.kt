@@ -34,7 +34,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
                 value = value,
                 operator = operator
             ),
-            aliases = alias?.let { mutableSetOf(alias) } ?: mutableSetOf(),
+            aliases = alias?.let { mutableSetOf(alias, input) } ?: mutableSetOf(input),
             type = type
         )
 
