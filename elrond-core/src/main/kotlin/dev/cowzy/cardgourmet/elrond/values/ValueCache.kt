@@ -19,21 +19,32 @@ class ValueCache<T : Any>(
     private suspend fun refresh() {
         if (!isDirty) return
 
-        values.clear()
-        values.addAll(compute().distinctBy { it.input.lowercase() })
+        this.values.clear()
+        this.valuesByKeyword.clear()
 
-        valuesByKeyword.clear()
-        values.forEach { value ->
-            valuesByKeyword[value.input.lowercase()] = value
-            valuesByKeyword[value.resolvesTo.display.lowercase()] = value
+        this.compute().distinctBy {
+            it.input.lowercase()
+        }.forEach { value ->
+            val isInputUsed = this.valuesByKeyword.containsKey(value.input.lowercase())
+            val availableAliases = value.aliases.filter { alias -> !this.valuesByKeyword.containsKey(alias.lowercase()) }
+
+            if (!isInputUsed) {
+                values.add(value)
+            } else {
+                if (availableAliases.isEmpty()) return@forEach
+                values.add(value.copy(input = availableAliases.first()))
+            }
+
+            this.valuesByKeyword[value.input.lowercase()] = value
+            this.valuesByKeyword[value.resolvesTo.display.lowercase()] = value
 
             value.aliases.forEach aliases@{ alias ->
-                if (valuesByKeyword.containsKey(alias.lowercase())) return@aliases
-                valuesByKeyword[alias.lowercase()] = value
+                if (this.valuesByKeyword.containsKey(alias.lowercase())) return@aliases
+                this.valuesByKeyword[alias.lowercase()] = value
             }
         }
 
-        lastFetch = System.currentTimeMillis()
+        this.lastFetch = System.currentTimeMillis()
     }
 
     suspend fun getAll(): Iterable<ProvidedValue<T>> = mutex.withLock {
