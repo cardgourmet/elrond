@@ -2,10 +2,18 @@ package dev.cowzy.cardgourmet.elrond.values
 
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 
+data class ValueKey<T : Any>(
+    val type: String,
+    val value: T,
+    val operator: SearchQueryOperator?
+) {
+    constructor(value: ProvidedValue<T>) : this(value.type, value.resolvesTo.value, value.resolvesTo.operator)
+}
+
 class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
 
     private val values = mutableListOf<ProvidedValue<T>>()
-    private val valuesByTypeAndValue = mutableMapOf<Pair<String, T>, ProvidedValue<T>>()
+    private val valuesByKey = mutableMapOf<ValueKey<T>, ProvidedValue<T>>()
 
     init {
         values.forEach(this::add)
@@ -14,7 +22,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
     fun add(value: ProvidedValue<T>) {
         value.aliases.removeIf { it.equals(value.input, true) }
         values.add(value)
-        valuesByTypeAndValue[value.type to value.resolvesTo.value] = value
+        valuesByKey[ValueKey(value)] = value
     }
 
     fun addOrUpdate(
@@ -38,7 +46,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
             type = type
         )
 
-        val existingValue = find(type, value)
+        val existingValue = find(providedValue)
         if (existingValue != null) {
             existingValue.aliases.add(input)
             existingValue.aliases.addAll(providedValue.aliases)
@@ -50,6 +58,6 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
 
     fun getValues(): Iterable<ProvidedValue<T>> = values.toList()
 
-    fun find(type: String, value: T) = valuesByTypeAndValue[type to value]
+    fun find(value: ProvidedValue<T>) = valuesByKey[ValueKey(value)]
 
 }
