@@ -202,7 +202,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("mechanic", "mechanics", "function", "otag", "oracletag") {
         stringArrayAndCardinality(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC_COUNT, propertyKeys.MECHANIC) {
             strict(true)
-            autoArrayValues(MtgPrintFace::propertyTags, "mechanic", true)
+            autoArrayValues(MtgPrintFace::mechanicTags, "mechanic", true)
         }
     }
 
@@ -236,7 +236,10 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         stringArray(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE)
         stringArray(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE)
         stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
-        stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC)
+        stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC) {
+            strict(true)
+            autoArrayValues(MtgPrintFace::mechanicTags, "mechanic", true)
+        }
         stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
             strict(true)
             autoArrayValues(MtgPrintFace::propertyTags, "property", true)

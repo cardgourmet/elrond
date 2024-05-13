@@ -340,7 +340,7 @@ private val tableDependencies = mapOf(
         builder.leftJoin(CardPrice::class) {
             it
                 .whereColumn(PcgPrint::id, CardPrice::cardId)
-                .where(CardPrice::game, GameType.DISNEY_LORCANA)
+                .where(CardPrice::game, GameType.POKEMON_CARD_GAME)
         }
     },
     CardImage::class to TableDependency(PcgPrintTranslation::class) { builder ->
