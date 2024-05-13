@@ -158,18 +158,31 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val matchCount: Int
 
         if (query != null) {
+            val usedInputs = mutableSetOf<String>()
+
             // First find any exact matches
-            val exactMatches = providers.mapNotNull { it.findValue(query) }
+            val exactMatches = providers
+                .mapNotNull { it.findValue(query) }
+                .filter { usedInputs.add(it.input) }
+
             providedValues.addAll(exactMatches.take(amount))
 
             // Next find any values that contain the keyword
-            val fuzzyMatches = providers.map { it.getValues(query) }.flatten() - exactMatches.toSet()
+            val fuzzyMatches = providers
+                .map { it.getValues(query) }
+                .flatten()
+                .filter { usedInputs.add(it.input) } - exactMatches.toSet()
+
             providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
             matchCount = providedValues.size + fuzzyMatches.size
             totalCount = providers.sumOf { it.getValues().count() }
         } else {
-            val values = providers.map { it.getValues() }.flatten()
+            val values = providers
+                .map { it.getValues() }
+                .flatten()
+                .distinctBy { it.input }
+
             providedValues.addAll(values.take(amount))
 
             matchCount = values.size
