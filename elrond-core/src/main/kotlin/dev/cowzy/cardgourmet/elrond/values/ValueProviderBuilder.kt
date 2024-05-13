@@ -116,7 +116,7 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         transform: (E) -> T = { it as T }
     ) {
         val enumMappings = enumToMappings(values, findKeywords).mapValues { transform(it.value) }
-        values(enumMappings, type, false)
+        values(enumMappings, type, true)
     }
 
     @Suppress("UNCHECKED_CAST")

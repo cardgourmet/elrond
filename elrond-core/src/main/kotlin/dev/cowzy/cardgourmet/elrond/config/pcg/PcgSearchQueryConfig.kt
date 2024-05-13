@@ -73,7 +73,9 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("artist", "illustrator", "artists", "illustrators") {
-        stringArrayAndCardinality(PcgPrint::illustrators, propertyKeys.ARTIST_COUNT, propertyKeys.ARTIST)
+        stringArrayAndCardinality(PcgPrint::illustrators, propertyKeys.ARTIST_COUNT, propertyKeys.ARTIST) {
+            autoArrayValues(PcgPrint::illustrators, "artist", false)
+        }
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
