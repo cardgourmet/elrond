@@ -1,13 +1,13 @@
 package dev.cowzy.cardgourmet.elrond.config.mtg
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.commons.*
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
@@ -21,6 +21,8 @@ import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderBuilder
+import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
 import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.innerJoin
@@ -86,6 +88,19 @@ private val getNames = { connection: Connection ->
         }.toMap()
 }
 
+private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
+    enumValues<MtgManaType>(
+        "color",
+        findKeywords = { listOf(it.symbol) },
+        transform = { listOf(ConcreteManaValue(it)) }
+    )
+
+    enumValues<MtgManaColorNicknames>(
+        "color_nickname",
+        transform = { it.colors.map(::ConcreteManaValue) }
+    )
+}
+
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("name", "n") {
         property(MtgNameProperty()) { values(getNames, { StringValue(it) }, "name") }
@@ -97,23 +112,35 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("color", "colors", "c") {
         cardinality(MtgCardFace::colors, mtgPropertyKeys.COLOR_COUNT, manaCardinalityMappings)
-        property(MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS)))
+        property(MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
+            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            manaValues()
+        }
     }
 
     filter("produces") {
         cardinality(MtgCardFace::producesMana, mtgPropertyKeys.PRODUCED_MANA_COUNT, manaCardinalityMappings)
-        property(MtgManaArrayColumnProperty(MtgCardFace::producesMana, descriptor = NumericDescriptor(mtgPropertyKeys.PRODUCED_MANA, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS)))
+        property(MtgManaArrayColumnProperty(MtgCardFace::producesMana, descriptor = NumericDescriptor(mtgPropertyKeys.PRODUCED_MANA, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
+            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            manaValues()
+        }
     }
 
     filter("id", "identity", "coloridentity", "ci", "commander") {
         ignoreReference("commander")
         cardinality(MtgCard::colorIdentity, mtgPropertyKeys.COLOR_IDENTITY_COUNT, manaCardinalityMappings)
-        property(MtgManaArrayColumnProperty(MtgCard::colorIdentity, true, NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS)))
+        property(MtgManaArrayColumnProperty(MtgCard::colorIdentity, true, NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))) {
+            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            manaValues()
+        }
     }
 
     filter("indicator", "indicatorcolors") {
         cardinality(MtgCardFace::colorIndicator, mtgPropertyKeys.COLOR_INDICATOR_COUNT, manaCardinalityMappings)
-        property(MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_INDICATOR, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS)))
+        property(MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_INDICATOR, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
+            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            manaValues()
+        }
     }
 
     filter("power", "pow") {
@@ -158,7 +185,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("finishes", "finish") {
         stringArrayAndCardinality(MtgPrint::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
-            autoValues(MtgPrint::finishes, "finish", true)
+            autoArrayValues(MtgPrint::finishes, "finish", true)
             values(mtgFinishMappings, "finish")
         }
     }
@@ -173,13 +200,13 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("mechanic", "mechanics", "function", "otag", "oracletag") {
         stringArrayAndCardinality(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC_COUNT, propertyKeys.MECHANIC) {
-            autoValues(MtgPrintFace::propertyTags, "mechanic", true)
+            autoArrayValues(MtgPrintFace::propertyTags, "mechanic", true)
         }
     }
 
     filter("property", "properties") {
         stringArrayAndCardinality(MtgPrintFace::propertyTags, propertyKeys.PROPERTY_COUNT, propertyKeys.PROPERTY) {
-            autoValues(MtgPrintFace::propertyTags, "property", true)
+            autoArrayValues(MtgPrintFace::propertyTags, "property", true)
             values(mtgPropertyMappings, "property")
         }
     }
@@ -197,7 +224,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         property(MtgRarityProperty(valueProviderPool))
         stringArray(MtgPrint::finishes, propertyKeys.FINISH) {
             strict(true)
-            autoValues(MtgPrint::finishes, "finish", true)
+            autoArrayValues(MtgPrint::finishes, "finish", true)
             values(mtgFinishMappings, "finish")
         }
         stringArray(MtgPrint::promoTypes, mtgPropertyKeys.PROMO_TYPE)
@@ -208,7 +235,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
         stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC)
         stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
-            autoValues(MtgPrintFace::propertyTags, "property", true)
+            autoArrayValues(MtgPrintFace::propertyTags, "property", true)
             values(mtgPropertyMappings, "property")
         }
     }

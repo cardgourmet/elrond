@@ -23,16 +23,18 @@ import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 import dev.cowzy.kuery.query.selectBuilder
 import java.sql.Connection
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.reflect.KProperty1
 
 private val propertyKeys = Strings.Query.Property
 private val pcgPropertyKeys = Strings.Query.Pcg.Property
 
-private val getSetStartReleaseDates = { connection: Connection ->
-    PcgSet::class.selectBuilder()
+private fun getSetReleaseDates(dateColumn: KProperty1<*, *>, connection: Connection): Map<String, LocalDate> {
+    return PcgSet::class.selectBuilder()
         .distinctOn(PcgSet::setCode)
         .select(PcgSet::setCode)
-        .select(PcgSet::releaseStartDate)
+        .select(dateColumn)
         .get(connection) { row, index ->
             row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)
         }.mapNotNull { entry ->
@@ -40,17 +42,9 @@ private val getSetStartReleaseDates = { connection: Connection ->
         }.toMap()
 }
 
-private val getSetEndReleaseDates = { connection: Connection ->
-    PcgSet::class.selectBuilder()
-        .distinctOn(PcgSet::setCode)
-        .select(PcgSet::setCode)
-        .select(PcgSet::releaseEndDate)
-        .get(connection) { row, index ->
-            row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)
-        }.mapNotNull { entry ->
-            entry.second?.let { entry.first to it }
-        }.toMap()
-}
+
+private val getSetStartReleaseDates = { connection: Connection -> getSetReleaseDates(PcgSet::releaseStartDate, connection) }
+private val getSetEndReleaseDates = { connection: Connection -> getSetReleaseDates(PcgSet::releaseEndDate, connection) }
 
 fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)

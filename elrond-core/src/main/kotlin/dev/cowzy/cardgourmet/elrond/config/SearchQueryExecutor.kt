@@ -154,7 +154,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
 
         val providedValues = mutableListOf<ProvidedValue<*>>()
-        val totalCount = providers.sumOf { it.getValues().count() }
+        val totalCount: Int
         val matchCount: Int
 
         if (query != null) {
@@ -167,10 +167,13 @@ data class SearchQueryExecutor<T : Enum<T>>(
             providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
             matchCount = providedValues.size + fuzzyMatches.size
+            totalCount = providers.sumOf { it.getValues().count() }
         } else {
             val values = providers.map { it.getValues() }.flatten()
             providedValues.addAll(values.take(amount))
+
             matchCount = values.size
+            totalCount = values.size
         }
 
         return FilterValues(
