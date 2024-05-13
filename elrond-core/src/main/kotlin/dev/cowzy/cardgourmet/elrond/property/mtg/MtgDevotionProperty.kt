@@ -23,24 +23,24 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<Map<MtgManaType, Int>> {
+        display { value, _, _ ->
+            val types = value.keys.sortedBy { it.ordinal }
+            val targetDevotion = value.values.sum() / value.entries.size
+
+            val displayValue = (0 until targetDevotion).joinToString("") {
+                val content = types.joinToString("/") { type -> type.symbol }
+                "{$content}"
+            }
+
+            return@display "`$displayValue`"
+        }
+
         StringValue::class {
             format = "mtg_mana"
 
             transform { value -> value.value.toManaDisplays()?.map { display -> display.values.map { it.type } }?.flatten()?.groupBy { it }?.mapValues { it.value.size } }
 
             match { it.values.distinct().size == 1 && it.values.sum() % it.entries.size == 0 }
-
-            display { value, _, _ ->
-                val types = value.keys.sortedBy { it.ordinal }
-                val targetDevotion = value.values.sum() / value.entries.size
-
-                val displayValue = (0 until targetDevotion).joinToString("") {
-                    val content = types.joinToString("/") { type -> type.symbol }
-                    "{$content}"
-                }
-
-                return@display "`$displayValue`"
-            }
         }
     }
 

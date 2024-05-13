@@ -31,8 +31,6 @@ open class StringColumnProperty(
                     else -> StringValue(it.value.toSimpleString())
                 }
             }
-
-            display { value, _, _ -> "\"${value.value}\"" }
         }
 
         RegexValue::class {

@@ -75,7 +75,6 @@ suspend fun String.parseQueryExpression(
                 staticFilter,
                 staticFilter.properties.find { it is StaticSearchQueryProperty }!! as SearchQueryProperty<Any>,
                 SearchQueryOperator.CONTAINS,
-                null,
                 QueryValue.EMPTY,
                 negated
             )
@@ -145,7 +144,6 @@ suspend fun String.parseQueryExpression(
             if (filter.inverted) negated = !negated
 
             if (value is FilterValue) {
-                val otherFilter = value.value
                 val properties = value.properties
 
                 if (properties.first == properties.second) {
@@ -160,7 +158,6 @@ suspend fun String.parseQueryExpression(
                     filter,
                     properties.first,
                     expressionOperator,
-                    otherFilter,
                     properties.second,
                     negated,
                     "$negate$property$operator$raw"
@@ -171,7 +168,6 @@ suspend fun String.parseQueryExpression(
                     val supportsValueMappings = value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues()?.any() == true)
                     if (!supportsValueType && !supportsValueMappings) return@inner null
 
-                    val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
                     val provider = prop.valueDefinition.provider
 
                     if (value is StringValue && provider != null) {
@@ -179,6 +175,8 @@ suspend fun String.parseQueryExpression(
                         if (matchingValue != null) return@inner prop to (matchingValue.resolvesTo.value to matchingValue.resolvesTo.operator)
                         if (provider.strictValues) return@inner null
                     }
+
+                    val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
 
                     try {
                         val transformedValue = definition.transform(value, expressionOperator)
@@ -226,7 +224,6 @@ suspend fun String.parseQueryExpression(
                     filter,
                     matchingProperty.first as SearchQueryProperty<Any>,
                     matchingProperty.second.second ?: expressionOperator,
-                    matchingProperty.first.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>,
                     matchingProperty.second.first,
                     negated,
                     "$negate$property$operator$raw"
@@ -450,6 +447,7 @@ private fun Iterable<QueryFilter>.findFilter(key: String, restricted: Boolean = 
         .any { keyword -> keyword.equals(key.trim(), ignoreCase = true) }
 }
 
+@Suppress("UNCHECKED_CAST")
 private fun QueryFilter.findComparableProperties(filter: QueryFilter): Pair<SearchQueryProperty<Any>, SearchQueryProperty<Any>>? {
     val properties = this.properties
     val otherProperties = filter.properties

@@ -18,13 +18,11 @@ class MtgRarityProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition<MtgRarity> {
+        display { rarity, _, _ -> "`${rarity.keywords.first()}`" }
+
         provider("mtg_rarity", valueProviderPool) {
             strict(true)
             enumValues<MtgRarity>("rarity", findKeywords = { it.keywords.toList() })
-        }
-
-        StringValue::class {
-            display { rarity, _, _ -> "`${rarity.keywords.first()}`" }
         }
     }
 

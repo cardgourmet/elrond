@@ -14,6 +14,16 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 
     var provider: ValueProvider<Output>? = null
 
+    var display: suspend (Output, LocalizationService, UserLanguage) -> String = { it, _, _ ->
+        when (it) {
+            is Number -> "`${if (it.toDouble() % 1.0 == 0.0) it.toInt().toString() else it.toDouble()}`"
+            is NumberValue -> "`${if (it.value.toDouble() % 1.0 == 0.0) it.value.toInt().toString() else it.value.toDouble()}`"
+            is RegexValue -> "`${it.value.pattern.replace("/", "\\/")}`"
+            is StringValue -> "\"${it.value}\""
+            else -> "`$it`"
+        }
+    }
+
     val supportedValueTypes get() = mappings.keys
 
     init {
@@ -36,6 +46,10 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
         this.provider = pool.getOrPut(columns = columns) { ValueProviderBuilder<Output>(it).apply(init).build() }
     }
 
+    fun display(transform: suspend (Output, LocalizationService, UserLanguage) -> String) {
+        this.display = transform
+    }
+
     operator fun <Value : Any, Input : QueryValue<Value>> KClass<Input>.invoke(init: QueryValueMappingBuilder<Value, Input, Output>.() -> Unit) {
         val builder = QueryValueMappingBuilder<Value, Input, Output>().apply(init)
         mappings[this] = builder.build()
@@ -53,7 +67,6 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 data class QueryValueMapping<Value : Any, Input : QueryValue<Value>, Output>(
     val transform: suspend (Input, SearchQueryOperator) -> Pair<Output, SearchQueryOperator>?,
     val match: suspend (Output) -> Boolean,
-    val display: suspend (Output, LocalizationService, UserLanguage) -> String,
     val format: String?
 )
 
@@ -73,16 +86,6 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
 
     private var match: suspend (Output) -> Boolean = { true }
 
-    private var display: suspend (Output, LocalizationService, UserLanguage) -> String = { it, _, _ ->
-        when (it) {
-            is Number -> "`${if (it.toDouble() % 1.0 == 0.0) it.toInt().toString() else it.toDouble()}`"
-            is NumberValue -> "`${if (it.value.toDouble() % 1.0 == 0.0) it.value.toInt().toString() else it.value.toDouble()}`"
-            is RegexValue -> "`${it.value.pattern.replace("/", "\\/")}`"
-            is StringValue -> "\"${it.value}\""
-            else -> "`$it`"
-        }
-    }
-
     fun transform(transform: suspend (Input) -> Output?) {
         this.transformWithOperator { input, operator -> transform(input)?.let { it to operator } }
     }
@@ -95,14 +98,9 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
         this.match = predicate
     }
 
-    fun display(transform: suspend (Output, LocalizationService, UserLanguage) -> String) {
-        this.display = transform
-    }
-
     internal fun build() = QueryValueMapping(
         transform = transform,
         match = match,
-        display = display,
         format = format
     )
 

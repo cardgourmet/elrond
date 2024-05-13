@@ -22,9 +22,7 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<ValueType> {
-        StringValue::class {
-            display { value, i18n, locale -> display?.invoke(value, i18n, locale) ?: "`${value.getSerialName()}`" }
-        }
+        display { value, i18n, locale -> display?.invoke(value, i18n, locale) ?: "`${value.getSerialName()}`" }
     }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(

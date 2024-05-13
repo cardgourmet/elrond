@@ -17,6 +17,8 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
 ) {
 
     override val valueDefinition = QueryValueDefinition {
+        display { it, _, _ -> "`${(it as CardCondition).shorthand}`" }
+
         StringValue::class {
             transform { value ->
                 CardCondition.values().find {
@@ -24,8 +26,6 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
                             || it.getSerialName().equals(value.value, ignoreCase = true)
                 }
             }
-
-            display { it, _, _ -> "`${(it as CardCondition).shorthand}`" }
         }
     }
 

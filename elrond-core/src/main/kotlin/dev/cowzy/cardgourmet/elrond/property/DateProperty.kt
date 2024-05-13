@@ -119,8 +119,6 @@ class DateProperty(
                     month != null -> LocalDate.of(year, month + 1, 1).format(DateTimeFormatter.ISO_DATE)
                     else -> LocalDate.of(year + 1, 1, 1).format(DateTimeFormatter.ISO_DATE)
                 }
-
-                else -> throw IllegalStateException("Unsupported operation: $operator")
             }
         }
     }

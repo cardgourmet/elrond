@@ -44,14 +44,12 @@ class MtgPrintLanguageProperty(
 }
 
 fun createMtgPrintLanguageValueDefinition(valueProviderPool: ValueProviderPool) = QueryValueDefinition<MtgLanguage> {
+    display { language, i18n, locale ->
+        i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${language.getSerialName()}")
+    }
+
     provider("mtg_print_language", valueProviderPool) {
         strict(true)
         enumValues<MtgLanguage>("language", findKeywords = { it.aliases })
-    }
-
-    StringValue::class {
-        display { language, i18n, locale ->
-            i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${language.getSerialName()}")
-        }
     }
 }

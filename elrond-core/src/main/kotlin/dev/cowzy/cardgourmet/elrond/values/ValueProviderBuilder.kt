@@ -190,7 +190,6 @@ fun getAutoStringProvider(vararg columns: KProperty1<*, *>, type: String): Provi
 }
 
 fun getAutoStringArrayProvider(vararg columns: KProperty1<*, List<*>?>, type: String): ProviderEntry<String> {
-    val key = columns.joinToString("-") { it.columnName() }
     return ProviderEntry(provider = { connection ->
         selectStrings(columns, connection) {
             it.table().selectBuilder().selectRaw("unnest(${it.columnName()})")

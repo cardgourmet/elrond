@@ -23,7 +23,7 @@ abstract class PropertyDescriptor(val propertyKey: String) {
     suspend fun getValue(expression: PropertyQueryExpression, locale: UserLanguage, i18n: LocalizationService): String {
         return when (expression) {
             is ValueLeafQueryExpression -> {
-                expression.valueMapping?.let { it.display(expression.value, i18n, locale) } ?: "<missing>"
+                expression.property.valueDefinition.display(expression.value, i18n, locale)
             }
 
             is FilterLeafQueryExpression -> {
