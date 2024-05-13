@@ -167,7 +167,9 @@ suspend fun String.parseQueryExpression(
                 )
             } else {
                 val propertyCandidates = filter.properties.mapNotNull inner@{ prop ->
-                    if (!prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }) return@inner null
+                    val supportsValueType = prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }
+                    val supportsValueMappings = value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues()?.any() == true)
+                    if (!supportsValueType && !supportsValueMappings) return@inner null
 
                     val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
                     val provider = prop.valueDefinition.provider

@@ -38,10 +38,10 @@ private fun getSetReleaseDates(dateColumn: KProperty1<*, *>, connection: Connect
         .get(connection) { row, index ->
             row.getString(index.getAndIncrement()) to LocalDateColumnTransformer.fromSql(row, index)
         }.mapNotNull { entry ->
-            entry.second?.let { entry.first to it }
+            if (entry.first == null || entry.second == null) return@mapNotNull null
+            entry.first to entry.second!!
         }.toMap()
 }
-
 
 private val getSetStartReleaseDates = { connection: Connection -> getSetReleaseDates(PcgSet::releaseStartDate, connection) }
 private val getSetEndReleaseDates = { connection: Connection -> getSetReleaseDates(PcgSet::releaseEndDate, connection) }

@@ -33,7 +33,7 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         }
     }
 
-    private var strictValues = true
+    private var strictValues = false
 
     fun cache(ttl: Long = 3600) {
         this.cacheTimeToLife = ttl
