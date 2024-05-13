@@ -33,7 +33,10 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         type: String,
         autoAlias: Boolean
     ) {
-        val alias = if (autoAlias) input.replace(Regex("\\P{L}"), "") else null
+        val aliases = mutableSetOf(input, valueDisplay)
+        if (autoAlias) {
+            aliases.add(input.replace(Regex("\\P{L}"), ""))
+        }
 
         val providedValue = ProvidedValue(
             input = input,
@@ -42,7 +45,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
                 value = value,
                 operator = operator
             ),
-            aliases = alias?.let { mutableSetOf(alias, input) } ?: mutableSetOf(input),
+            aliases = aliases,
             type = type
         )
 
