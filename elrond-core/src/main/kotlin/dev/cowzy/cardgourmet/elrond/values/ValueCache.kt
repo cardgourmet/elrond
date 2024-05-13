@@ -25,6 +25,8 @@ class ValueCache<T : Any>(
         valuesByKeyword.clear()
         values.forEach { value ->
             valuesByKeyword[value.input.lowercase()] = value
+            valuesByKeyword[value.resolvesTo.display.lowercase()] = value
+
             value.aliases.forEach aliases@{ alias ->
                 if (valuesByKeyword.containsKey(alias.lowercase())) return@aliases
                 valuesByKeyword[alias.lowercase()] = value

@@ -55,7 +55,19 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         if (existingValue != null) {
             existingValue.aliases.add(input)
             existingValue.aliases.addAll(providedValue.aliases)
+
+            if (existingValue.aliases.contains(existingValue.resolvesTo.display)) {
+                val currentInput = existingValue.input
+                existingValue.input = existingValue.resolvesTo.display
+                existingValue.aliases.add(currentInput)
+            }
             return
+        }
+
+        if (providedValue.aliases.contains(providedValue.resolvesTo.display)) {
+            val currentInput = providedValue.input
+            providedValue.input = providedValue.resolvesTo.display
+            providedValue.aliases.add(currentInput)
         }
 
         add(providedValue)
