@@ -38,11 +38,12 @@ class DateProperty(
     ) {
         val match = dateRegex.find(value) ?: throw IllegalStateException("Invalid date")
         val day = match.groupValues[3].ifEmpty { null }?.toInt()
+        val date = day?.let { LocalDate.parse(value, DateTimeFormatter.ISO_DATE) }
 
         val condition: (WhereQueryBuilder<*>) -> Unit = { inner ->
             when (operator) {
                 SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> when {
-                    day != null -> inner.where(column, value)
+                    date != null -> inner.where(column, date)
                     else -> inner
                         .where(column, ">=", getLowerBound(operator, value))
                         .whereRaw(column, "<", "'${getUpperBound(operator, value)}'")
@@ -51,12 +52,12 @@ class DateProperty(
                 SearchQueryOperator.GREATER_THAN_OR_EQUALS -> inner.whereRaw(column, ">=", "'${getLowerBound(operator, value)}'")
 
                 SearchQueryOperator.GREATER_THAN -> when {
-                    day != null -> inner.where(column, ">", value)
+                    date != null -> inner.where(column, ">", date)
                     else -> inner.whereRaw(column, ">=", "'${getLowerBound(operator, value)}'")
                 }
 
                 SearchQueryOperator.LESS_THAN_OR_EQUALS -> when {
-                    day != null -> inner.where(column, "<=", value)
+                    date != null -> inner.where(column, "<=", date)
                     else -> inner.whereRaw(column, "<", "'${getUpperBound(operator, value)}'")
                 }
 

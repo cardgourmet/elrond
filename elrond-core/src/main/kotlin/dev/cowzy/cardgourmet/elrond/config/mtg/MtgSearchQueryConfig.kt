@@ -185,6 +185,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("finishes", "finish") {
         stringArrayAndCardinality(MtgPrint::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
+            strict(true)
             autoArrayValues(MtgPrint::finishes, "finish", true)
             values(mtgFinishMappings, "finish")
         }
