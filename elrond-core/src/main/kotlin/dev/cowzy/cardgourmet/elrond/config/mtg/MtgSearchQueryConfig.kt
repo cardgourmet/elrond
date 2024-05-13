@@ -113,7 +113,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("color", "colors", "c") {
         cardinality(MtgCardFace::colors, mtgPropertyKeys.COLOR_COUNT, manaCardinalityMappings)
         property(MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
-            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
@@ -121,7 +121,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("produces") {
         cardinality(MtgCardFace::producesMana, mtgPropertyKeys.PRODUCED_MANA_COUNT, manaCardinalityMappings)
         property(MtgManaArrayColumnProperty(MtgCardFace::producesMana, descriptor = NumericDescriptor(mtgPropertyKeys.PRODUCED_MANA, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
-            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
@@ -130,7 +130,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         ignoreReference("commander")
         cardinality(MtgCard::colorIdentity, mtgPropertyKeys.COLOR_IDENTITY_COUNT, manaCardinalityMappings)
         property(MtgManaArrayColumnProperty(MtgCard::colorIdentity, true, NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))) {
-            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
@@ -138,7 +138,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("indicator", "indicatorcolors") {
         cardinality(MtgCardFace::colorIndicator, mtgPropertyKeys.COLOR_INDICATOR_COUNT, manaCardinalityMappings)
         property(MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_INDICATOR, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
-            transform { items -> items.joinToString("") { ManaDisplay(items).toString() } }
+            transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
