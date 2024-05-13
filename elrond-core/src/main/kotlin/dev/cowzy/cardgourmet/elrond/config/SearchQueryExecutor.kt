@@ -91,17 +91,16 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
     @Serializable
     data class FilterValues(
-        val matchCount: Int,
+        val total: Int,
+        val matches: Int,
         val values: List<FilterValue>
-//        val mappings: List<Pair<String, String>>,
-//        val values: List<String>,
     )
 
     @Serializable
     data class FilterValue(
         val value: String,
         val type: String,
-        val aliases: List<String>,
+        val aliases: List<String>?,
         val resolvesTo: String?,
         val resolvesToOperator: SearchQueryOperator?,
     )
@@ -155,7 +154,8 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
 
         val providedValues = mutableListOf<ProvidedValue<*>>()
-        val totalMatches: Int
+        val totalCount = providers.sumOf { it.getValues().count() }
+        val matchCount: Int
 
         if (query != null) {
             // First find any exact matches
@@ -166,76 +166,27 @@ data class SearchQueryExecutor<T : Enum<T>>(
             val fuzzyMatches = providers.map { it.getValues(query) }.flatten() - exactMatches.toSet()
             providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
-            totalMatches = providedValues.size + fuzzyMatches.size
+            matchCount = providedValues.size + fuzzyMatches.size
         } else {
             val values = providers.map { it.getValues() }.flatten()
             providedValues.addAll(values.take(amount))
-            totalMatches = values.size
+            matchCount = values.size
         }
 
-        return FilterValues(totalMatches, providedValues.map { value ->
-            FilterValue(
-                value.input,
-                value.type,
-                value.aliases.sorted(),
-                value.resolvesTo.display.takeIf { value.resolvesTo.display != value.input },
-                value.resolvesTo.operator
-            )
-        })
-
-//        val valueDefinitions = filter.properties.map { property ->
-//            property.valueDefinition.supportedValueTypes.map { type ->
-//                property.valueDefinition.getDefinition(type)
-//            }
-//        }.flatten()
-//
-//        val mappings = mutableSetOf<Pair<String, String>>()
-//        val values = mutableSetOf<String>()
-//
-//        val mappingProviders = valueDefinitions.mapNotNull { it.mappingsProvider }
-//        for (provider in mappingProviders) {
-//            if (mappings.size >= amount) break
-//            mappings.addAll(provider.getMappingValues(query))
-//        }
-//
-//        val valueProviders = valueDefinitions.mapNotNull { it.valueProvider }
-//        for (provider in valueProviders) {
-//            val remaining = amount - values.size
-//            if (remaining <= 0) break
-//            values.addAll(provider.getValues(remaining, query))
-//        }
-//
-//        mappings.removeIf { values.contains(it.first) }
-//
-//        val takeMappings = minOf(amount, mappings.size)
-//        val takeValues = minOf(amount - takeMappings, values.size)
-//
-//        return FilterValues(mappings.sortedBy { it.first }.take(takeMappings), values.sorted().take(takeValues))
+        return FilterValues(
+            totalCount,
+            matchCount,
+            providedValues.map { value ->
+                FilterValue(
+                    value.input,
+                    value.type,
+                    value.aliases.sorted().takeIf { it.isNotEmpty() },
+                    value.resolvesTo.display.takeIf { value.resolvesTo.display != value.input },
+                    value.resolvesTo.operator
+                )
+            }
+        )
     }
-
-//    private suspend fun <T : Pair<*, Pair<*, SearchQueryOperator?>>> ValueProvider<T>.getMappingValues(query: String?): Iterable<Pair<String, String>> {
-//        val simpleQuery = query?.toSimpleString()
-//        return this.getValues().filter { value ->
-//            simpleQuery?.let { value.first.toString().toSimpleString().contains(it) } ?: true
-//        }.map {
-//            val key = it.first.toString()
-//            val value = it.second.first
-//            key to when (value) {
-//                is LocalDate -> value.format(DateTimeFormatter.ISO_DATE)
-//                is Enum<*> -> value.getSerialName()
-//                is QueryValue<*> -> value.value.toString()
-//                else -> value.toString()
-//            }
-//        }
-//    }
-//
-//    private suspend fun <T> ValueProvider<T>.getValues(limit: Int, query: String?): Iterable<String> {
-//        val simpleQuery = query?.toSimpleString()
-//        return when (this) {
-//            is DynamicStringValueProvider -> this.getValues(limit, query)
-//            else -> this.getValues().filter { value -> simpleQuery?.let { value.toString().toSimpleString().contains(it) } ?: true }.map { it.toString() }
-//        }
-//    }
 }
 
 typealias SearchQueryTransformer<T> = (SearchQuery<T>) -> SearchQuery<T>?
