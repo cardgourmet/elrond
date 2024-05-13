@@ -1,6 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.values
 
 import dev.cowzy.cardgourmet.commons.database.SqlDatabasePool
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.QueryValue
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.enumToMappings
@@ -116,6 +117,7 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         transform: (E) -> T = { it as T }
     ) {
         val enumMappings = enumToMappings(values, findKeywords).mapValues { transform(it.value) }
+        values(values.associate { it.getSerialName() to transform(it) }, type, true)
         values(enumMappings, type, true)
     }
 
