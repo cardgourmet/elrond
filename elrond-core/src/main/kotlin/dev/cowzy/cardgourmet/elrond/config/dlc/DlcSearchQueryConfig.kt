@@ -80,7 +80,6 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-
         enum(DlcPrintTranslation::language, AvailableInDescriptor(propertyKeys.PRINT), "print_language", display = { value, i18n, locale ->
             i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
         })

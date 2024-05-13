@@ -201,12 +201,14 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("mechanic", "mechanics", "function", "otag", "oracletag") {
         stringArrayAndCardinality(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC_COUNT, propertyKeys.MECHANIC) {
+            strict(true)
             autoArrayValues(MtgPrintFace::propertyTags, "mechanic", true)
         }
     }
 
     filter("property", "properties") {
         stringArrayAndCardinality(MtgPrintFace::propertyTags, propertyKeys.PROPERTY_COUNT, propertyKeys.PROPERTY) {
+            strict(true)
             autoArrayValues(MtgPrintFace::propertyTags, "property", true)
             values(mtgPropertyMappings, "property")
         }
@@ -236,6 +238,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
         stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC)
         stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
+            strict(true)
             autoArrayValues(MtgPrintFace::propertyTags, "property", true)
             values(mtgPropertyMappings, "property")
         }
@@ -249,24 +252,28 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("legal", "legalformats", "legalin", "format") {
         stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.LEGAL), "legal_format") {
+            strict(true)
             enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("restricted", "restrictedformats", "restrictedin") {
         stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.RESTRICTED), "restricted_format") {
+            strict(true)
             enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("banned", "bannedformats", "bannedin") {
         stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(FormatDescriptor.Type.BANNED), "banned_format") {
+            strict(true)
             enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("medium", "mediums", "game", "games") {
         stringArrayAndCardinality(MtgPrint::mediums, propertyKeys.MEDIUM_COUNT, propertyKeys.MEDIUM) {
+            strict(true)
             enumValues<MtgMedium>("medium", findKeywords = { it.keys }, transform = { it.getSerialName() })
             values(mtgMediumMappings, "medium")
         }
