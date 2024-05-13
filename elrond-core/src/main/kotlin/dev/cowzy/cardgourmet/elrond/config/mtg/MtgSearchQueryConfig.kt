@@ -219,6 +219,11 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     }
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
+        stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
+            strict(true)
+            autoArrayValues(MtgPrintFace::propertyTags, "property", true)
+            values(mtgPropertyMappings, "property")
+        }
         exactString(MtgCard::layout, mtgPropertyKeys.LAYOUT) {
             strict(true)
             autoValues(MtgCard::layout, "layout", autoAlias = true)
@@ -239,11 +244,6 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC) {
             strict(true)
             autoArrayValues(MtgPrintFace::mechanicTags, "mechanic", true)
-        }
-        stringArray(MtgPrintFace::propertyTags, propertyKeys.PROPERTY) {
-            strict(true)
-            autoArrayValues(MtgPrintFace::propertyTags, "property", true)
-            values(mtgPropertyMappings, "property")
         }
     }
 
