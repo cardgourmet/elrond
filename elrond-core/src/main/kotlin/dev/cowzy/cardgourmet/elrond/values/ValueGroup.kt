@@ -40,6 +40,9 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
             aliases.add(valueDisplay.replace(Regex("\\P{L}"), ""))
         }
 
+        aliases.remove(input)
+        aliases.remove(valueDisplay)
+
         val providedValue = ProvidedValue(
             input = input,
             resolvesTo = ResolvedValue(
@@ -53,7 +56,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
 
         val existingValue = find(providedValue)
         if (existingValue != null) {
-            existingValue.aliases.add(input)
+//            existingValue.aliases.add(input)
             existingValue.aliases.addAll(providedValue.aliases)
 
             if (existingValue.aliases.contains(existingValue.resolvesTo.display)) {
