@@ -25,7 +25,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         type: String,
         autoAlias: Boolean
     ) {
-        val alias = if (autoAlias) input.replace(Regex("\\W"), "") else null
+        val alias = if (autoAlias) input.replace(Regex("\\P{L}"), "") else null
 
         val providedValue = ProvidedValue(
             input = input,
