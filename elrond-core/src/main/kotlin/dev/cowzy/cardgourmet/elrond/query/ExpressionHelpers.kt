@@ -169,7 +169,6 @@ suspend fun String.parseQueryExpression(
                     if (!supportsValueType && !supportsValueMappings) return@inner null
 
                     val provider = prop.valueDefinition.provider
-
                     if (value is StringValue && provider != null) {
                         val matchingValue = provider.findValue(value.value)
                         if (matchingValue != null) {
@@ -180,9 +179,11 @@ suspend fun String.parseQueryExpression(
 
                             return@inner prop to (matchingValue.resolvesTo.value to mappedOperator)
                         }
+
                         if (provider.strictValues) return@inner null
                     }
 
+                    if (!supportsValueType) return@inner null
                     val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
 
                     try {
