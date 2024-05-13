@@ -109,14 +109,13 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
 
 fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: ((T) -> List<String>)? = null): Map<String, T> {
     return enumValues.map { value ->
-        ((findKeywords?.invoke(value) ?: emptyList()) + value.name)
-            .filter { it != value.getSerialName() }
-            .map { it.lowercase() }.map { keyword ->
-                when {
-                    keyword.contains("_") -> listOf(keyword.replace("_", "") to value, keyword to value)
-                    else -> listOf(keyword to value)
-                }
+        ((findKeywords?.invoke(value) ?: emptyList()) + value.name).map {
+            it.lowercase()
+        }.map { keyword ->
+            when {
+                keyword.contains("_") -> listOf(keyword.replace("_", "") to value, keyword to value)
+                else -> listOf(keyword to value)
             }
-            .flatten()
+        }.flatten()
     }.flatten().distinctBy { it.first.lowercase() }.toMap()
 }
