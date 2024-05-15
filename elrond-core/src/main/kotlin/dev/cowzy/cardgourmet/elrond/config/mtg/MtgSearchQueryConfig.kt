@@ -364,7 +364,7 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
         }
     }
 
-    filter("frameffect", "frameeffects") {
+    filter("frameeffect", "frameeffects", "frameffect") {
         stringArrayAndCardinality(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT_COUNT, mtgPropertyKeys.FRAME_EFFECT)
     }
 
