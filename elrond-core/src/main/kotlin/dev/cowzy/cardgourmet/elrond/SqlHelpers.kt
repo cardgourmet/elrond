@@ -44,7 +44,7 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
     limit: Int,
     offset: Int,
     preferredLanguage: String,
-    mapResults: (ResultSet, (ResultSet, ColumnIndex) -> UUID) -> List<SearchQueryResult.Entry<T>>,
+    mapResults: (ResultSet) -> List<SearchQueryResult.Entry<T>>,
     overrideFlags: Set<E>? = null,
     connection: Connection
 ): SearchQueryResult<T> {
@@ -94,7 +94,7 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
         }
 
         val resultSet = outerBuilder.getRaw(connection)
-        val results = mapResults(resultSet) { row, index -> UuidColumnTransformer.fromSql(row, index)!! }
+        val results = mapResults(resultSet)
 
         if (results.any()) return SearchQueryResult(results, attempt, result.executedQuery, result.expressionResult)
         attempt += 1
