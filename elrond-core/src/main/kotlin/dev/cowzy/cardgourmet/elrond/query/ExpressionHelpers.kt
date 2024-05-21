@@ -5,6 +5,7 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
+import dev.cowzy.cardgourmet.elrond.tokenizer.*
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
@@ -34,6 +35,183 @@ fun <T : Enum<T>> String.stripFlags(flags: Iterable<T>): Pair<String, Set<T>> {
 }
 
 inline fun <reified T : Enum<T>> String.stripFlags() = this.stripFlags(enumValues<T>().toList())
+
+suspend fun QueryToken?.toQueryExpression(
+    filters: List<QueryFilter>,
+    fallbackFilter: QueryFilter? = null
+): QueryExpressionBuilderResult {
+    if (this == null) return QueryExpressionBuilderResult()
+
+    val (rawExpression, rawIgnoredValues) = this.parseQueryExpression(filters, fallbackFilter)
+
+    val ignoredValues = rawIgnoredValues.toMutableList()
+    val expression = rawExpression ?: BooleanQueryExpression(true)
+
+    val optimizedExpressions = expression.flattenExpressions().filterDuplicatesAndNegatedPairs { ignoredValues.add(it) }
+    val optimizedExpression = when {
+        optimizedExpressions.size == 1 -> optimizedExpressions.single()
+        expression is QueryExpressionGroup -> QueryExpressionGroup(optimizedExpressions, expression.operator, expression.negate)
+        else -> QueryExpressionGroup(optimizedExpressions, LogicalOperator.AND, false)
+    }
+
+    return QueryExpressionBuilderResult(optimizedExpression, ignoredValues)
+}
+
+private suspend fun QueryToken.parseQueryExpression(
+    filters: List<QueryFilter>,
+    fallbackFilter: QueryFilter? = null,
+): Pair<QueryExpression?, List<IgnoredQueryValue>> {
+    val ignoredValues = mutableListOf<IgnoredQueryValue>()
+
+    when (this) {
+        is QueryTokenGroup -> {
+            val results = this.children.map { it.parseQueryExpression(filters, fallbackFilter) }
+            val expressions = results.mapNotNull { it.first }
+            ignoredValues.addAll(results.map { it.second }.flatten())
+
+            return when {
+                expressions.isEmpty() -> null to ignoredValues
+                else -> QueryExpressionGroup(expressions, this.operator, this.negate) to ignoredValues
+            }
+        }
+
+        is QueryFilterToken -> {
+            val filter = when (this.keyword) {
+                null -> fallbackFilter
+                else -> filters.findFilter(this.keyword)
+            }
+
+            if (filter == null) {
+                ignoredValues.add(IgnoredQueryValue(this.toString(), "unknown_filter"))
+                return null to ignoredValues
+            }
+
+            val operator = when {
+                this.exactValue -> SearchQueryOperator.EQUALS
+                else -> this.operator ?: SearchQueryOperator.CONTAINS
+            }
+
+            val supportedValueTypes = filter.properties
+                .map { prop ->
+                    when {
+                        prop.valueDefinition.provider?.getValues()?.any() == true -> prop.valueDefinition.supportedValueTypes + StringValue::class
+                        else -> prop.valueDefinition.supportedValueTypes
+                    }
+                }
+                .flatten()
+                .distinct()
+                .toTypedArray()
+
+            val values = this.value?.let { listOf(it) }?.parseExpressionValues(supportedValueTypes, filter, filters) ?: emptyList()
+
+            if (values.isEmpty()) {
+                ignoredValues.add(IgnoredQueryValue(this.toString(), "empty_value"))
+                return null to ignoredValues
+            }
+
+            val expressions = values.map { value ->
+                if (value == null) {
+                    ignoredValues.add(IgnoredQueryValue(this.toString(), "unsupported_value"))
+                    return@map null
+                }
+
+                var negated = this.negate
+                if (filter.inverted) negated = !negated
+
+                if (value is FilterValue) {
+                    val properties = value.properties
+
+                    if (properties.first == properties.second) {
+                        ignoredValues.add(IgnoredQueryValue(this.toString(), "useless_comparison"))
+                        return@map null
+                    }
+
+                    FilterLeafQueryExpression(
+                        filter,
+                        properties.first,
+                        operator,
+                        properties.second,
+                        negated,
+                        this.toString()
+                    )
+                } else {
+                    val propertyCandidates = filter.properties.mapNotNull inner@{ prop ->
+                        val supportsValueType = prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }
+                        val supportsValueMappings = value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues()?.any() == true)
+                        if (!supportsValueType && !supportsValueMappings) return@inner null
+
+                        val provider = prop.valueDefinition.provider
+                        if (value is StringValue && provider != null) {
+                            val matchingValue = provider.findValue(value.value)
+                            if (matchingValue != null) {
+                                val mappedOperator = when (operator) {
+                                    SearchQueryOperator.CONTAINS -> matchingValue.resolvesTo.operator
+                                    else -> operator
+                                }
+
+                                return@inner prop to (matchingValue.resolvesTo.value to mappedOperator)
+                            }
+
+                            if (provider.strictValues) return@inner null
+                        }
+
+                        if (!supportsValueType) return@inner null
+                        val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
+
+                        try {
+                            val transformedValue = definition.transform(value, operator)
+                            if (transformedValue == null || !definition.match(transformedValue.first)) return@inner null
+                            return@inner prop to transformedValue
+                        } catch (ex: Exception) {
+                            return@inner null
+                        }
+                    }
+
+                    if (propertyCandidates.isEmpty()) {
+                        ignoredValues.add(IgnoredQueryValue(this.toString(), "unsupported_value"))
+                        return@map null
+                    }
+
+                    val matchingProperty = propertyCandidates.find { (prop, _) ->
+                        prop.supportedOperators.contains(operator)
+                    }
+
+                    if (matchingProperty == null) {
+                        ignoredValues.add(IgnoredQueryValue(
+                            this.toString(),
+                            "unsupported_operator",
+                            propertyCandidates.asSequence().map { (prop, _) ->
+                                prop.supportedOperators.toList()
+                            }.flatten().distinct().map {
+                                it.value
+                            }.sorted().toList()
+                        ))
+                        return@map null
+                    }
+
+                    if (matchingProperty.second.first.let { it is StringValue && it.value.isBlank() }) {
+                        ignoredValues.add(IgnoredQueryValue(this.toString(),"empty_value"))
+                        return@map null
+                    }
+
+                    ValueLeafQueryExpression(
+                        filter,
+                        matchingProperty.first as SearchQueryProperty<Any>,
+                        matchingProperty.second.second ?: operator,
+                        matchingProperty.second.first,
+                        negated,
+                        this.toString()
+                    )
+                }
+            }.filterNotNull()
+
+            return when (expressions.size) {
+                1 -> expressions.single()
+                else -> QueryExpressionGroup(expressions, LogicalOperator.AND, false)
+            } to ignoredValues
+        }
+    }
+}
 
 @Suppress("UNCHECKED_CAST")
 suspend fun String.parseQueryExpression(
@@ -472,6 +650,49 @@ private fun QueryFilter.findComparableProperties(filter: QueryFilter): Pair<Sear
     }
 
     return null
+}
+
+private fun List<ValueToken>.parseExpressionValues(
+    supportedValueTypes: Array<KClass<out QueryValue<*>>>,
+    filter: QueryFilter,
+    filters: Iterable<QueryFilter>
+): List<QueryValue<*>?> {
+    return this.map { token ->
+        when (token) {
+            is RegexToken -> {
+                if (supportedValueTypes.contains(RegexValue::class)) {
+                    return@map RegexValue(token.value)
+                } else {
+                    return@map null
+                }
+            }
+
+            is QuotedStringToken -> {
+                if (token.value.isNotBlank() && supportedValueTypes.contains(StringValue::class)) {
+                    return@map StringValue(token.value, true)
+                } else {
+                    return@map null
+                }
+            }
+
+            is StringToken -> {
+                val matchingFilter = filters.findFilter(token.value, true)
+                val matchingProperties = matchingFilter?.let { filter.findComparableProperties(it) }
+
+                val number = token.value.toDoubleOrNull()
+
+                if (matchingFilter != null && matchingProperties != null) {
+                    return@map FilterValue(matchingFilter, matchingProperties)
+                } else if (number != null && supportedValueTypes.contains(NumberValue::class)) {
+                    return@map NumberValue(number)
+                } else if (token.value.isNotBlank() && supportedValueTypes.contains(StringValue::class)) {
+                    return@map StringValue(token.value)
+                } else {
+                    return@map null
+                }
+            }
+        }
+    }
 }
 
 private fun String.parseExpressionValues(

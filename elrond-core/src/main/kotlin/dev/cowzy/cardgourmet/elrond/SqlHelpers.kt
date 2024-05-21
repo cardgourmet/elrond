@@ -2,6 +2,7 @@ package dev.cowzy.cardgourmet.elrond
 
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.query.*
+import dev.cowzy.cardgourmet.elrond.tokenizer.tokenizeToQuery
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.SelectQueryBuilder
@@ -32,7 +33,12 @@ data class SearchQueryResult<T>(
 
 suspend fun <E : Enum<E>> SearchQueryExecutor<E>.parse(query: String): Pair<QueryExpressionBuilderResult, Set<E>> {
     val (strippedQuery, flags) = query.stripFlags(flags)
-    return strippedQuery.parseQueryExpression(filters, fallbackFilter) to flags
+
+    val token = strippedQuery.tokenizeToQuery(strict = false)
+    val expression = token.toQueryExpression(filters, fallbackFilter)
+    return expression to flags
+
+//    return strippedQuery.parseQueryExpression(filters, fallbackFilter) to flags
 }
 
 suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
