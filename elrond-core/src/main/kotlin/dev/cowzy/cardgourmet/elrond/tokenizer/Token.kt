@@ -2,7 +2,9 @@ package dev.cowzy.cardgourmet.elrond.tokenizer
 
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 
-sealed class Token(val raw: String)
+sealed class Token(val raw: String) {
+    override fun toString(): String = this.raw
+}
 
 class OpenParenthesisToken(raw: String) : Token(raw)
 
