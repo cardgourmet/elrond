@@ -2,10 +2,7 @@ package dev.cowzy.cardgourmet.elrond.config
 
 import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.query.QueryExpressionBuilderResult
-import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.elrond.query.SearchQuerySqlBuilder
-import dev.cowzy.cardgourmet.elrond.query.toQueryBuilder
+import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.values.ProvidedValue
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import kotlinx.serialization.Serializable
@@ -28,6 +25,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
     )
 
     suspend fun toQueryBuilder(
+        mode: SearchQueryMode,
         expression: QueryExpressionBuilderResult,
         flags: Set<T>,
         distinctBy: KProperty1<*, *>,
@@ -37,6 +35,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
         applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
     ): Result<T>? {
         var searchQuery = SearchQuery(
+            mode = mode,
             expression = expression.expression,
             distinctBy = distinctBy,
             sortColumns = sortColumns,

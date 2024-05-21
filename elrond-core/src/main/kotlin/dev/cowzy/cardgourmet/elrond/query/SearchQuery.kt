@@ -13,12 +13,18 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 
 data class SearchQuery<T : Enum<T>>(
+    val mode: SearchQueryMode,
     val expression: QueryExpression,
     val distinctBy: KProperty1<*, *>,
     val sortColumns: List<ElrondSortColumn>,
     val flags: Set<T>,
     val preferredLanguage: String?
 )
+
+enum class SearchQueryMode {
+    SEARCH,
+    COUNT
+}
 
 data class SearchQuerySqlBuilder<T : Enum<T>>(
     val affectedTables: ((SearchQuery<T>) -> Set<KClass<*>>)? = null,

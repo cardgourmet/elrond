@@ -3,19 +3,22 @@ package dev.cowzy.cardgourmet.elrond.config.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
+import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.orWhereRaw
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = { query, builder ->
+private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
     val preferMode = query.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgSearchQueryFlag.INCLUDE_EXTRAS)) {
@@ -37,6 +40,9 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
                 stmt.setString(index.getAndIncrement(), query.preferredLanguage)
             }
     }
+
+    // No need to apply sort for count queries.
+    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
 
     applyMtgSortPreLanguage(builder, preferMode)
 
@@ -106,6 +112,8 @@ fun createMtgBaseBuilder(
         .fallbackFilter(fallbackFilter)
         .flags(*MtgSearchQueryFlag.values())
         .customTables {
+            if (it.mode == SearchQueryMode.COUNT) return@customTables emptySet()
+
             val preferMode = it.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
 
             setOf(CardImage::class, MtgCardFaceTranslation::class) + when {

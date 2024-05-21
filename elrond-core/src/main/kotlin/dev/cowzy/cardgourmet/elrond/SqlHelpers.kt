@@ -1,10 +1,7 @@
 package dev.cowzy.cardgourmet.elrond
 
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.query.QueryExpressionBuilderResult
-import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.elrond.query.parseQueryExpression
-import dev.cowzy.cardgourmet.elrond.query.stripFlags
+import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.SelectQueryBuilder
@@ -61,6 +58,7 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
         val pageColumns = sortColumns + distinctBySortColumn
 
         val result = this.toQueryBuilder(
+            mode = SearchQueryMode.SEARCH,
             expression = expressionResult,
             flags = overrideFlags ?: flags,
             distinctBy = distinctBy,
@@ -157,6 +155,7 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.countAttempt(
     val (expressionResult, flags) = parse(query)
 
     val result = this.toQueryBuilder(
+        mode = SearchQueryMode.COUNT,
         expression = expressionResult,
         flags = overrideFlags ?: flags,
         distinctBy = distinctBy,

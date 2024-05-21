@@ -10,18 +10,22 @@ import dev.cowzy.cardgourmet.elrond.config.pcg.applyPcgSort
 import dev.cowzy.cardgourmet.elrond.config.pcg.configureBasicPcgFilters
 import dev.cowzy.cardgourmet.elrond.config.pcg.createPcgBaseBuilder
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<PcgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = { query, builder ->
+private val queryBuilder: ((SearchQuery<PcgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
     if (!query.flags.contains(PcgSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(UserCard::language, PcgCardTranslation::language)
     }
 
     builder.whereNotNull(UserCard::id)
+
+    // No need to apply sort for count queries.
+    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
 
     // Always prefer cards with images.
     builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
