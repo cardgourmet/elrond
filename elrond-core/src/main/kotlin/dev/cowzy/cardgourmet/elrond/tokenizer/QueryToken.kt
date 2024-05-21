@@ -18,8 +18,8 @@ data class QueryFilterToken(
         val mappedOperator = if (exactValue) SearchQueryOperator.EQUALS else operator ?: SearchQueryOperator.CONTAINS
 
         return when {
-            negate -> "-$keyword${mappedOperator.value}$value"
-            else -> "$keyword${mappedOperator.value}$value"
+            negate -> "-${keyword ?: ""}${mappedOperator.value}${value?.raw ?: ""}"
+            else -> "${keyword ?: ""}${mappedOperator.value}${value?.raw ?: ""}"
         }
     }
 }
