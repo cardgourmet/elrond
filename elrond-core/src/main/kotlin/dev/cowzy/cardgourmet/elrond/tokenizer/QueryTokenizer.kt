@@ -125,6 +125,7 @@ fun Queue<Token>.parseFilter(strict: Boolean): QueryFilterToken {
             return when {
                 second is ValueToken -> QueryFilterToken(stringValue, operator, second, exactValue, negate)
                 strict -> throw TokenizerException("Unexpected token: ${second.raw}")
+                second == null -> QueryFilterToken(stringValue, operator, null, exactValue, negate)
                 else -> QueryFilterToken(stringValue, operator, StringToken(second.raw), exactValue, negate)
             }
         }
@@ -134,6 +135,7 @@ fun Queue<Token>.parseFilter(strict: Boolean): QueryFilterToken {
         first is StringToken -> QueryFilterToken(null, null, StringToken(stringValue!!), exactValue, negate)
         first is RegexToken -> QueryFilterToken(null, null, first, exactValue = false, negate = false)
         strict -> throw TokenizerException("Unexpected token: ${first.raw}")
+        first == null -> QueryFilterToken(null, null, null, exactValue = false, negate = false)
         else -> QueryFilterToken(null, null, StringToken(first.raw), exactValue = false, negate = false)
     }
 }
