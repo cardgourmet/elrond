@@ -41,7 +41,7 @@ class ValueCache<T : Any>(
         return@withLock values.toSet()
     }
 
-    suspend fun find(value: String): ProvidedValue<T>? {
+    suspend fun find(value: String): ProvidedValue<T>? = mutex.withLock {
         refresh()
         return valuesByKeyword[value.lowercase()]
     }
