@@ -67,7 +67,7 @@ fun createPcgBaseBuilder(
         .customTables {
             when (it.mode) {
                 SearchQueryMode.SEARCH -> setOf(CardImage::class, PcgSet::class, PcgCardTranslation::class)
-                SearchQueryMode.COUNT -> emptySet()
+                SearchQueryMode.COUNT -> setOf(PcgCardTranslation::class)
             }
         }
         .customBuilder(builder)

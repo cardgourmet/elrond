@@ -112,7 +112,7 @@ fun createMtgBaseBuilder(
         .fallbackFilter(fallbackFilter)
         .flags(*MtgSearchQueryFlag.values())
         .customTables {
-            if (it.mode == SearchQueryMode.COUNT) return@customTables emptySet()
+            if (it.mode == SearchQueryMode.COUNT) return@customTables setOf(MtgCardFaceTranslation::class)
 
             val preferMode = it.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
 

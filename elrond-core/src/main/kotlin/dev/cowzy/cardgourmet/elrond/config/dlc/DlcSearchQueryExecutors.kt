@@ -67,7 +67,7 @@ fun createDlcBaseBuilder(
         .customTables {
             when (it.mode) {
                 SearchQueryMode.SEARCH -> setOf(CardImage::class, DlcSet::class, DlcCardTranslation::class)
-                SearchQueryMode.COUNT -> emptySet()
+                SearchQueryMode.COUNT -> setOf(DlcCardTranslation::class)
             }
         }
         .customBuilder(builder)
