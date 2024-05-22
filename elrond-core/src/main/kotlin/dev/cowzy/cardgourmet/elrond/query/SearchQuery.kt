@@ -164,7 +164,7 @@ fun SelectQueryBuilder.applyJoins(
     config: SearchQueryConfig,
     materializedViewMappings: MaterializedViewMappings? = null
 ): SelectQueryBuilder {
-    val joinedTables = mutableSetOf(config.table) + materializedViewMappings?.keys.orEmpty()
+    val joinedTables = (materializedViewMappings?.keys.orEmpty() + config.table).toMutableSet()
 
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach
