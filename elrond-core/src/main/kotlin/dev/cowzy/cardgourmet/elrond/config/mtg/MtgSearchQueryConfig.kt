@@ -99,6 +99,8 @@ private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
         "color_nickname",
         transform = { it.colors.map(::ConcreteManaValue) }
     )
+
+    values(mapOf("all" to MtgManaType.colors.map(::ConcreteManaValue)), "string")
 }
 
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
