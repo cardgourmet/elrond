@@ -63,7 +63,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         )
 
         val existingValue = find(providedValue)
-        if (existingValue != null) {
+        if (merge && existingValue != null) {
             if (input != existingValue.input) {
                 existingValue.aliases.add(input)
             }
