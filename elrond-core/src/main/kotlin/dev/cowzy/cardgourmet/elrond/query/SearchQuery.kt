@@ -161,10 +161,9 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 
 fun SelectQueryBuilder.applyJoins(
     tables: Set<KClass<*>>,
-    config: SearchQueryConfig,
-    materializedViewMappings: MaterializedViewMappings? = null
+    config: SearchQueryConfig
 ): SelectQueryBuilder {
-    val joinedTables = (materializedViewMappings?.keys.orEmpty() + config.table).toMutableSet()
+    val joinedTables = (config.materializedView?.mappings?.keys.orEmpty() + config.table).toMutableSet()
 
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach

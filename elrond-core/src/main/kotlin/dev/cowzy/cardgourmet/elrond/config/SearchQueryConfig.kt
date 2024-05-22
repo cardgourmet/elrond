@@ -16,12 +16,14 @@ data class MaterializedViewConfig(
     val mappings: MaterializedViewMappings = emptyMap()
 ) {
 
-    fun apply(expression: SqlExpression): SqlExpression {
+    fun apply(table: KClass<*>, expression: SqlExpression): SqlExpression {
         var sql = expression.sql
 
         this.mappings.forEach { (table, value) ->
             sql = sql.replace("${table.tableName()}.", value)
         }
+
+        sql.replace(table.tableName(), this.reference)
 
         return SqlExpression(sql, expression.fill)
     }

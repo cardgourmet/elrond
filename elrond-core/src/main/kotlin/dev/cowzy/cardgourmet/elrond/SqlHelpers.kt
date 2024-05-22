@@ -80,7 +80,7 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
         lastSearchQuery = result
 
         val subQuery = result.builder.toSqlExpression().let { expression ->
-            config.materializedView?.apply(expression) ?: expression
+            config.materializedView?.apply(distinctBy.table(), expression) ?: expression
         }
 
         val innerBuilder = QueryBuilder.Companion
@@ -178,7 +178,7 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.countAttempt(
     ) ?: return null
 
     val subQuery = result.builder.toSqlExpression().let { expression ->
-        config.materializedView?.apply(expression) ?: expression
+        config.materializedView?.apply(distinctBy.table(), expression) ?: expression
     }
 
     val count = QueryBuilder.selectBuilder(subQuery, "innerQuery")
