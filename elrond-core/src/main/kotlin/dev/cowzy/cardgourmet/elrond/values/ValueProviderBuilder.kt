@@ -117,7 +117,7 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         transform: (E) -> T = { it as T }
     ) {
         val enumMappings = enumToMappings(values, findKeywords).mapValues { transform(it.value) }
-        values(values.associate { it.getSerialName() to transform(it) }, type, true)
+        values(values.associate { it.getSerialName().lowercase() to transform(it) }, type, true)
         values(enumMappings, type, true)
     }
 
