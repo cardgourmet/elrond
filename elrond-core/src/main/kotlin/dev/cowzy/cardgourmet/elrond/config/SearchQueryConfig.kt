@@ -1,18 +1,40 @@
 package dev.cowzy.cardgourmet.elrond.config
 
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.kuery.expression.SqlExpression
 import dev.cowzy.kuery.query.SelectQueryBuilder
+import dev.cowzy.kuery.reflection.tableName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+
+typealias MaterializedViewMappings = Map<KClass<*>, String>
+
+data class MaterializedViewConfig(
+    val reference: String,
+    val mappings: MaterializedViewMappings = emptyMap()
+) {
+
+    fun apply(expression: SqlExpression): SqlExpression {
+        var sql = expression.sql
+
+        this.mappings.forEach { (table, value) ->
+            sql = sql.replace("${table.tableName()}.", value)
+        }
+
+        return SqlExpression(sql, expression.fill)
+    }
+
+}
 
 data class SearchQueryConfig(
     val table: KClass<*>,
     val printIdColumn: KProperty1<*, *>?,
     val faceIndexColumn: KProperty1<*, *>?,
     val languageColumns: Array<KProperty1<*, *>> = emptyArray(),
-    val tableDependencies: Map<KClass<*>, TableDependency> = emptyMap()
+    val tableDependencies: Map<KClass<*>, TableDependency> = emptyMap(),
+    val materializedView: MaterializedViewConfig? = null,
 )
 
 interface CollectionSearchQueryConfig

@@ -1,6 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.ElrondSortColumn
+import dev.cowzy.cardgourmet.elrond.config.MaterializedViewMappings
 import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.snakeCaseColumnName
 import dev.cowzy.kuery.reflection.table
@@ -76,56 +77,9 @@ suspend fun <T : Enum<T>> SearchQuery<T>.toQueryBuilder(
     properties.forEach { it.applyProperty(builder) }
 
     builder.whereSuspend {
-        val baseBuilder = config.table.selectBuilder()
-            .selectAs(distinctBy, "distinct_id")
-            .selectRaw("${languageColumn?.columnName()} as language")
-            .selectRaw("${faceIndexColumn?.columnName()} as faceIndex")
-            .selectRaw("${printIdColumn?.columnName()} as printId")
-            .applyJoins(affectedTables, config)
-
         val inColumns = listOfNotNull(distinctBy, languageColumn, faceIndexColumn, printIdColumn)
-        it.applyExpression(baseBuilder, inColumns, expression, distinctBy)
+        it.applyExpression(inColumns, expression, distinctBy)
     }
-
-    // Apply custom selects, joins, where conditions, order expressions etc.
-    sqlBuilder?.apply?.invoke(this, builder)
-    applyCustomConditions?.invoke(builder)
-
-    return builder
-}
-
-fun <T : Enum<T>> SearchQuery<T>.toPaginationValueQueryBuilder(
-    config: SearchQueryConfig,
-    distinctBy: KProperty1<*, *>,
-    id: UUID,
-    sortColumns: List<ElrondSortColumn>,
-    sqlBuilder: SearchQuerySqlBuilder<T>? = null,
-    applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
-): SelectQueryBuilder {
-    val faceIndexColumn = config.faceIndexColumn
-
-    val affectedTables = ((sqlBuilder?.affectedTables?.invoke(this) ?: emptySet())
-            + sortColumns.map { it.property.table() }
-            + config.table
-            + distinctBy.table()
-            + (faceIndexColumn?.let { setOf(it.table()) } ?: emptySet()))
-
-    val builder = config.table.selectBuilder()
-        .where(distinctBy, id)
-        .limit(1)
-
-    sortColumns.forEach {
-        val property = it.property
-        val type = property.returnType.classifier as KClass<*>
-        if (type.isSubclassOf(Number::class)) {
-            // TODO: This is a hack to make sure that null values are sorted last.
-            builder.selectAs("COALESCE(${property.columnName()}, 2147483647)", it.sortName)
-        } else {
-            builder.selectAs(property.columnName(), it.sortName)
-        }
-    }
-
-    builder.applyJoins(affectedTables, config)
 
     // Apply custom selects, joins, where conditions, order expressions etc.
     sqlBuilder?.apply?.invoke(this, builder)
@@ -135,7 +89,6 @@ fun <T : Enum<T>> SearchQuery<T>.toPaginationValueQueryBuilder(
 }
 
 private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
-    baseBuilder: SelectQueryBuilder,
     inColumns: List<KProperty1<*, *>>,
     expression: QueryExpression,
     distinctBy: KProperty1<*, *>
@@ -143,24 +96,40 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
     when (expression) {
         is BooleanQueryExpression -> this.whereRaw(if (expression.negate) "FALSE" else "TRUE")
         is FilterLeafQueryExpression -> when {
-            expression.negate -> this.whereNotSuspend { expression.property.applyCondition(it, expression.operator, expression.otherProperty) }
+            expression.negate -> this.whereNotSuspend {
+                expression.property.applyCondition(
+                    it,
+                    expression.operator,
+                    expression.otherProperty
+                )
+            }
+
             else -> expression.property.applyCondition(this, expression.operator, expression.otherProperty)
         }
+
         is ValueLeafQueryExpression -> when {
-            expression.negate -> this.whereNotSuspend { expression.property.applyCondition(it, expression.operator, expression.value) }
+            expression.negate -> this.whereNotSuspend {
+                expression.property.applyCondition(
+                    it,
+                    expression.operator,
+                    expression.value
+                )
+            }
+
             else -> expression.property.applyCondition(this, expression.operator, expression.value)
         }
+
         is QueryExpressionGroup -> {
             if (expression.children.isEmpty()) return
 
             val applyChildren: suspend (ConcreteWhereQueryBuilder) -> Unit = { builder ->
                 if (expression.operator == LogicalOperator.AND) {
                     expression.children.map { child ->
-                        builder.whereSuspend { it.applyExpression(baseBuilder, inColumns, child, distinctBy) }
+                        builder.whereSuspend { it.applyExpression(inColumns, child, distinctBy) }
                     }
                 } else {
                     expression.children.map { child ->
-                        builder.orWhereSuspend { it.applyExpression(baseBuilder, inColumns, child, distinctBy) }
+                        builder.orWhereSuspend { it.applyExpression(inColumns, child, distinctBy) }
                     }
 
 //                    val builders = expression.children.map { child ->
@@ -190,8 +159,12 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
     }
 }
 
-fun SelectQueryBuilder.applyJoins(tables: Set<KClass<*>>, config: SearchQueryConfig): SelectQueryBuilder {
-    val joinedTables = mutableSetOf(config.table)
+fun SelectQueryBuilder.applyJoins(
+    tables: Set<KClass<*>>,
+    config: SearchQueryConfig,
+    materializedViewMappings: MaterializedViewMappings? = null
+): SelectQueryBuilder {
+    val joinedTables = mutableSetOf(config.table) + materializedViewMappings?.keys.orEmpty()
 
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach

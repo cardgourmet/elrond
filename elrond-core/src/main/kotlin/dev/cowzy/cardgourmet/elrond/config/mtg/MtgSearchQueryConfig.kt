@@ -11,10 +11,7 @@ import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
-import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.*
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.FormatDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
@@ -506,10 +503,20 @@ private val tableDependencies = mapOf(
     }
 )
 
+private val materializedViewMappings: MaterializedViewMappings = mapOf(
+    MtgPrint::class to "mtg.print_view.prints_",
+    MtgPrintFace::class to "mtg.print_view.print_faces_",
+    MtgPrintFaceTranslation::class to "mtg.print_view.print_face_translations_",
+    MtgCard::class to "mtg.print_view.cards_",
+    MtgCardFace::class to "mtg.print_view.card_faces_",
+    MtgCardFaceTranslation::class to "mtg.print_view.card_face_translations_",
+)
+
 val mtgBasicSearchQueryConfig = SearchQueryConfig(
     table = MtgPrint::class,
     printIdColumn = MtgPrint::id,
     faceIndexColumn = MtgCardFace::index,
     languageColumns = arrayOf(MtgPrintFaceTranslation::language, MtgCardFaceTranslation::language),
     tableDependencies = tableDependencies,
+    materializedView = MaterializedViewConfig("mtg.print_view", materializedViewMappings)
 )

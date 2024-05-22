@@ -4,9 +4,12 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.tokenizer.tokenizeToQuery
 import dev.cowzy.kuery.Order
+import dev.cowzy.kuery.expression.SqlExpression
 import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.innerJoin
+import dev.cowzy.kuery.reflection.table
+import dev.cowzy.kuery.reflection.tableName
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.*
@@ -76,8 +79,12 @@ suspend fun <T, E : Enum<E>> SearchQueryExecutor<E>.searchPrints(
 
         lastSearchQuery = result
 
+        val subQuery = result.builder.toSqlExpression().let { expression ->
+            config.materializedView?.apply(expression) ?: expression
+        }
+
         val innerBuilder = QueryBuilder.Companion
-            .selectBuilder(result.builder, "innerQuery")
+            .selectBuilder(subQuery, "innerQuery")
             .limit(limit)
             .offset(offset)
 
@@ -170,7 +177,11 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.countAttempt(
         applyCustomConditions = applyCustomConditions
     ) ?: return null
 
-    val count = QueryBuilder.selectBuilder(result.builder, "innerQuery")
+    val subQuery = result.builder.toSqlExpression().let { expression ->
+        config.materializedView?.apply(expression) ?: expression
+    }
+
+    val count = QueryBuilder.selectBuilder(subQuery, "innerQuery")
         .selectCount()
         .single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
 
