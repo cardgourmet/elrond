@@ -53,7 +53,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         }
 
         val providedValue = ProvidedValue(
-            input = input,
+            input = input.lowercase(),
             resolvesTo = ResolvedValue(
                 display = valueDisplay,
                 value = value,
