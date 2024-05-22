@@ -116,25 +116,25 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("date", "releasedate") {
         date(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_DATE) {
-            values(getSetReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
+            values(getSetReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code", merge = false)
         }
     }
 
     filter("year", "releaseyear") {
         year(DlcSet::releaseDate, propertyKey = propertyKeys.RELEASE_YEAR) {
-            values(getSetReleaseDates, { it.year }, "set_code")
+            values(getSetReleaseDates, { it.year }, "set_code", merge = false)
         }
     }
 
     filter("marketdate", "marketreleasedate") {
         date(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_DATE) {
-            values(getSetMarketReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
+            values(getSetMarketReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code", merge = false)
         }
     }
 
     filter("marketyear", "marketreleaseyear") {
         year(DlcSet::marketReleaseDate, propertyKey = dlcPropertyKeys.MARKET_RELEASE_YEAR) {
-            values(getSetMarketReleaseDates, { it.year }, "set_code")
+            values(getSetMarketReleaseDates, { it.year }, "set_code", merge = false)
         }
     }
 

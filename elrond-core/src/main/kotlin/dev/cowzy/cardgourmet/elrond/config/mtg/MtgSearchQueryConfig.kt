@@ -168,13 +168,13 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
 
     filter("year", "releaseyear") {
         year(MtgPrint::releaseDate, propertyKeys.RELEASE_YEAR) {
-            values(getSetReleaseDates, { it.year }, "set_code")
+            values(getSetReleaseDates, { it.year }, "set_code", merge = false)
         }
     }
 
     filter("date", "releasedate") {
         date(MtgPrint::releaseDate, propertyKeys.RELEASE_DATE) {
-            values(getSetReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
+            values(getSetReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code", merge = false)
         }
     }
 

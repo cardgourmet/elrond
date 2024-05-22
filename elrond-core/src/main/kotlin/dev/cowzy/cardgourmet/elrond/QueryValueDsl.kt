@@ -108,7 +108,7 @@ class QueryValueMappingBuilder<Value : Any, Input : QueryValue<Value>, Output : 
 
 fun <T : Enum<T>> enumToMappings(enumValues: Array<T>, findKeywords: ((T) -> List<String>)? = null): Map<String, T> {
     return enumValues.map { value ->
-        ((findKeywords?.invoke(value) ?: emptyList()) + value.name).map {
+        ((findKeywords?.invoke(value) ?: emptyList()) + value.name.lowercase()).map {
             it.lowercase()
         }.map { keyword ->
             when {

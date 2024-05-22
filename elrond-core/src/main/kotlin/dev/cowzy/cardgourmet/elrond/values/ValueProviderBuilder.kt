@@ -47,64 +47,64 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         this.displayTransform = transform
     }
 
-    fun values(vararg values: T, type: String, autoAlias: Boolean = false) {
-        values(values.toSet(), type, autoAlias)
+    fun values(vararg values: T, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
+        values(values.toSet(), type, autoAlias, merge)
     }
 
-    fun values(values: Iterable<T>, type: String, autoAlias: Boolean = false) {
+    fun values(values: Iterable<T>, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { _, valueGroup, displayTransform ->
             values.toSet().forEach {
                 val input = displayTransform(it)
-                valueGroup.addOrUpdate(input, it, input, null, type, autoAlias)
+                valueGroup.addOrUpdate(input, it, input, null, type, autoAlias, merge)
             }
         }
     }
 
-    fun values(mappings: Map<String, T>, type: String, autoAlias: Boolean = false) {
+    fun values(mappings: Map<String, T>, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { _, values, displayTransform ->
             mappings.forEach { (input, value) ->
                 val display = displayTransform(value)
-                values.addOrUpdate(input, value, display, null, type, autoAlias)
+                values.addOrUpdate(input, value, display, null, type, autoAlias, merge)
             }
         }
     }
 
-    fun valuesWithOperator(mappings: Map<String, Pair<T, SearchQueryOperator?>>, type: String, autoAlias: Boolean = false) {
+    fun valuesWithOperator(mappings: Map<String, Pair<T, SearchQueryOperator?>>, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { _, values, displayTransform ->
             mappings.forEach { (input, value) ->
                 val display = displayTransform(value.first)
-                values.addOrUpdate(input, value.first, display, value.second, type, autoAlias)
+                values.addOrUpdate(input, value.first, display, value.second, type, autoAlias, merge)
             }
         }
     }
 
-    fun values(provider: (Connection) -> Map<String, T>, type: String, autoAlias: Boolean = false) {
+    fun values(provider: (Connection) -> Map<String, T>, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { connection, values, displayTransform ->
             val mappings = provider(connection)
             mappings.forEach { (input, value) ->
                 val display = displayTransform(value)
-                values.addOrUpdate(input, value, display, null, type, autoAlias)
+                values.addOrUpdate(input, value, display, null, type, autoAlias, merge)
             }
         }
     }
 
-    fun <V> values(provider: (Connection) -> Map<String, V>, transform: (V) -> T, type: String, autoAlias: Boolean = false) {
+    fun <V> values(provider: (Connection) -> Map<String, V>, transform: (V) -> T, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { connection, values, displayTransform ->
             val mappings = provider(connection)
             mappings.forEach { (input, value) ->
                 val transformedValue = transform(value)
                 val display = displayTransform(transformedValue)
-                values.addOrUpdate(input, transformedValue, display, null, type, autoAlias)
+                values.addOrUpdate(input, transformedValue, display, null, type, autoAlias, merge)
             }
         }
     }
 
-    fun values(entry: ProviderEntry<T>, autoAlias: Boolean = false) {
+    fun values(entry: ProviderEntry<T>, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { connection, values, displayTransform ->
             val mappings = entry.provider(connection)
             mappings.forEach { (input, value) ->
                 val display = displayTransform(value)
-                values.addOrUpdate(input, value, display, null, entry.type, autoAlias)
+                values.addOrUpdate(input, value, display, null, entry.type, autoAlias, merge)
             }
         }
     }

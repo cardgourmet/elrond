@@ -274,25 +274,25 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("date", "releasedate", "startreleasedate") {
         date(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_DATE) {
-            values(getSetStartReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
+            values(getSetStartReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code", merge = false)
         }
     }
 
     filter("year", "releaseyear", "startreleaseyear") {
         year(PcgSet::releaseStartDate, pcgPropertyKeys.START_RELEASE_YEAR) {
-            values(getSetStartReleaseDates, { it.year }, "set_code")
+            values(getSetStartReleaseDates, { it.year }, "set_code", merge = false)
         }
     }
 
     filter("enddate", "endreleasedate") {
         date(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_DATE) {
-            values(getSetEndReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code")
+            values(getSetEndReleaseDates, { it.format(DateTimeFormatter.ISO_DATE) }, "set_code", merge = false)
         }
     }
 
     filter("endyear", "endreleaseyear") {
         year(PcgSet::releaseEndDate, pcgPropertyKeys.END_RELEASE_YEAR) {
-            values(getSetEndReleaseDates, { it.year }, "set_code")
+            values(getSetEndReleaseDates, { it.year }, "set_code", merge = false)
         }
     }
 
