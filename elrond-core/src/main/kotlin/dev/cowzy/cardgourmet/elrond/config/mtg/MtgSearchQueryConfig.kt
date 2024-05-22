@@ -503,14 +503,14 @@ private val tableDependencies = mapOf(
     }
 )
 
-private val materializedViewMappings: MaterializedViewMappings = mapOf(
-    MtgPrint::class to "mtg.print_view.prints_",
-    MtgPrintFace::class to "mtg.print_view.print_faces_",
-    MtgPrintFaceTranslation::class to "mtg.print_view.print_face_translations_",
-    MtgCard::class to "mtg.print_view.cards_",
-    MtgCardFace::class to "mtg.print_view.card_faces_",
-    MtgCardFaceTranslation::class to "mtg.print_view.card_face_translations_",
-)
+//private val materializedViewMappings: MaterializedViewMappings = mapOf(
+//    MtgPrint::class to "mtg.print_view.prints_",
+//    MtgPrintFace::class to "mtg.print_view.print_faces_",
+//    MtgPrintFaceTranslation::class to "mtg.print_view.print_face_translations_",
+//    MtgCard::class to "mtg.print_view.cards_",
+//    MtgCardFace::class to "mtg.print_view.card_faces_",
+//    MtgCardFaceTranslation::class to "mtg.print_view.card_face_translations_",
+//)
 
 val mtgBasicSearchQueryConfig = SearchQueryConfig(
     table = MtgPrint::class,
@@ -518,5 +518,5 @@ val mtgBasicSearchQueryConfig = SearchQueryConfig(
     faceIndexColumn = MtgCardFace::index,
     languageColumns = arrayOf(MtgPrintFaceTranslation::language, MtgCardFaceTranslation::language),
     tableDependencies = tableDependencies,
-    materializedView = MaterializedViewConfig("mtg.print_view", materializedViewMappings)
+//    materializedView = MaterializedViewConfig("mtg.print_view", materializedViewMappings)
 )
