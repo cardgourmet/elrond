@@ -44,12 +44,13 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         val aliases = mutableSetOf<String>()
 
         if (autoAlias) {
-            aliases.add(input.replace(Regex("\\P{L}"), ""))
-            aliases.add(valueDisplay.replace(Regex("\\P{L}"), ""))
+            aliases.add(input.replace(Regex("\\P{L}"), "").lowercase())
+            aliases.add(valueDisplay.replace(Regex("\\P{L}"), "").lowercase())
         }
 
-        aliases.remove(input)
-        aliases.remove(valueDisplay)
+        aliases.removeIf {
+            it.equals(input, true) || it.equals(valueDisplay, true)
+        }
 
         val providedValue = ProvidedValue(
             input = input,
@@ -68,7 +69,9 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
                 existingValue.aliases.add(input)
             }
 
-            existingValue.aliases.addAll(providedValue.aliases)
+            existingValue.aliases.addAll(providedValue.aliases.filter { alias ->
+                !existingValue.aliases.any { it.equals(alias, true) }
+            })
             return
         }
 

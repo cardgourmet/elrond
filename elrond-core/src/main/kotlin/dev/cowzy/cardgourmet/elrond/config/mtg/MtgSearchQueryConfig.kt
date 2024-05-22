@@ -91,7 +91,7 @@ private val getNames = { connection: Connection ->
 private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
     enumValues<MtgManaType>(
         "color",
-        findKeywords = { listOf(it.symbol) },
+        findKeywords = { listOf(it.symbol.lowercase()) },
         transform = { listOf(ConcreteManaValue(it)) }
     )
 
