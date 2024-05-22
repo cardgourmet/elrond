@@ -4,12 +4,9 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.tokenizer.tokenizeToQuery
 import dev.cowzy.kuery.Order
-import dev.cowzy.kuery.expression.SqlExpression
 import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.innerJoin
-import dev.cowzy.kuery.reflection.table
-import dev.cowzy.kuery.reflection.tableName
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.*

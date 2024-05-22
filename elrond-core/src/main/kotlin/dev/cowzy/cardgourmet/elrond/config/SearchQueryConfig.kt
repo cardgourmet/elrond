@@ -23,7 +23,7 @@ data class MaterializedViewConfig(
             sql = sql.replace("${table.tableName()}.", value)
         }
 
-        sql.replace(table.tableName(), this.reference)
+        sql = sql.replace(table.tableName(), this.reference)
 
         return SqlExpression(sql, expression.fill)
     }
