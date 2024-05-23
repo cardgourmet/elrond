@@ -1,6 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.config.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
@@ -60,7 +61,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("ink", "inktype", "i", "color", "c", "id", "identity") {
         numeric(DlcCard::cost, dlcPropertyKeys.COST)
-        enum(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
+        enum<DlcInkType>(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
     }
 
     filter("strength", "power", "pow", "str") {
@@ -80,13 +81,13 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(DlcPrintTranslation::language, AvailableInDescriptor(propertyKeys.PRINT), "print_language", display = { value, i18n, locale ->
+        enum<DlcLanguage>(DlcPrintTranslation::language, AvailableInDescriptor(propertyKeys.PRINT), "print_language", display = { value, i18n, locale ->
             i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
         })
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(DlcCardTranslation::language, AvailableInDescriptor(propertyKeys.CARD), "card_language", display = { value, i18n, locale ->
+        enum<DlcLanguage>(DlcCardTranslation::language, AvailableInDescriptor(propertyKeys.CARD), "card_language", display = { value, i18n, locale ->
             i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
         })
     }

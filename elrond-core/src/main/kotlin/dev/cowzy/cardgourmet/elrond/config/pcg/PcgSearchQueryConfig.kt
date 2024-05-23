@@ -7,6 +7,7 @@ import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgEra
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetTranslation
+import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
@@ -62,7 +63,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
 
     filter("rarity") {
         numeric(PcgPrint::rarityValue, propertyKeys.RARITY)
-        enum(PcgPrint::rarity, propertyKeys.RARITY) { it.keys }
+        enum<PcgRarity>(PcgPrint::rarity, propertyKeys.RARITY) { it.keys }
     }
 
     filter("mark", "regulationmark") {
@@ -79,7 +80,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum(
+        enum<PcgLanguage>(
             PcgPrintTranslation::language,
             AvailableInDescriptor(propertyKeys.PRINT),
             "print_language",
@@ -91,7 +92,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("cardlang", "cardlanguage") {
-        enum(
+        enum<PcgLanguage>(
             PcgCardTranslation::language,
             AvailableInDescriptor(propertyKeys.PRINT),
             "card_language",
@@ -120,7 +121,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("type", "t") {
-        enum(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
+        enum<PcgCardSuperType>(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
         stringArray(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE) {
             strict(true)
             autoArrayValues(PcgCard::subTypes, "subtype", true)
@@ -129,7 +130,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("supertype") {
-        enum(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
+        enum<PcgCardSuperType>(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
     }
 
     filter("types", "energy", "energies", "energytypes", "color", "c", "colors") {
@@ -144,7 +145,7 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     }
 
     filter("stage", "evolution", "evolutionstage") {
-        enum(PcgCard::evolutionStage, pcgPropertyKeys.EVOLUTION_STAGE)
+        enum<PcgEvolutionStage>(PcgCard::evolutionStage, pcgPropertyKeys.EVOLUTION_STAGE)
     }
 
     filter("evolves", "evolvesfrom") {
@@ -263,10 +264,10 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
         string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues(PcgSet::setCode) }
     }
 
-    filter("settype") { enum(PcgSet::type, propertyKeys.SET_TYPE) }
+    filter("settype") { enum<PcgSetType>(PcgSet::type, propertyKeys.SET_TYPE) }
 
     filter("region", "setregion") {
-        enum(PcgSet::region, pcgPropertyKeys.REGION) { it.aliases }
+        enum<PcgRegion>(PcgSet::region, pcgPropertyKeys.REGION) { it.aliases }
     }
 
     filter("setprints", "publicsetprints") { numeric(PcgSet::printedPublicly, pcgPropertyKeys.PUBLIC_PRINT_COUNT) }
