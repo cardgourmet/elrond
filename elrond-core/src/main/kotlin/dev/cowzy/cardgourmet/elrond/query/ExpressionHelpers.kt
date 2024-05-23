@@ -213,13 +213,19 @@ private suspend fun QueryToken.parseQueryExpression(
 private fun QueryExpression.flattenExpressions(): List<QueryExpression> {
     if (this !is QueryExpressionGroup) return listOf(this)
 
-    val expressions = this.children.map { it.flattenExpressions() }.flatten()
+    val expressions = this.children.map { it.flattenExpressions() }
 
     return when {
-        operator == LogicalOperator.AND && !negate -> expressions
-        operator == LogicalOperator.OR && negate -> expressions.map { it.apply { negate = !negate } }
+        operator == LogicalOperator.AND && !negate -> expressions.flatten()
+        operator == LogicalOperator.OR && negate -> expressions.flatten().map { it.apply { negate = !negate } }
         else -> listOf(QueryExpressionGroup(
-            expressions,
+            expressions.mapNotNull {
+                when (it.size) {
+                    0 -> null
+                    1 -> it.single()
+                    else -> QueryExpressionGroup(it, LogicalOperator.AND, false)
+                }
+            },
             operator,
             negate
         ))

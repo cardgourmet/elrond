@@ -47,8 +47,7 @@ fun List<Token>.toQueryTokens(strict: Boolean): List<QueryToken> {
 
                 orRegex.matches(token.value) -> {
                     tokens.poll()
-                    val group =
-                        (parsedTokens.toGroup() + tokens.toQueryTokens(strict)).toGroup(LogicalOperator.OR, negateNext)
+                    val group = (parsedTokens.toGroup() + tokens.toQueryTokens(strict)).toGroup(LogicalOperator.OR, negateNext)
                     return listOf(group)
                 }
 

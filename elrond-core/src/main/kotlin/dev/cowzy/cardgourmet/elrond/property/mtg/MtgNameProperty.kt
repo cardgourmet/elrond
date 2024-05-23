@@ -15,7 +15,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     descriptor = StringDescriptor(Strings.Query.Property.NAME)
 ) {
 
-    private val alias = createSqlAlias()
+//    private val alias = createSqlAlias()
 
     override val valueDefinition = QueryValueDefinition<QueryValue<*>> {
         StringValue::class {
@@ -54,9 +54,9 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         when (value) {
             is StringValue -> {
                 val nameColumn = when {
-                    value.exact && operator == SearchQueryOperator.CONTAINS -> "$alias.name"
-                    value.exact -> "UPPER($alias.name)"
-                    else -> "$alias.simple_name"
+                    value.exact && operator == SearchQueryOperator.CONTAINS -> "mtg.search_names.name"
+                    value.exact -> "UPPER(mtg.search_names.name)"
+                    else -> "mtg.search_names.simple_name"
                 }
 
                 when (operator) {
@@ -68,7 +68,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
 
             is RegexValue -> {
                 val pattern = value.value.pattern
-                innerBuilder.where("$alias.name", "~*", value = pattern)
+                innerBuilder.where("mtg.search_names.name", "~*", value = pattern)
             }
 
             else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")
