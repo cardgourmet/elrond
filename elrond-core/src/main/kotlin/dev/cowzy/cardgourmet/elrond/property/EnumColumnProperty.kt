@@ -6,7 +6,6 @@ import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
-import dev.cowzy.kuery.reflection.DatabaseReflectionCache.determineTransformer
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaField
