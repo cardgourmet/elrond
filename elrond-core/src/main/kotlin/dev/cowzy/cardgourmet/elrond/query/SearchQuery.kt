@@ -123,14 +123,58 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
             if (expression.children.isEmpty()) return
 
             val applyChildren: suspend (ConcreteWhereQueryBuilder) -> Unit = { builder ->
-                if (expression.operator == LogicalOperator.AND) {
-                    expression.children.map { child ->
-                        builder.whereSuspend { it.applyExpression(inColumns, child, distinctBy) }
+                val valueExpressions = expression.children.filterIsInstance<ValueLeafQueryExpression>().toSet()
+                val valueExpressionsByProperty = valueExpressions.groupBy { it.property to it.negate }
+
+                valueExpressionsByProperty.forEach { (key, children) ->
+                    val (property, negate) = key
+
+                    if (children.size > 1) {
+                        val conditions = children.map { it.operator to it.value }
+
+                        if (expression.operator == LogicalOperator.AND && property.handleJoinedAnd) {
+                            when (negate) {
+                                true -> builder.whereNotSuspend { property.applyMultipleConditions(builder, LogicalOperator.AND, conditions) }
+                                false -> builder.whereSuspend { property.applyMultipleConditions(builder, LogicalOperator.AND, conditions) }
+                            }
+                            return@forEach
+                        } else if (expression.operator == LogicalOperator.OR && property.handleJoinedOr) {
+                            when (negate) {
+                                true -> builder.orWhereNotSuspend { property.applyMultipleConditions(builder, LogicalOperator.OR, conditions) }
+                                false -> builder.orWhereSuspend { property.applyMultipleConditions(builder, LogicalOperator.OR, conditions) }
+                            }
+                            return@forEach
+                        }
                     }
-                } else {
-                    expression.children.map { child ->
-                        builder.orWhereSuspend { it.applyExpression(inColumns, child, distinctBy) }
+
+                    children.forEach { child ->
+                        if (expression.operator == LogicalOperator.AND) {
+                            builder.whereSuspend { it.applyExpression(inColumns, child, distinctBy) }
+                        } else {
+                            builder.orWhereSuspend { it.applyExpression(inColumns, child, distinctBy) }
+                        }
                     }
+                }
+
+                val otherExpressions = expression.children - valueExpressions
+
+                otherExpressions.forEach { filter ->
+                    if (expression.operator == LogicalOperator.AND) {
+                        builder.whereSuspend { it.applyExpression(inColumns, filter, distinctBy) }
+                    } else {
+                        builder.orWhereSuspend { it.applyExpression(inColumns, filter, distinctBy) }
+                    }
+                }
+            }
+
+//                if (expression.operator == LogicalOperator.AND) {
+//                    expression.children.map { child ->
+//                        builder.whereSuspend { it.applyExpression(inColumns, child, distinctBy) }
+//                    }
+//                } else {
+//                    expression.children.map { child ->
+//                        builder.orWhereSuspend { it.applyExpression(inColumns, child, distinctBy) }
+//                    }
 
 //                    val builders = expression.children.map { child ->
 //                        baseBuilder.clone().whereSuspend { it.applyExpression(baseBuilder, inColumns, child, distinctBy) }
@@ -147,8 +191,8 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 //                    }
 //
 //                    builder.whereInRaw("(${inColumns.joinToString { it.columnName() }})", "(${query.sql})", query.fill)
-                }
-            }
+//                }
+//            }
 
             if (expression.negate) {
                 this.whereNotSuspend(applyChildren)
