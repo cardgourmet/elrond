@@ -37,100 +37,61 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         }
     }
 
-    override fun applyProperty(builder: SelectQueryBuilder) {
-        builder.joinRaw("INNER JOIN mtg.search_names AS $alias ON $alias.id = ${MtgCardFaceTranslation::id.columnName()}")
-        builder.orderBy("$alias.priority")
-    }
+//    override fun applyProperty(builder: SelectQueryBuilder) {
+//        builder.joinRaw("INNER JOIN mtg.search_names AS $alias ON $alias.id = ${MtgCardFaceTranslation::id.columnName()}")
+//        builder.orderBy("$alias.priority")
+//    }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
         value: QueryValue<*>
     ) {
-        if (value is StringValue) {
-            val nameColumn = when {
-                value.exact && operator == SearchQueryOperator.CONTAINS -> "$alias.name"
-                value.exact -> "UPPER($alias.name)"
-                else -> "$alias.simple_name"
+        val innerBuilder = QueryBuilder.selectBuilder("mtg.search_names")
+            .select("id")
+            .orderBy("mtg.search_names.priority")
+
+        when (value) {
+            is StringValue -> {
+                val nameColumn = when {
+                    value.exact && operator == SearchQueryOperator.CONTAINS -> "$alias.name"
+                    value.exact -> "UPPER($alias.name)"
+                    else -> "$alias.simple_name"
+                }
+
+                when (operator) {
+                    SearchQueryOperator.EQUALS -> innerBuilder.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
+                    SearchQueryOperator.CONTAINS -> innerBuilder.where(nameColumn, "ILIKE", value = "%${value.value}%")
+                    else -> throw IllegalStateException("Unsupported operator: $operator")
+                }
             }
 
-            when (operator) {
-                SearchQueryOperator.EQUALS -> builder.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
-                SearchQueryOperator.CONTAINS -> builder.where(nameColumn, "ILIKE", value = "%${value.value}%")
-                else -> throw IllegalStateException("Unsupported operator: $operator")
+            is RegexValue -> {
+                val pattern = value.value.pattern
+                innerBuilder.where("$alias.name", "~*", value = pattern)
             }
 
-//            val nameBuilder = MtgCardFaceTranslation::class.selectBuilder()
-//                .selectAs(MtgPrintFace::id, "print_face_id")
-//                .selectAs(MtgCardFaceTranslation::language, "language")
-//                .innerJoin(MtgPrintFace::class) { it.whereColumn(MtgPrintFace::cardFaceId, MtgCardFaceTranslation::cardFaceId) }
-//                .where { query ->
-//                    val nameColumn = when {
-//                        value.exact && operator == SearchQueryOperator.CONTAINS -> MtgCardFaceTranslation::name.columnName()
-//                        value.exact -> "UPPER(${MtgCardFaceTranslation::name.columnName()})"
-//                        else -> MtgCardFaceTranslation::simpleName.columnName()
-//                    }
-//
-//                    when (operator) {
-//                        SearchQueryOperator.EQUALS -> query.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
-//                        SearchQueryOperator.CONTAINS -> query.where(nameColumn, "ILIKE", value = "%${value.value}%")
-//                        else -> throw IllegalStateException("Unsupported operator: $operator")
-//                    }
-//                }
-//
-//            val cardNameBuilder = MtgCard::class.selectBuilder()
-//                .selectAs(MtgPrintFace::id, "print_face_id")
-//                .selectRaw("'en' AS language")
-//                .innerJoin(MtgCardFace::class) { it.whereColumn(MtgCardFace::cardId, MtgCard::id) }
-//                .innerJoin(MtgPrintFace::class) { it.whereColumn(MtgPrintFace::cardFaceId, MtgCardFace::id) }
-//                .where { query ->
-//                    val nameColumn = when {
-//                        operator == SearchQueryOperator.CONTAINS -> MtgCard::name.columnName()
-//                        else -> "UPPER(${MtgCard::name.columnName()})"
-//                    }
-//
-//                    when (operator) {
-//                        SearchQueryOperator.EQUALS -> query.where(nameColumn, "=", value = value.value.uppercase())
-//                        SearchQueryOperator.CONTAINS -> query.where(nameColumn, "ILIKE", value = "%${value.value}%")
-//                        else -> throw IllegalStateException("Unsupported operator: $operator")
-//                    }
-//                }
-//
-//            val flavorNameBuilder = MtgPrintFaceTranslation::class.selectBuilder()
-//                .selectAs(MtgPrintFaceTranslation::printFaceId, "print_face_id")
-//                .selectAs(MtgPrintFaceTranslation::language, "language")
-//                .where { query ->
-//                    val flavorNameColumn = when {
-//                        value.exact && operator == SearchQueryOperator.CONTAINS -> MtgPrintFaceTranslation::flavorName.columnName()
-//                        value.exact -> "UPPER(${MtgPrintFaceTranslation::flavorName.columnName()})"
-//                        else -> MtgPrintFaceTranslation::simpleFlavorName.columnName()
-//                    }
-//
-//                    query.whereNotNull(if (value.exact) MtgPrintFaceTranslation::flavorName else MtgPrintFaceTranslation::simpleFlavorName)
-//
-//                    when (operator) {
-//                        SearchQueryOperator.EQUALS -> query.where(flavorNameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
-//                        SearchQueryOperator.CONTAINS -> query.where(flavorNameColumn, "ILIKE", value = "%${value.value}%")
-//                        else -> throw IllegalStateException("Unsupported operator: $operator")
-//                    }
-//                }
-//
-//            val query = nameBuilder.union(cardNameBuilder).union(flavorNameBuilder).toSqlExpression()
-//
-//            builder.whereInRaw(
-//                "(${MtgPrintFace::id.columnName()}, ${MtgCardFaceTranslation::language.columnName()})",
-//                "(${query.sql})",
-//                query.fill
-//            )
-        } else if (value is RegexValue) {
-            val pattern = value.value.pattern
-            builder.where("$alias.name", "~*", value = pattern)
-
-//            builder.where { inner ->
-//                inner.where { it.where(MtgCard::name, "~*", value = pattern) }
-//                inner.orWhere(MtgCardFaceTranslation::name, "~*", value = pattern)
-//            }
+            else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")
         }
+
+        builder.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
+
+//        if (value is StringValue) {
+//            val nameColumn = when {
+//                value.exact && operator == SearchQueryOperator.CONTAINS -> "$alias.name"
+//                value.exact -> "UPPER($alias.name)"
+//                else -> "$alias.simple_name"
+//            }
+//
+//            when (operator) {
+//                SearchQueryOperator.EQUALS -> builder.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
+//                SearchQueryOperator.CONTAINS -> builder.where(nameColumn, "ILIKE", value = "%${value.value}%")
+//                else -> throw IllegalStateException("Unsupported operator: $operator")
+//            }
+//        } else if (value is RegexValue) {
+//            val pattern = value.value.pattern
+//            builder.where("$alias.name", "~*", value = pattern)
+//        }
     }
 
 }
