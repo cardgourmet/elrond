@@ -6,8 +6,10 @@ import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.kuery.reflection.DatabaseReflectionCache.determineTransformer
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.javaField
 
 class EnumColumnProperty<ValueType : Enum<ValueType>>(
     private val column: KProperty1<*, *>,
@@ -30,7 +32,11 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
         operator: SearchQueryOperator,
         value: ValueType
     ) {
-        builder.where(column, value)
+        if (column.javaField!!.type.isEnum) {
+            builder.where(column, value)
+        } else {
+            builder.where(column, value.getSerialName())
+        }
     }
 
 }
