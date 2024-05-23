@@ -16,8 +16,6 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     descriptor = StringDescriptor(Strings.Query.Property.NAME)
 ) {
 
-//    private val alias = createSqlAlias()
-
     init {
         handleJoinedAnd = true
         handleJoinedOr = true
@@ -43,11 +41,6 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         }
     }
 
-//    override fun applyProperty(builder: SelectQueryBuilder) {
-//        builder.joinRaw("INNER JOIN mtg.search_names AS $alias ON $alias.id = ${MtgCardFaceTranslation::id.columnName()}")
-//        builder.orderBy("$alias.priority")
-//    }
-
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
@@ -55,49 +48,10 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     ) {
         val innerBuilder = QueryBuilder.selectBuilder("mtg.search_names")
             .select("id")
+            .apply(operator, value)
             .orderBy("mtg.search_names.priority")
 
-        when (value) {
-            is StringValue -> {
-                val nameColumn = when {
-                    value.exact && operator == SearchQueryOperator.CONTAINS -> "mtg.search_names.name"
-                    value.exact -> "UPPER(mtg.search_names.name)"
-                    else -> "mtg.search_names.simple_name"
-                }
-
-                when (operator) {
-                    SearchQueryOperator.EQUALS -> innerBuilder.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
-                    SearchQueryOperator.CONTAINS -> innerBuilder.where(nameColumn, "ILIKE", value = "%${value.value}%")
-                    else -> throw IllegalStateException("Unsupported operator: $operator")
-                }
-            }
-
-            is RegexValue -> {
-                val pattern = value.value.pattern
-                innerBuilder.where("mtg.search_names.name", "~*", value = pattern)
-            }
-
-            else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")
-        }
-
         builder.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
-
-//        if (value is StringValue) {
-//            val nameColumn = when {
-//                value.exact && operator == SearchQueryOperator.CONTAINS -> "$alias.name"
-//                value.exact -> "UPPER($alias.name)"
-//                else -> "$alias.simple_name"
-//            }
-//
-//            when (operator) {
-//                SearchQueryOperator.EQUALS -> builder.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
-//                SearchQueryOperator.CONTAINS -> builder.where(nameColumn, "ILIKE", value = "%${value.value}%")
-//                else -> throw IllegalStateException("Unsupported operator: $operator")
-//            }
-//        } else if (value is RegexValue) {
-//            val pattern = value.value.pattern
-//            builder.where("$alias.name", "~*", value = pattern)
-//        }
     }
 
     private fun <T : WhereQueryBuilder<T>> T.apply(

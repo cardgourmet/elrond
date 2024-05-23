@@ -1,9 +1,9 @@
 package dev.cowzy.cardgourmet.elrond.property
 
-import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.kuery.query.WhereQueryBuilder
 import kotlin.reflect.KClass
 
 abstract class StringSearchQueryProperty(
