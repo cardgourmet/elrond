@@ -280,7 +280,7 @@ class QueryFilterBuilder(
     }
 
     inline fun <reified T : Enum<T>> enum(
-        column: KProperty1<*, T?>,
+        column: KProperty1<*, *>,
         propertyKey: String,
         noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
         noinline aliasResolver: ((T) -> List<String>)? = null,
@@ -288,7 +288,7 @@ class QueryFilterBuilder(
 
     @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Enum<T>> enum(
-        column: KProperty1<*, T?>,
+        column: KProperty1<*, *>,
         descriptor: PropertyDescriptor,
         key: String,
         noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,

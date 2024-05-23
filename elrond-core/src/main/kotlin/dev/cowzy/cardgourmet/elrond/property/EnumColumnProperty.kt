@@ -10,7 +10,7 @@ import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 
 class EnumColumnProperty<ValueType : Enum<ValueType>>(
-    private val column: KProperty1<*, ValueType?>,
+    private val column: KProperty1<*, *>,
     display: ((ValueType, LocalizationService, UserLanguage) -> String)? = null,
     descriptor: PropertyDescriptor,
     key: String,
@@ -35,9 +35,9 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
 
 }
 
-inline fun <reified T : Enum<T>> enumColumnProperty(
-    column: KProperty1<*, T?>,
+fun <T : Enum<T>> enumColumnProperty(
+    column: KProperty1<*, *>,
     descriptor: PropertyDescriptor,
     key: String,
-    noinline display: ((T, LocalizationService, UserLanguage) -> String)? = null,
+    display: ((T, LocalizationService, UserLanguage) -> String)? = null,
 ) = EnumColumnProperty(column, display, descriptor, key)

@@ -3,6 +3,8 @@ package dev.cowzy.cardgourmet.elrond.config.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.*
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
+import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
+import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
@@ -17,6 +19,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.mtg.FormatDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
+import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderBuilder
 import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
@@ -391,12 +394,15 @@ fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("rarity", "r") { property(MtgRarityProperty(valueProviderPool)) }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        property(MtgPrintLanguageProperty(MtgPrint::languages, MtgPrintFaceTranslation::language, valueProviderPool = valueProviderPool))
+        enum<MtgLanguage>(MtgPrintFaceTranslation::language, AvailableInDescriptor(propertyKeys.PRINT), "print_language", display = { value, i18n, locale ->
+            i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${value.getSerialName()}")
+        })
     }
 
-    filter("langs", "languages", "printlangs", "printlanguages") {
-        cardinality(MtgPrint::languages, propertyKeys.LANGUAGE_COUNT)
-        property(MtgPrintLanguagesProperty(MtgPrint::languages, valueProviderPool))
+    filter("cardlang", "cardlanguage") {
+        enum<MtgLanguage>(MtgCardFaceTranslation::language, AvailableInDescriptor(propertyKeys.CARD), "card_language", display = { value, i18n, locale ->
+            i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
+        })
     }
 
     filter("eur") { numeric(MtgPrintPrice::priceEur, propertyKeys.PRICE_EUR) }

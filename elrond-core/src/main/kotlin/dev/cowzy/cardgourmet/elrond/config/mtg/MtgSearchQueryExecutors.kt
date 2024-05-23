@@ -3,8 +3,6 @@ package dev.cowzy.cardgourmet.elrond.config.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
-import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
@@ -15,7 +13,6 @@ import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
-import dev.cowzy.kuery.query.orWhereRaw
 import dev.cowzy.kuery.reflection.columnName
 
 private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
@@ -26,19 +23,9 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
     }
 
     if (!query.flags.contains(MtgSearchQueryFlag.ANY_LANGUAGE)) {
-        builder
-            .where { inner ->
-                if (query.preferredLanguage != "en") {
-                    inner.whereRaw(MtgPrint::languages, "@>", "ARRAY[?]::text[]") { stmt, index ->
-                        stmt.setString(index.getAndIncrement(), query.preferredLanguage)
-                    }
-                }
-
-                inner.orWhereRaw(MtgPrint::languages, "@>", "ARRAY['en']::text[]")
-            }
-            .whereInRaw(MtgCardFaceTranslation::language, "(?, 'en')") { stmt, index ->
-                stmt.setString(index.getAndIncrement(), query.preferredLanguage)
-            }
+        builder.whereInRaw(MtgCardFaceTranslation::language, "(?, 'en')") { stmt, index ->
+            stmt.setString(index.getAndIncrement(), query.preferredLanguage)
+        }
     }
 
     // No need to apply sort for count queries.
