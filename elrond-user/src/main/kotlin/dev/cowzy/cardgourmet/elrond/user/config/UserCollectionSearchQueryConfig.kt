@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.user.config
 
+import dev.cowzy.cardgourmet.commons.Currency
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
@@ -25,7 +26,7 @@ fun SearchQueryConfigBuilder.configureCollectionFilters() {
 
     filter("acquired", "acquiredat") { date(UserCard::acquiredAt, collectionPropertyKeys.ACQUIRED_AT) }
     filter("acquiredprice", "acquiredfor") { numeric(UserCard::acquiredPrice, collectionPropertyKeys.ACQUIRED_PRICE) }
-    filter("acquiredcurrency") { enum(UserCard::acquiredPriceCurrency, collectionPropertyKeys.ACQUIRED_CURRENCY) }
+    filter("acquiredcurrency") { enum<Currency>(UserCard::acquiredPriceCurrency, collectionPropertyKeys.ACQUIRED_CURRENCY) }
     filter("tags", "tag") { stringArray(UserCard::tags, propertyKeys.TAG) }
 
     filter("is:altered") {
