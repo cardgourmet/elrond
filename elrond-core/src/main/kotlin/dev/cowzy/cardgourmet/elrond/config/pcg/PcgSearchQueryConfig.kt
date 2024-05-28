@@ -11,6 +11,7 @@ import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
+import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
@@ -313,7 +314,32 @@ fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     filter("cardid", "card") { uuid(PcgCard::id, propertyKeys.CARD_ID) }
     filter("printid", "print") { uuid(PcgPrint::id, propertyKeys.PRINT_ID) }
 
-    // TODO: is/has/not
+    filter("tag", "tags") {
+        enumArrayAndCardinality(PcgPrint::tags, propertyKeys.TAG_COUNT, propertyKeys.TAG) { it.keys }
+    }
+
+    val applyTagProperties: QueryFilterBuilder.() -> Unit = {
+        enum<PcgRarity>(PcgPrint::rarity, propertyKeys.RARITY) { it.keys }
+        enum<PcgCardSuperType>(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
+        stringArray(PcgCard::subTypes, pcgPropertyKeys.SUBTYPE) {
+            strict(true)
+            autoArrayValues(PcgCard::subTypes, "subtype", true)
+        }
+        enumArray(PcgCard::types, pcgPropertyKeys.ENERGY_TYPE) { it.keys }
+        enum<PcgEvolutionStage>(PcgCard::evolutionStage, pcgPropertyKeys.EVOLUTION_STAGE)
+        enum<PcgRegion>(PcgSet::region, pcgPropertyKeys.REGION) { it.aliases }
+        enumArray(PcgPrint::tags, propertyKeys.TAG) { it.keys }
+    }
+
+    filter("is", "has") {
+        applyTagProperties()
+    }
+
+    filter("not") {
+        inverted(true)
+        applyTagProperties()
+    }
+
     // TODO: new/in
     // TODO: prints/sets (reprints)
 }

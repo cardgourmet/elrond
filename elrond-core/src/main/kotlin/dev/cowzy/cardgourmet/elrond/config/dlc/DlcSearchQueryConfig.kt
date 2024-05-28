@@ -9,6 +9,7 @@ import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
+import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
@@ -231,8 +232,25 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
         uuid(DlcCard::id, propertyKeys.PRINT_ID)
     }
 
+    val applyTagProperties: QueryFilterBuilder.() -> Unit = {
+        enum<DlcInkType>(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
+        string(DlcCard::type, dlcPropertyKeys.TYPE) {
+            strict(true)
+            autoValues(DlcCard::type, autoAlias = true)
+        }
+        stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION)
+    }
+
+    filter("is", "has", "tag", "tags") {
+        applyTagProperties()
+    }
+
+    filter("not") {
+        inverted(true)
+        applyTagProperties()
+    }
+
     // TODO: new/in
-    // TODO: is/has/not
     // TODO: rarity
     // TODO: prints/sets (reprints)
     // TODO: new/in
