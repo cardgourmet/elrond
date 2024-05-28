@@ -1,6 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.property
 
 import dev.cowzy.cardgourmet.commons.getSerialName
+import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
+import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
@@ -11,6 +13,7 @@ import kotlin.reflect.KProperty1
 
 class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     val column: KProperty1<*, List<ValueType>>,
+    display: ((ValueType, LocalizationService, UserLanguage) -> String)? = null,
     descriptor: PropertyDescriptor,
     key: String? = null,
 ) : SearchQueryProperty<ValueType>(
@@ -20,7 +23,9 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
     key = key
 ) {
 
-    override val valueDefinition = QueryValueDefinition<ValueType>()
+    override val valueDefinition = QueryValueDefinition<ValueType> {
+        display { value, i18n, locale -> display?.invoke(value, i18n, locale) ?: "`${value.getSerialName()}`" }
+    }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
@@ -38,4 +43,4 @@ inline fun <reified T : Enum<T>> enumArrayColumnProperty(
     column: KProperty1<*, List<T>>,
     descriptor: PropertyDescriptor,
     key: String,
-) = EnumArrayColumnProperty(column, descriptor, key)
+) = EnumArrayColumnProperty(column, null, descriptor, key)
