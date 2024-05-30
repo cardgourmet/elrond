@@ -105,7 +105,7 @@ private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
 
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("name", "n") {
-        property(MtgNameProperty()) { values(getNames, { StringValue(it) }, "name") }
+        property(MtgNameProperty()) { values(getNames, { StringValue(it, true) }, "name") }
     }
 
     filter("cmc", "mv", "manavalue", "manacost") { numeric(MtgCardFace::manaValue, mtgPropertyKeys.MANA_VALUE) }

@@ -10,7 +10,7 @@ class OpenParenthesisToken(raw: String) : Token(raw)
 
 class CloseParenthesisToken(raw: String) : Token(raw)
 
-class OperatorToken(val value: SearchQueryOperator, raw: String) : Token(raw)
+class OperatorToken(val value: SearchQueryOperator, val negate: Boolean, raw: String) : Token(raw)
 
 sealed class ValueToken(raw: String) : Token(raw)
 

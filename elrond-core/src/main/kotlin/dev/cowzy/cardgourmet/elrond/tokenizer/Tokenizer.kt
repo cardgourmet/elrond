@@ -17,7 +17,7 @@ fun String.tokenize(): List<Token> {
 fun String.nextToken(): Pair<Token, String>? {
     val cleaned = this.trim()
 
-    val regex = Regex("""^(?:(-?\()|(\))|(:|=|>=|>|<=|<)|(\/(?:[^\/\\]|\\.)*\/)|(!?"(?:[^"\\]|\\.)*")|(!?'(?:[^'\\]|\\.)*')|([^\s:=><()]+))""")
+    val regex = Regex("""^(?:(-?\()|(\))|(:|=|>=|≥|>|<=|≤|<|≠)|(\/(?:[^\/\\]|\\.)*\/)|(!?"(?:[^"\\]|\\.)*")|(!?'(?:[^'\\]|\\.)*')|([^\s:=><()]+))""")
     val match = regex.find(cleaned) ?: return null
 
     val groups = match.groupValues
@@ -25,8 +25,12 @@ fun String.nextToken(): Pair<Token, String>? {
         groups[1].isNotEmpty() -> OpenParenthesisToken(groups[1])
         groups[2].isNotEmpty() -> CloseParenthesisToken(groups[2])
         groups[3].isNotEmpty() -> {
-            val operator = SearchQueryOperator.tryParse(groups[3]) ?: throw TokenizerException("Invalid operator: ${groups[3]}")
-            OperatorToken(operator, groups[3])
+            val operator = when {
+                groups[3] == "≠" -> SearchQueryOperator.EQUALS
+                else -> SearchQueryOperator.tryParse(groups[3]) ?: throw TokenizerException("Invalid operator: ${groups[3]}")
+            }
+
+            OperatorToken(operator, groups[3] == "≠", groups[3])
         }
         groups[4].isNotEmpty() -> RegexToken(Regex(groups[4].removeSurrounding("/")), groups[4])
         groups[5].isNotEmpty() -> QuotedStringToken(groups[5].removeExactAndNegateAndQuotes(), groups[5])

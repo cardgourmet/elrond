@@ -114,8 +114,13 @@ fun Queue<Token>.parseFilter(strict: Boolean): QueryFilterToken {
         stringValue = first.raw.removeExactAndNegateAndQuotes()
 
         if (this.peek() is OperatorToken) {
-            val operator = (this.poll() as OperatorToken).value
+            val operatorToken = this.poll() as OperatorToken
+            val operator = operatorToken.value
             val second = this.poll()
+
+            if (operatorToken.negate) {
+                negate = !negate
+            }
 
             if (strict && second is QuotedStringToken && (!second.raw.startsWith("\"") && !second.raw.startsWith("'"))) {
                 throw TokenizerException("Unexpected token: ${second.raw}")
