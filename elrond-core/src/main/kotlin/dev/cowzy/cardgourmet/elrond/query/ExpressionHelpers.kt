@@ -241,15 +241,17 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
 
         val expressions = mutableExpressions.toList()
         for (expression in expressions) {
+            if (expression !is PropertyQueryExpression) continue
+
             val duplicateExpression = expressions
+                .filterIsInstance<PropertyQueryExpression>()
                 .filter { expression != it }
                 .filter { it.negate == expression.negate }
                 .filter { it::class == expression::class }
                 .find {
                     when (it) {
-                        is ValueLeafQueryExpression -> it.property == (expression as ValueLeafQueryExpression).property && it.value == expression.value
-                        is FilterLeafQueryExpression -> it.property == (expression as FilterLeafQueryExpression).property && it.otherProperty == expression.otherProperty
-                        else -> false
+                        is ValueLeafQueryExpression -> it.property.key == (expression as ValueLeafQueryExpression).property.key && it.value == expression.value
+                        is FilterLeafQueryExpression -> it.property.key == (expression as FilterLeafQueryExpression).property.key && it.otherProperty.key == expression.otherProperty.key
                     }
                 }
 
@@ -266,14 +268,14 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
             }
 
             val negatedExpression = expressions
+                .filterIsInstance<PropertyQueryExpression>()
                 .filter { expression != it }
-                .filter { it.negate != expression.negate }
+                .filter { it.negate != expression.negate || it.operator.negated() == expression.operator }
                 .filter { it::class == expression::class }
                 .find {
                     when (it) {
-                        is ValueLeafQueryExpression -> it.property == (expression as ValueLeafQueryExpression).property && it.value == expression.value
-                        is FilterLeafQueryExpression -> it.property == (expression as FilterLeafQueryExpression).property && it.otherProperty == expression.otherProperty
-                        else -> false
+                        is ValueLeafQueryExpression -> it.property.key == (expression as ValueLeafQueryExpression).property.key && it.value == expression.value
+                        is FilterLeafQueryExpression -> it.property.key == (expression as FilterLeafQueryExpression).property.key && it.otherProperty.key == expression.otherProperty.key
                     }
                 }
 
@@ -421,7 +423,7 @@ fun QueryExpression.normalize(): QueryExpression {
 fun QueryExpression.toExpressionString(): String {
     val string = when (this) {
         is BooleanQueryExpression -> ""
-        is ValueLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}$value"
+        is ValueLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
         is FilterLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}"
         is QueryExpressionGroup -> {
             when (this.children.size) {
@@ -431,7 +433,7 @@ fun QueryExpression.toExpressionString(): String {
 
             val operator = when (this.operator) {
                 LogicalOperator.AND -> " "
-                LogicalOperator.OR -> " OR "
+                LogicalOperator.OR -> " or "
             }
 
             "(${this.children.joinToString(operator) { it.toExpressionString() }})"

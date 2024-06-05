@@ -17,7 +17,7 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
 ) {
 
     override val valueDefinition = QueryValueDefinition {
-        display { it, _, _ -> "`${(it as CardCondition).shorthand}`" }
+        formatValue { (it as CardCondition).shorthand }
 
         StringValue::class {
             transform { value ->

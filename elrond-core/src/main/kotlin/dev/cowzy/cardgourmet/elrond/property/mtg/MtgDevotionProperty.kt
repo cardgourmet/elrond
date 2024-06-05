@@ -23,16 +23,14 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<Map<MtgManaType, Int>> {
-        display { value, _, _ ->
+        formatValue { value ->
             val types = value.keys.sortedBy { it.ordinal }
             val targetDevotion = value.values.sum() / value.entries.size
 
-            val displayValue = (0 until targetDevotion).joinToString("") {
+            (0 until targetDevotion).joinToString("") {
                 val content = types.joinToString("/") { type -> type.symbol }
                 "{$content}"
             }
-
-            return@display "`$displayValue`"
         }
 
         StringValue::class {

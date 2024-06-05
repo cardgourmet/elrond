@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond
 
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
@@ -14,13 +15,21 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 
     var provider: ValueProvider<Output>? = null
 
+    var formatValue: (Output) -> String = { it ->
+        when (it) {
+            is Number -> "${if (it.toDouble() % 1.0 == 0.0) it.toInt().toString() else it.toDouble()}"
+            is NumberValue -> "${if (it.value.toDouble() % 1.0 == 0.0) it.value.toInt().toString() else it.value.toDouble()}"
+            is RegexValue -> "/${it.value.pattern.replace("/", "\\/")}/"
+            is StringValue -> if (it.exact) "\"${it.value}\"" else it.value
+            is Enum<*> -> it.getSerialName().lowercase()
+            else -> it.toString()
+        }
+    }
+
     var display: suspend (Output, LocalizationService, UserLanguage) -> String = { it, _, _ ->
         when (it) {
-            is Number -> "`${if (it.toDouble() % 1.0 == 0.0) it.toInt().toString() else it.toDouble()}`"
-            is NumberValue -> "`${if (it.value.toDouble() % 1.0 == 0.0) it.value.toInt().toString() else it.value.toDouble()}`"
-            is RegexValue -> "`${it.value.pattern.replace("/", "\\/")}`"
             is StringValue -> "\"${it.value}\""
-            else -> "`$it`"
+            else -> "`${formatValue(it)}`"
         }
     }
 
@@ -48,6 +57,10 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 
     fun display(transform: suspend (Output, LocalizationService, UserLanguage) -> String) {
         this.display = transform
+    }
+
+    fun formatValue(transform: (Output) -> String) {
+        this.formatValue = transform
     }
 
     operator fun <Value : Any, Input : QueryValue<Value>> KClass<Input>.invoke(init: QueryValueMappingBuilder<Value, Input, Output>.() -> Unit) {

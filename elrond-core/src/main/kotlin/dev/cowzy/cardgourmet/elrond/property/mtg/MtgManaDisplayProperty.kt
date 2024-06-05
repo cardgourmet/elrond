@@ -24,7 +24,7 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<List<ManaDisplay>> {
-        display { displays, _, _ -> "`${displays.joinToString("") { it.toString() }}`" }
+        formatValue { displays -> displays.joinToString("") { it.toString() } }
 
         StringValue::class {
             format = "mtg_mana"

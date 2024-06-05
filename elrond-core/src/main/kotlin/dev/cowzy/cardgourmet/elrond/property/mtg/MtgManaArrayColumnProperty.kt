@@ -23,7 +23,7 @@ class MtgManaArrayColumnProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition<List<ManaValue>> {
-        display { manaTypes, _, _ -> "`${manaTypes.joinToString("") { "{${it.type.symbol}}" }}`" }
+        formatValue { manaTypes -> manaTypes.joinToString("") { "{${it.type.symbol}}" } }
 
         StringValue::class {
             format = "mtg_mana"

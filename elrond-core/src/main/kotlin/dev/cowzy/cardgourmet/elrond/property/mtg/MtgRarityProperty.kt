@@ -19,7 +19,7 @@ class MtgRarityProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition<MtgRarity> {
-        display { rarity, _, _ -> "`${rarity.keywords.first()}`" }
+        formatValue { rarity -> rarity.keywords.first() }
 
         provider("mtg_rarity", valueProviderPool) {
             strict(true)

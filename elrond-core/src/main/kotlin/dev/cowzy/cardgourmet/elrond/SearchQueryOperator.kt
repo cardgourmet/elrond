@@ -31,3 +31,11 @@ fun SearchQueryOperator.toNumericSqlOperator() = when (this) {
     SearchQueryOperator.LESS_THAN_OR_EQUALS -> "<="
     SearchQueryOperator.LESS_THAN -> "<"
 }
+
+fun SearchQueryOperator.negated() = when (this) {
+    SearchQueryOperator.GREATER_THAN_OR_EQUALS -> SearchQueryOperator.LESS_THAN
+    SearchQueryOperator.GREATER_THAN -> SearchQueryOperator.LESS_THAN_OR_EQUALS
+    SearchQueryOperator.LESS_THAN_OR_EQUALS -> SearchQueryOperator.GREATER_THAN
+    SearchQueryOperator.LESS_THAN -> SearchQueryOperator.GREATER_THAN_OR_EQUALS
+    else -> null
+}
