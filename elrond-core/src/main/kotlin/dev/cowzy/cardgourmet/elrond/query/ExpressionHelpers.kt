@@ -421,9 +421,14 @@ fun QueryExpression.normalize(): QueryExpression {
 fun QueryExpression.toExpressionString(): String {
     val string = when (this) {
         is BooleanQueryExpression -> ""
-        is ValueLeafQueryExpression -> "${filter.key}${operator.toNumericSqlOperator()}$value"
-        is FilterLeafQueryExpression -> "${filter.key}${operator.toNumericSqlOperator()}${otherFilter.key}"
+        is ValueLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}$value"
+        is FilterLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}"
         is QueryExpressionGroup -> {
+            when (this.children.size) {
+                1 -> return this.children.single().toExpressionString()
+                0 -> return ""
+            }
+
             val operator = when (this.operator) {
                 LogicalOperator.AND -> " "
                 LogicalOperator.OR -> " OR "
