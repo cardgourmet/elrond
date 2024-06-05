@@ -411,8 +411,8 @@ fun QueryExpression.normalize(): QueryExpression {
     // 2. Value leafs are sorted by the property name, then by the operator, then by the value.
     // 3. Filter leafs are sorted by the property name, then by the operator, then by the other property name.
     // 4. Groups are sorted by the number of children, then by the operator.
-    val sortedValueLeafs = valueLeafs.sortedWith(compareBy({ it.property.key }, { it.operator.ordinal }, { it.value.toString() }))
-    val sortedFilterLeafs = filterLeafs.sortedWith(compareBy({ it.property.key }, { it.operator.ordinal }, { it.otherProperty.key }))
+    val sortedValueLeafs = valueLeafs.sortedWith(compareBy({ it.filter.key }, { it.operator.ordinal }, { it.value.toString() }))
+    val sortedFilterLeafs = filterLeafs.sortedWith(compareBy({ it.filter.key }, { it.operator.ordinal }, { it.otherFilter.key }))
     val sortedGroups = groups.sortedWith(compareBy({ it.children.size }, { it.operator.ordinal }))
 
     return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
