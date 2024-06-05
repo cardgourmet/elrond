@@ -246,7 +246,7 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
             val duplicateExpression = expressions
                 .filterIsInstance<PropertyQueryExpression>()
                 .filter { expression != it }
-                .filter { it.negate == expression.negate }
+                .filter { it.negate == expression.negate && it.operator == expression.operator }
                 .filter { it::class == expression::class }
                 .find {
                     when (it) {
@@ -270,7 +270,7 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
             val negatedExpression = expressions
                 .filterIsInstance<PropertyQueryExpression>()
                 .filter { expression != it }
-                .filter { it.negate != expression.negate || it.operator.negated() == expression.operator }
+                .filter { (it.negate != expression.negate && it.operator == expression.operator) || (it.negate == expression.negate && it.operator.negated() == expression.operator) }
                 .filter { it::class == expression::class }
                 .find {
                     when (it) {
