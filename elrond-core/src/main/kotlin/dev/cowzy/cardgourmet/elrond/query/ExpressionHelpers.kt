@@ -422,22 +422,22 @@ fun QueryExpression.normalize(): QueryExpression {
 
 fun QueryExpression.measureComplexity(): Double {
     val complexity = when (this) {
-        is BooleanQueryExpression -> 0.0
-        is FilterLeafQueryExpression -> 1.0
-        is ValueLeafQueryExpression -> 1.5 // TODO: dynamically multiply by value/operation complexity
+        is BooleanQueryExpression -> SearchQueryComplexity.LOW
+        is FilterLeafQueryExpression -> SearchQueryComplexity.LOW
+        is ValueLeafQueryExpression -> SearchQueryComplexity.LOW * this.property.valueDefinition.complexity(this.value, this.operator)
         is QueryExpressionGroup -> {
             val childrenComplexity = this.children.map { it.measureComplexity() }
             val complexity = childrenComplexity.sum()
 
             when (this.operator) {
                 LogicalOperator.AND -> complexity
-                LogicalOperator.OR -> complexity * 1.5
+                LogicalOperator.OR -> complexity * SearchQueryComplexity.MEDIUM
             }
         }
     }
 
     return when {
-        this.negate -> complexity * 1.5
+        this.negate -> complexity * SearchQueryComplexity.MEDIUM
         else -> complexity
     }
 }

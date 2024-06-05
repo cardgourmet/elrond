@@ -9,6 +9,9 @@ import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgMedium
 import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.elrond.NumberValue
+import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
+import dev.cowzy.cardgourmet.elrond.SearchQueryComplexity
 import dev.cowzy.cardgourmet.elrond.createSqlAlias
 import dev.cowzy.cardgourmet.elrond.property.NumericSearchQueryProperty
 import kotlin.reflect.KProperty1
@@ -23,6 +26,14 @@ abstract class MtgCardCountProperty(
 ) {
 
     private val innerBuilderAlias = createSqlAlias()
+
+    override val valueDefinition = QueryValueDefinition {
+        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
+
+        NumberValue::class {
+            transform { it.value }
+        }
+    }
 
     override fun applyProperty(builder: SelectQueryBuilder) {
         val innerBuilder = MtgPrint::class.selectBuilder()

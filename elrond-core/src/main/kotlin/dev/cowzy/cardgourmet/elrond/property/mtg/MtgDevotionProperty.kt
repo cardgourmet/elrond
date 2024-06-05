@@ -23,6 +23,8 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<Map<MtgManaType, Int>> {
+        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
+
         formatValue { value ->
             val types = value.keys.sortedBy { it.ordinal }
             val targetDevotion = value.values.sum() / value.entries.size

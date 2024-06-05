@@ -1,10 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.property
 
 import dev.cowzy.cardgourmet.commons.toSimpleString
-import dev.cowzy.cardgourmet.elrond.QueryValue
-import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
-import dev.cowzy.cardgourmet.elrond.RegexValue
-import dev.cowzy.cardgourmet.elrond.StringValue
+import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName

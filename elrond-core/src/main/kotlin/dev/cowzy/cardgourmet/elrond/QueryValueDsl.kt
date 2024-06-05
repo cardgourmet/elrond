@@ -33,6 +33,13 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
         }
     }
 
+    var complexity: (Output, SearchQueryOperator) -> Double = { value, operator ->
+        when (value) {
+            is QueryValue<*> -> value.measureComplexity(operator)
+            else -> SearchQueryComplexity.LOW
+        }
+    }
+
     val supportedValueTypes get() = mappings.keys
 
     init {
@@ -61,6 +68,10 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 
     fun formatValue(transform: (Output) -> String) {
         this.formatValue = transform
+    }
+
+    fun complexity(transform: (Output, SearchQueryOperator) -> Double) {
+        this.complexity = transform
     }
 
     operator fun <Value : Any, Input : QueryValue<Value>> KClass<Input>.invoke(init: QueryValueMappingBuilder<Value, Input, Output>.() -> Unit) {

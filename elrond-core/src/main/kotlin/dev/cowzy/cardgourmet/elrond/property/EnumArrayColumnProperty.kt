@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
+import dev.cowzy.cardgourmet.elrond.SearchQueryComplexity
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
@@ -24,6 +25,8 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<ValueType> {
+        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
+
         display { value, i18n, locale -> display?.invoke(value, i18n, locale) ?: "`${value.getSerialName()}`" }
     }
 
