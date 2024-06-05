@@ -349,6 +349,7 @@ class QueryFilterBuilder(
 
     fun build(): QueryFilter {
         return QueryFilter(
+            key = keywords.first(), // TODO: allow overriding the key
             keywords = keywords,
             properties = properties,
             inverted = inverted,

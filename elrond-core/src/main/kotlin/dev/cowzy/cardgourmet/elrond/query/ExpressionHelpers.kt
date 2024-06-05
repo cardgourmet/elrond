@@ -127,6 +127,7 @@ private suspend fun QueryToken.parseQueryExpression(
                         filter,
                         properties.first,
                         operator,
+                        value.value,
                         properties.second,
                         negated,
                         this.toString()
@@ -371,4 +372,66 @@ private fun List<ValueToken>.parseExpressionValues(
             }
         }
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : QueryExpression> T.invert(): T {
+    return when (this) {
+        is BooleanQueryExpression -> BooleanQueryExpression(!this.negate)
+        is QueryExpressionGroup -> QueryExpressionGroup(this.children.map { it.invert() }, this.operator.invert(), !this.negate)
+        is ValueLeafQueryExpression -> ValueLeafQueryExpression(this.filter, this.property, this.operator, this.value, !this.negate, this.rawValue)
+        is FilterLeafQueryExpression -> FilterLeafQueryExpression(this.filter, this.property, this.operator, this.otherFilter, this.otherProperty, !this.negate, this.rawValue)
+        else -> throw IllegalArgumentException("Unsupported expression type: ${this::class.simpleName}")
+    } as T
+}
+
+fun QueryExpression.normalize(): QueryExpression {
+    if (this !is QueryExpressionGroup) return this
+
+    // Normalize the group first by making sure the group is not negated.
+    val group = when {
+        this.negate -> this.invert()
+        else -> this
+    }
+
+    // Normalize the children.
+    val expressions = this.children.map { it.normalize() }
+
+    // Unpack nested groups if they have the same operator.
+    val unpackedChildren = expressions.filterIsInstance<QueryExpressionGroup>().filter { it.operator == group.operator }.flatMap { it.children }
+
+    val groups = expressions.filterIsInstance<QueryExpressionGroup>().filter { it.operator != group.operator } + unpackedChildren.filterIsInstance<QueryExpressionGroup>()
+    val leafs = expressions.filterIsInstance<LeafQueryExpression>() + unpackedChildren.filterIsInstance<LeafQueryExpression>()
+
+    val valueLeafs = leafs.filterIsInstance<ValueLeafQueryExpression>()
+    val filterLeafs = leafs.filterIsInstance<FilterLeafQueryExpression>()
+
+    // Sort hierarchy:
+    // 1. Value leafs first, then filter leafs, then groups.
+    // 2. Value leafs are sorted by the property name, then by the operator, then by the value.
+    // 3. Filter leafs are sorted by the property name, then by the operator, then by the other property name.
+    // 4. Groups are sorted by the number of children, then by the operator.
+    val sortedValueLeafs = valueLeafs.sortedWith(compareBy({ it.property.key }, { it.operator.ordinal }, { it.value.toString() }))
+    val sortedFilterLeafs = filterLeafs.sortedWith(compareBy({ it.property.key }, { it.operator.ordinal }, { it.otherProperty.key }))
+    val sortedGroups = groups.sortedWith(compareBy({ it.children.size }, { it.operator.ordinal }))
+
+    return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
+}
+
+fun QueryExpression.toExpressionString(): String {
+    val string = when (this) {
+        is BooleanQueryExpression -> ""
+        is ValueLeafQueryExpression -> "${filter.key}${operator.toNumericSqlOperator()}$value"
+        is FilterLeafQueryExpression -> "${filter.key}${operator.toNumericSqlOperator()}${otherFilter.key}"
+        is QueryExpressionGroup -> {
+            val operator = when (this.operator) {
+                LogicalOperator.AND -> " "
+                LogicalOperator.OR -> " OR "
+            }
+
+            "(${this.children.joinToString(operator) { it.toExpressionString() }})"
+        }
+    }
+
+    return if (this.negate) "-$string" else string
 }

@@ -14,11 +14,17 @@ sealed class QueryValue<T : Any>(val value: T) {
     }
 }
 
-class RegexValue(value: Regex) : QueryValue<Regex>(value)
+class RegexValue(value: Regex) : QueryValue<Regex>(value) {
+    override fun toString() = "/${value.pattern}/"
+}
 
-class StringValue(value: String, val exact: Boolean = false) : QueryValue<String>(value)
+class StringValue(value: String, val exact: Boolean = false) : QueryValue<String>(value) {
+    override fun toString() = if (exact) "\"${value.lowercase()}\"" else value.lowercase()
+}
 
-class NumberValue(value: Number) : QueryValue<Number>(value)
+class NumberValue(value: Number) : QueryValue<Number>(value) {
+    override fun toString() = value.toString()
+}
 
 class FilterValue(
     value: QueryFilter,

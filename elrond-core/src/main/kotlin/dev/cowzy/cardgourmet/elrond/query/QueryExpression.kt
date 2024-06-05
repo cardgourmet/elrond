@@ -37,12 +37,18 @@ class FilterLeafQueryExpression(
     filter: QueryFilter,
     property: SearchQueryProperty<Any>,
     operator: SearchQueryOperator,
+    val otherFilter: QueryFilter,
     val otherProperty: SearchQueryProperty<Any>,
     negate: Boolean,
     rawValue: String? = null
 ) : PropertyQueryExpression(filter, property, operator, negate, rawValue)
 
 enum class LogicalOperator { AND, OR }
+
+fun LogicalOperator.invert() = when (this) {
+    LogicalOperator.AND -> LogicalOperator.OR
+    LogicalOperator.OR -> LogicalOperator.AND
+}
 
 class QueryExpressionGroup(
     val children: List<QueryExpression>,
