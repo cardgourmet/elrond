@@ -25,8 +25,6 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<ValueType> {
-        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
-
         display { value, i18n, locale -> display?.invoke(value, i18n, locale) ?: "`${value.getSerialName()}`" }
     }
 

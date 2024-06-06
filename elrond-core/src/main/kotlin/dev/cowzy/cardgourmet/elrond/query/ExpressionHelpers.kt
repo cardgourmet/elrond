@@ -420,28 +420,6 @@ fun QueryExpression.normalize(): QueryExpression {
     return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
 }
 
-fun QueryExpression.measureComplexity(): Double {
-    val complexity = when (this) {
-        is BooleanQueryExpression -> SearchQueryComplexity.LOW
-        is FilterLeafQueryExpression -> SearchQueryComplexity.LOW
-        is ValueLeafQueryExpression -> SearchQueryComplexity.LOW * this.property.valueDefinition.complexity(this.value, this.operator)
-        is QueryExpressionGroup -> {
-            val childrenComplexity = this.children.map { it.measureComplexity() }
-            val complexity = childrenComplexity.sum()
-
-            when (this.operator) {
-                LogicalOperator.AND -> complexity
-                LogicalOperator.OR -> complexity * SearchQueryComplexity.MEDIUM
-            }
-        }
-    }
-
-    return when {
-        this.negate -> complexity * SearchQueryComplexity.MEDIUM
-        else -> complexity
-    }
-}
-
 fun QueryExpression.toExpressionString(): String {
     val string = when (this) {
         is BooleanQueryExpression -> ""

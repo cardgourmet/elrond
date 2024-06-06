@@ -23,8 +23,6 @@ class MtgManaArrayColumnProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition<List<ManaValue>> {
-        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
-
         formatValue { manaTypes -> manaTypes.joinToString("") { "{${it.type.symbol}}" } }
 
         StringValue::class {

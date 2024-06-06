@@ -18,8 +18,6 @@ class StringRegexProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition {
-        complexity { _, _ -> SearchQueryComplexity.HIGH }
-
         StringValue::class {
             transform { it.value }
         }

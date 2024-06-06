@@ -28,8 +28,6 @@ abstract class MtgCardCountProperty(
     private val innerBuilderAlias = createSqlAlias()
 
     override val valueDefinition = QueryValueDefinition {
-        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
-
         NumberValue::class {
             transform { it.value }
         }
