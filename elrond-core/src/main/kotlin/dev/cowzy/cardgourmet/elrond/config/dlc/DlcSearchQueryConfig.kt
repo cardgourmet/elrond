@@ -210,9 +210,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("franchise") {
-        string(DlcCard::franchise, dlcPropertyKeys.FRANCHISE) {
-            autoValues(DlcCard::franchise)
-        }
+        uuid(DlcCard::franchiseId, dlcPropertyKeys.FRANCHISE)
     }
 
     filter("is:inkwell") {
