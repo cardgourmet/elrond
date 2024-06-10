@@ -56,7 +56,7 @@ enum class SearchQueryDistinctMode(vararg val keywords: String, val key: String)
     UNIQUE_CARDS(key = Strings.Query.Subject.Cards.KEY),
 
     @SerialName("unique:prints")
-    UNIQUE_PRINTS("++", key = Strings.Query.Subject.Prints.KEY),
+    UNIQUE_PRINTS(key = Strings.Query.Subject.Prints.KEY),
 
     @SerialName("unique:faces")
     UNIQUE_FACES(key = Strings.Query.Subject.Faces.KEY),

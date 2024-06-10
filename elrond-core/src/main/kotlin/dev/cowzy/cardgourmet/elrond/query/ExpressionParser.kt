@@ -105,7 +105,6 @@ fun <T> String.stripValues(values: Iterable<T>, toString: (T) -> Set<String>): P
 
             strippedQuery = strippedQuery.replace(regex, " ")
             strippedValues.add(value)
-            break
         }
     }
 
