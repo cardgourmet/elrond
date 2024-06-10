@@ -1,37 +1,116 @@
 package dev.cowzy.cardgourmet.elrond.query
 
-import dev.cowzy.cardgourmet.commons.getJsonNames
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.*
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryDistinctMode
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.*
+import dev.cowzy.kuery.Order
+import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
+
+data class SearchQuery<T : Enum<T>>(
+    val expression: QueryExpression,
+    val normalizedExpression: QueryExpression,
+    val flags: List<T>,
+    val sorting: Sorting,
+    val distinctMode: SearchQueryDistinctMode,
+    val ignoredExpressions: List<IgnoredQueryValue>,
+    val preferredLanguage: String?,
+)
 
 data class QueryExpressionBuilderResult(
     val expression: QueryExpression = BooleanQueryExpression(true),
     val ignored: List<IgnoredQueryValue> = emptyList()
 )
 
-fun <T : Enum<T>> String.stripFlags(flags: Iterable<T>): Pair<String, Set<T>> {
-    val strippedFlags = mutableListOf<T>()
+@Serializable
+data class IgnoredQueryValue(
+    val value: String,
+    val reason: String,
+    val supportedValues: List<String>? = null
+)
+
+suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
+    query: String,
+    overrideDistinctMode: SearchQueryDistinctMode? = null,
+    overrideFlags: Set<T>? = null,
+    overrideSorting: Sorting? = null,
+    preferredLanguage: String? = null,
+    strict: Boolean = false
+): SearchQuery<T> {
+    val (queryWithoutDistinctMode, distinctMode) = query.stripFlags<SearchQueryDistinctMode> { it.keywords.toSet() + it.getSerialName() }
+    val (queryWithoutFlags, queryFlags) = queryWithoutDistinctMode.stripFlags(flags)
+    val (queryWithoutSorting, sorting) = queryWithoutFlags.stripSorting(sortModes)
+
+    val token = queryWithoutSorting.tokenizeToQuery(strict)
+    val result = token.toQueryExpression(filters, fallbackFilter)
+    val normalizedExpression = result.expression.normalize()
+
+    return SearchQuery(
+        expression = result.expression,
+        normalizedExpression = normalizedExpression,
+        flags = (overrideFlags ?: queryFlags).sortedBy { it.getSerialName() },
+        sorting = overrideSorting ?: sorting ?: fallbackSortMode(normalizedExpression).let { Sorting(it, it.defaultOrder) },
+        distinctMode = overrideDistinctMode ?: distinctMode.firstOrNull() ?: SearchQueryDistinctMode.UNIQUE_CARDS,
+        ignoredExpressions = result.ignored,
+        preferredLanguage = preferredLanguage,
+    )
+}
+
+fun <T : Enum<T>> SearchQueryExecutor<T>.tryTransform(query: SearchQuery<T>, attempt: Int): SearchQuery<T>? {
+    if (attempt <= 0) return query
+    if (attempt >= attemptTransformers.size) return null
+
+    val transformer = attemptTransformers[attempt - 1]
+    return transformer(query)
+}
+
+private fun String.stripSorting(sortModes: List<SortMode>): Pair<String, Sorting?> {
+    val (queryWithoutSortModes, parsedSortModes) = this.stripValues(sortModes) { mode ->
+        mode.keywords.map { "order:$it" }.toSet()
+    }
+
+    val (queryWithoutDirections, parsedDirections) = queryWithoutSortModes.stripValues(Order.values()) {
+        setOf("direction:${it.getSerialName()}", "direction:${it.getSerialName()}ending")
+    }
+
+    val sortMode = parsedSortModes.firstOrNull() ?: return queryWithoutDirections to null
+    val order = parsedDirections.firstOrNull() ?: sortMode.defaultOrder
+    return queryWithoutDirections to Sorting(sortMode, order)
+}
+
+fun <T : Enum<T>> String.stripFlags(
+    flags: Iterable<T>,
+    toString: (T) -> Set<String> = { setOf(it.getSerialName()) }
+) = stripValues(flags.toList(), toString)
+
+inline fun <reified T : Enum<T>> String.stripFlags(
+    noinline toString: (T) -> Set<String> = { setOf(it.getSerialName()) }
+) = this.stripFlags(enumValues<T>().toList(), toString)
+
+fun <T> String.stripValues(values: Array<T>, toString: (T) -> Set<String>) = this.stripValues(values.toList(), toString)
+
+fun <T> String.stripValues(values: Iterable<T>, toString: (T) -> Set<String>): Pair<String, Set<T>> {
+    val strippedValues = mutableSetOf<T>()
     var strippedQuery = this
 
-    flags.forEach { flag ->
-        val names = flag.getJsonNames() + flag.getSerialName()
-        names.forEach inner@{ name ->
-            val regex = Regex("(?<=^|\\s)$name(\\s|\$)", RegexOption.IGNORE_CASE)
-            if (!strippedQuery.contains(regex)) return@inner
+    values.forEach { value ->
+        val stringValues = toString(value)
+        for (stringValue in stringValues) {
+            val regex = Regex("(?<=^|\\s)$stringValue(\\s|\$)", RegexOption.IGNORE_CASE)
+            if (!strippedQuery.contains(regex)) continue
 
             strippedQuery = strippedQuery.replace(regex, " ")
-            strippedFlags.add(flag)
+            strippedValues.add(value)
+            break
         }
     }
 
-    return strippedQuery.trim() to strippedFlags.toSet()
+    return strippedQuery.trim() to strippedValues
 }
-
-inline fun <reified T : Enum<T>> String.stripFlags() = this.stripFlags(enumValues<T>().toList())
 
 suspend fun QueryToken?.toQueryExpression(
     filters: List<QueryFilter>,
@@ -175,7 +254,8 @@ private suspend fun QueryToken.parseQueryExpression(
                     }
 
                     if (matchingProperty == null) {
-                        ignoredValues.add(IgnoredQueryValue(
+                        ignoredValues.add(
+                            IgnoredQueryValue(
                             this.toString(),
                             "unsupported_operator",
                             propertyCandidates.asSequence().map { (prop, _) ->
@@ -183,7 +263,8 @@ private suspend fun QueryToken.parseQueryExpression(
                             }.flatten().distinct().map {
                                 it.value
                             }.sorted().toList()
-                        ))
+                        )
+                        )
                         return@map null
                     }
 
@@ -376,91 +457,3 @@ private fun List<ValueToken>.parseExpressionValues(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun <T : QueryExpression> T.invert(): T {
-    return when (this) {
-        is BooleanQueryExpression -> BooleanQueryExpression(!this.negate)
-        is QueryExpressionGroup -> QueryExpressionGroup(this.children.map { it.invert() }, this.operator.invert(), !this.negate)
-        is ValueLeafQueryExpression -> ValueLeafQueryExpression(this.filter, this.property, this.operator, this.value, !this.negate, this.rawValue)
-        is FilterLeafQueryExpression -> FilterLeafQueryExpression(this.filter, this.property, this.operator, this.otherFilter, this.otherProperty, !this.negate, this.rawValue)
-        else -> throw IllegalArgumentException("Unsupported expression type: ${this::class.simpleName}")
-    } as T
-}
-
-fun QueryExpression.normalize(): QueryExpression {
-    if (this !is QueryExpressionGroup) return this
-
-    // Normalize the group first by making sure the group is not negated.
-    val group = when {
-        this.negate -> this.invert()
-        else -> this
-    }
-
-    // Normalize the children.
-    val expressions = this.children.map { it.normalize() }
-
-    // Unpack nested groups if they have the same operator.
-    val unpackedChildren = expressions.filterIsInstance<QueryExpressionGroup>().filter { it.operator == group.operator }.flatMap { it.children }
-
-    val groups = expressions.filterIsInstance<QueryExpressionGroup>().filter { it.operator != group.operator } + unpackedChildren.filterIsInstance<QueryExpressionGroup>()
-    val leafs = expressions.filterIsInstance<LeafQueryExpression>() + unpackedChildren.filterIsInstance<LeafQueryExpression>()
-
-    val valueLeafs = leafs.filterIsInstance<ValueLeafQueryExpression>()
-    val filterLeafs = leafs.filterIsInstance<FilterLeafQueryExpression>()
-
-    // Sort hierarchy:
-    // 1. Value leafs first, then filter leafs, then groups.
-    // 2. Value leafs are sorted by the property name, then by the operator, then by the value.
-    // 3. Filter leafs are sorted by the property name, then by the operator, then by the other property name.
-    // 4. Groups are sorted by the number of children, then by the operator.
-    val sortedValueLeafs = valueLeafs.sortedWith(compareBy({ it.filter.key }, { it.operator.ordinal }, { it.value.toString() }))
-    val sortedFilterLeafs = filterLeafs.sortedWith(compareBy({ it.filter.key }, { it.operator.ordinal }, { it.otherFilter.key }))
-    val sortedGroups = groups.sortedWith(compareBy({ it.children.size }, { it.operator.ordinal }))
-
-    return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
-}
-
-fun QueryExpression.measureComplexity(): Double {
-    val complexity = when (this) {
-        is BooleanQueryExpression -> SearchQueryComplexity.LOW
-        is FilterLeafQueryExpression -> SearchQueryComplexity.LOW
-        is ValueLeafQueryExpression -> SearchQueryComplexity.LOW * this.property.valueDefinition.complexity(this.value, this.operator)
-        is QueryExpressionGroup -> {
-            val childrenComplexity = this.children.map { it.measureComplexity() }
-            val complexity = childrenComplexity.sum()
-
-            when (this.operator) {
-                LogicalOperator.AND -> complexity
-                LogicalOperator.OR -> complexity * SearchQueryComplexity.MEDIUM
-            }
-        }
-    }
-
-    return when {
-        this.negate -> complexity * SearchQueryComplexity.MEDIUM
-        else -> complexity
-    }
-}
-
-fun QueryExpression.toExpressionString(): String {
-    val string = when (this) {
-        is BooleanQueryExpression -> ""
-        is ValueLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
-        is FilterLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}"
-        is QueryExpressionGroup -> {
-            when (this.children.size) {
-                1 -> return this.children.single().toExpressionString()
-                0 -> return ""
-            }
-
-            val operator = when (this.operator) {
-                LogicalOperator.AND -> " "
-                LogicalOperator.OR -> " or "
-            }
-
-            "(${this.children.joinToString(operator) { it.toExpressionString() }})"
-        }
-    }
-
-    return if (this.negate) "-$string" else string
-}

@@ -22,8 +22,6 @@ class StringArrayColumnProperty(
 ) {
 
     override val valueDefinition = QueryValueDefinition<String> {
-        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
-
         StringValue::class()
     }
 

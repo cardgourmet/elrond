@@ -1,15 +1,14 @@
 package dev.cowzy.cardgourmet.elrond.config.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCard
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
+import dev.cowzy.cardgourmet.elrond.config.*
+import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
@@ -17,15 +16,15 @@ import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
+private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(DlcSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereInRaw(DlcCardTranslation::language, "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
         }
     }
 
-    // No need to apply sort for count queries.
-    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
+    // No need to apply sort for count/random queries.
+    if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     // Always prefer cards with images.
     builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
@@ -58,16 +57,27 @@ fun applyDlcSort(query: SearchQuery<DlcSearchQueryFlag>, builder: SelectQueryBui
 
 fun createDlcBaseBuilder(
     config: SearchQueryConfig,
-    builder: (SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<DlcSearchQueryFlag> {
     return SearchQueryExecutorBuilder<DlcSearchQueryFlag>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*DlcSearchQueryFlag.values())
-        .customTables {
-            when (it.mode) {
+        // TODO: distinct mode unique:art
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_CARDS, DlcCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_FACES, DlcCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINTS, DlcPrint::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINT_FACES, DlcPrint::id)
+        .sortModes(*DlcSortMode.values()) { expression ->
+            when (expression) {
+                is BooleanQueryExpression -> DlcSortMode.RELEASE_DATE
+                else -> DlcSortMode.NAME
+            }
+        }
+        .customTables { _, mode ->
+            when (mode) {
                 SearchQueryMode.SEARCH -> setOf(CardImage::class, DlcSet::class, DlcCardTranslation::class)
-                SearchQueryMode.COUNT -> setOf(DlcCardTranslation::class)
+                else -> setOf(DlcCardTranslation::class)
             }
         }
         .customBuilder(builder)

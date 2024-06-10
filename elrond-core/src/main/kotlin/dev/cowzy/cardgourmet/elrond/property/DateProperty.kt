@@ -20,17 +20,6 @@ class DateProperty(
     private val dateRegex = Regex("^(\\d{4})(?:-(\\d{1,2}))?(?:-(\\d{1,2}))?$")
 
     override val valueDefinition = QueryValueDefinition<String> {
-        complexity { value, _ ->
-            val match = dateRegex.find(value)!!
-            val day = match.groupValues[3].ifEmpty { null }?.toInt()
-            val date = day?.let { LocalDate.parse(value, DateTimeFormatter.ISO_DATE) }
-
-            when {
-                date != null -> SearchQueryComplexity.LOW
-                else -> SearchQueryComplexity.MEDIUM
-            }
-        }
-
         StringValue::class {
             format = "date"
             pattern = dateRegex.pattern

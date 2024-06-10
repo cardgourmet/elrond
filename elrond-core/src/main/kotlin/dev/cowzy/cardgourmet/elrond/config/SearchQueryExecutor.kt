@@ -6,66 +6,22 @@ import dev.cowzy.cardgourmet.elrond.query.*
 import dev.cowzy.cardgourmet.elrond.values.ProvidedValue
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import kotlinx.serialization.Serializable
+import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 data class SearchQueryExecutor<T : Enum<T>>(
     val config: SearchQueryConfig,
     val flags: Set<T>,
+    val sortModes: List<SortMode>,
+    val distinctModes: Map<SearchQueryDistinctMode, KProperty1<*, UUID>>,
+    val fallbackSortMode: (QueryExpression) -> SortMode,
     val filters: List<QueryFilter>,
     var fallbackFilter: QueryFilter?,
     val attemptTransformers: List<SearchQueryTransformer<T>>,
-    val customTables: ((SearchQuery<T>) -> Set<KClass<*>>)?,
-    val customBuilder: ((SearchQuery<T>, SelectQueryBuilder) -> Unit)?
+    val customTables: ((SearchQuery<T>, SearchQueryMode) -> Set<KClass<*>>)?,
+    val customBuilder: ((SearchQuery<T>, SearchQueryMode, SelectQueryBuilder) -> Unit)?
 ) {
-    data class Result<T : Enum<T>>(
-        val builder: SelectQueryBuilder,
-        val executedQuery: SearchQuery<T>,
-        val expressionResult: QueryExpressionBuilderResult
-    )
-
-    suspend fun toQueryBuilder(
-        mode: SearchQueryMode,
-        expression: QueryExpressionBuilderResult,
-        flags: Set<T>,
-        distinctBy: KProperty1<*, *>,
-        sortColumns: List<ElrondSortColumn> = emptyList(),
-        preferredLanguage: String,
-        attempt: Int = 0,
-        applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
-    ): Result<T>? {
-        var searchQuery = SearchQuery(
-            mode = mode,
-            expression = expression.expression,
-            distinctBy = distinctBy,
-            sortColumns = sortColumns,
-            flags = flags,
-            preferredLanguage = preferredLanguage,
-        )
-
-        val attemptTransformer = when (attempt) {
-            0 -> null
-            else -> attemptTransformers.getOrNull(attempt - 1) ?: return null
-        }
-
-        searchQuery = attemptTransformer?.invoke(searchQuery) ?: searchQuery
-
-        return Result(
-            executedQuery = searchQuery,
-            builder = searchQuery.toQueryBuilder(
-                config = config,
-                distinctBy = distinctBy,
-                sortColumns = sortColumns,
-                sqlBuilder = SearchQuerySqlBuilder(
-                    affectedTables = customTables,
-                    apply = customBuilder
-                ),
-                applyCustomConditions = applyCustomConditions,
-            ),
-            expressionResult = expression
-        )
-    }
-
     @Serializable
     data class SearchQueryFilter(
         val keywords: List<String>,
@@ -211,13 +167,21 @@ class SearchQueryExecutorBuilder<T : Enum<T>>(
 ) {
 
     private val flags = mutableSetOf<T>()
+    private val sortModes = mutableListOf<SortMode>()
+    private var fallbackSortMode: (QueryExpression) -> SortMode = { sortModes.first() }
+    private val distinctModes = mutableMapOf<SearchQueryDistinctMode, KProperty1<*, UUID>>()
     private val filters = mutableListOf<QueryFilter>()
     private var fallbackFilter: QueryFilter? = null
     private val attemptTransformers = mutableListOf<SearchQueryTransformer<T>>()
-    private var customTables: ((SearchQuery<T>) -> Set<KClass<*>>)? = null
-    private var customBuilder: ((SearchQuery<T>, SelectQueryBuilder) -> Unit)? = null
+    private var customTables: ((SearchQuery<T>, SearchQueryMode) -> Set<KClass<*>>)? = null
+    private var customBuilder: ((SearchQuery<T>, SearchQueryMode, SelectQueryBuilder) -> Unit)? = null
 
     fun flags(vararg flags: T) = this.apply { this.flags.addAll(flags) }
+
+    fun sortModes(vararg sortModes: SortMode, fallback: (QueryExpression) -> SortMode) = this.apply {
+        this.sortModes.addAll(sortModes)
+        this.fallbackSortMode = fallback
+    }
 
     fun filters(filters: List<QueryFilter>) = this.apply { this.filters.addAll(filters) }
 
@@ -225,26 +189,22 @@ class SearchQueryExecutorBuilder<T : Enum<T>>(
 
     fun transformAttempt(transform: SearchQueryTransformer<T>) = this.apply { this.attemptTransformers.add(transform) }
 
-    fun customTables(builder: (SearchQuery<T>) -> Set<KClass<*>>) = this.apply { this.customTables = builder }
+    fun customTables(builder: (SearchQuery<T>, SearchQueryMode) -> Set<KClass<*>>) = this.apply { this.customTables = builder }
 
-    fun customBuilder(builder: (SearchQuery<T>, SelectQueryBuilder) -> Unit) = this.apply { this.customBuilder = builder }
+    fun customBuilder(builder: (SearchQuery<T>, SearchQueryMode, SelectQueryBuilder) -> Unit) = this.apply { this.customBuilder = builder }
 
-    fun clone() = SearchQueryExecutorBuilder<T>(config).apply {
-        this.flags.addAll(this@SearchQueryExecutorBuilder.flags)
-        this.filters.addAll(this@SearchQueryExecutorBuilder.filters)
-        this.fallbackFilter = this@SearchQueryExecutorBuilder.fallbackFilter
-        this.attemptTransformers.addAll(this@SearchQueryExecutorBuilder.attemptTransformers)
-        this.customTables = this@SearchQueryExecutorBuilder.customTables
-        this.customBuilder = this@SearchQueryExecutorBuilder.customBuilder
-    }
+    fun distinctMode(distinctMode: SearchQueryDistinctMode, property: KProperty1<*, UUID>) = this.apply { this.distinctModes[distinctMode] = property }
 
     fun build() = SearchQueryExecutor(
         config = config,
         flags = flags,
+        sortModes = sortModes,
+        fallbackSortMode = fallbackSortMode,
         filters = filters,
         fallbackFilter = fallbackFilter,
         attemptTransformers = attemptTransformers,
         customTables = customTables,
-        customBuilder = customBuilder
+        customBuilder = customBuilder,
+        distinctModes = distinctModes
     )
 }

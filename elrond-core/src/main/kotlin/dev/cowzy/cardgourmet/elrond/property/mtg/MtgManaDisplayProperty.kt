@@ -24,8 +24,6 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
 ) {
 
     override val valueDefinition = QueryValueDefinition<List<ManaDisplay>> {
-        complexity { _, _ -> SearchQueryComplexity.MEDIUM }
-
         formatValue { displays -> displays.joinToString("") { it.toString() } }
 
         StringValue::class {

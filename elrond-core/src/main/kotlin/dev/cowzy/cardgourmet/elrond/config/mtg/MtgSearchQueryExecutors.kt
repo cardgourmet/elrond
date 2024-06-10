@@ -4,10 +4,8 @@ import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
+import dev.cowzy.cardgourmet.elrond.config.*
+import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
@@ -15,7 +13,7 @@ import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
+private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     val preferMode = query.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgSearchQueryFlag.INCLUDE_EXTRAS)) {
@@ -28,8 +26,8 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
         }
     }
 
-    // No need to apply sort for count queries.
-    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
+    // No need to apply sort for count/random queries.
+    if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     applyMtgSortPreLanguage(builder, preferMode)
 
@@ -92,20 +90,35 @@ fun applyMtgSortPostLanguage(query: SearchQuery<MtgSearchQueryFlag>, builder: Se
 
 fun createMtgBaseBuilder(
     config: SearchQueryConfig,
-    builder: (SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<MtgSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<MtgSearchQueryFlag> {
     return SearchQueryExecutorBuilder<MtgSearchQueryFlag>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*MtgSearchQueryFlag.values())
-        .customTables {
-            if (it.mode == SearchQueryMode.COUNT) return@customTables setOf(MtgCardFaceTranslation::class)
+        // TODO: distinct mode unique:art
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_CARDS, MtgCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_FACES, MtgCardFace::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINTS, MtgPrint::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINT_FACES, MtgPrintFace::id)
+        .sortModes(*MtgSortMode.values()) { expression ->
+            when (expression) {
+                is BooleanQueryExpression -> MtgSortMode.RELEASE_DATE
+                else -> MtgSortMode.NAME
+            }
+        }
+        .customTables { query, mode ->
+            when (mode) {
+                SearchQueryMode.SEARCH -> {
+                    val preferMode = query.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
 
-            val preferMode = it.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
+                    setOf(CardImage::class, MtgCardFaceTranslation::class) + when {
+                        MtgSearchQueryFlag.costPreferModes.contains(preferMode) -> setOf(MtgPrintPrice::class)
+                        else -> emptySet()
+                    }
+                }
 
-            setOf(CardImage::class, MtgCardFaceTranslation::class) + when {
-                MtgSearchQueryFlag.costPreferModes.contains(preferMode) -> setOf(MtgPrintPrice::class)
-                else -> emptySet()
+                else -> setOf(MtgCardFaceTranslation::class)
             }
         }
         .customBuilder(builder)
