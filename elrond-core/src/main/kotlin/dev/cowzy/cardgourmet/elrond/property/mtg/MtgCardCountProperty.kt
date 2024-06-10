@@ -11,7 +11,6 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.NumberValue
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
-import dev.cowzy.cardgourmet.elrond.SearchQueryComplexity
 import dev.cowzy.cardgourmet.elrond.createSqlAlias
 import dev.cowzy.cardgourmet.elrond.property.NumericSearchQueryProperty
 import kotlin.reflect.KProperty1

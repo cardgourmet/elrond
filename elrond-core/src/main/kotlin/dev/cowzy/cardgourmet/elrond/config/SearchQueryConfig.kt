@@ -1,11 +1,13 @@
 package dev.cowzy.cardgourmet.elrond.config
 
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.kuery.expression.SqlExpression
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.tableName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -32,11 +34,10 @@ data class MaterializedViewConfig(
 
 data class SearchQueryConfig(
     val table: KClass<*>,
-    val printIdColumn: KProperty1<*, *>?,
-    val faceIndexColumn: KProperty1<*, *>?,
-    val languageColumns: Array<KProperty1<*, *>> = emptyArray(),
+    val printIdColumn: KProperty1<*, UUID>?,
+    val faceIndexColumn: KProperty1<*, Int>?,
+    val languageColumns: Array<KProperty1<*, Any>> = emptyArray(),
     val tableDependencies: Map<KClass<*>, TableDependency> = emptyMap(),
-    val materializedView: MaterializedViewConfig? = null,
 )
 
 interface CollectionSearchQueryConfig
@@ -49,21 +50,21 @@ data class TableDependency(
 }
 
 @Serializable
-enum class SearchQueryDistinctMode(val key: String) {
+enum class SearchQueryDistinctMode(vararg val keywords: String, val key: String) {
 
     @SerialName("unique:cards")
-    UNIQUE_CARDS(Strings.Query.Subject.Cards.KEY),
+    UNIQUE_CARDS(key = Strings.Query.Subject.Cards.KEY),
 
     @SerialName("unique:prints")
-    UNIQUE_PRINTS(Strings.Query.Subject.Prints.KEY),
+    UNIQUE_PRINTS("++", key = Strings.Query.Subject.Prints.KEY),
 
     @SerialName("unique:faces")
-    UNIQUE_FACES(Strings.Query.Subject.Faces.KEY),
+    UNIQUE_FACES(key = Strings.Query.Subject.Faces.KEY),
 
     @SerialName("unique:printfaces")
-    UNIQUE_PRINT_FACES(Strings.Query.Subject.PrintFaces.KEY),
+    UNIQUE_PRINT_FACES(key = Strings.Query.Subject.PrintFaces.KEY),
 
     @SerialName("unique:art")
-    UNIQUE_ART(Strings.Query.Subject.Prints.KEY),
+    UNIQUE_ART(key = Strings.Query.Subject.Prints.KEY);
 
 }

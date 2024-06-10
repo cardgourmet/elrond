@@ -10,6 +10,7 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
+import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
@@ -17,15 +18,15 @@ import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
+private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(DlcSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereInRaw(DlcCardTranslation::language, "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
         }
     }
 
-    // No need to apply sort for count queries.
-    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
+    // No need to apply sort for count/random queries.
+    if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     // Always prefer cards with images.
     builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
@@ -58,16 +59,22 @@ fun applyDlcSort(query: SearchQuery<DlcSearchQueryFlag>, builder: SelectQueryBui
 
 fun createDlcBaseBuilder(
     config: SearchQueryConfig,
-    builder: (SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<DlcSearchQueryFlag> {
     return SearchQueryExecutorBuilder<DlcSearchQueryFlag>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*DlcSearchQueryFlag.values())
-        .customTables {
-            when (it.mode) {
+        .sortModes(*DlcSortMode.values()) { expression ->
+            when (expression) {
+                is BooleanQueryExpression -> DlcSortMode.RELEASE_DATE
+                else -> DlcSortMode.NAME
+            }
+        }
+        .customTables { _, mode ->
+            when (mode) {
                 SearchQueryMode.SEARCH -> setOf(CardImage::class, DlcSet::class, DlcCardTranslation::class)
-                SearchQueryMode.COUNT -> setOf(DlcCardTranslation::class)
+                else -> setOf(DlcCardTranslation::class)
             }
         }
         .customBuilder(builder)

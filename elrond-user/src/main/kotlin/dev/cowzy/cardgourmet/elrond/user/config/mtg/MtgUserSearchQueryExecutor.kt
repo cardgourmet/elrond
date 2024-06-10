@@ -13,7 +13,7 @@ import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
+private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     val preferMode = query.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgSearchQueryFlag.INCLUDE_EXTRAS)) {
@@ -24,8 +24,8 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SelectQueryBuilder)
         builder.whereColumn(UserCard::language, MtgCardFaceTranslation::language)
     }
 
-    // No need to apply sort for count queries.
-    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
+    // No need to apply sort for count/random queries.
+    if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     applyMtgSortPreLanguage(builder, preferMode)
 

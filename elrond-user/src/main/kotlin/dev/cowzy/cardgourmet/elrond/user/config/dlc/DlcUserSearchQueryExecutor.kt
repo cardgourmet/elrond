@@ -14,15 +14,15 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, builder ->
+private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(DlcSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(UserCard::language, DlcCardTranslation::language)
     }
 
     builder.whereNotNull(UserCard::id)
 
-    // No need to apply sort for count queries.
-    if (query.mode == SearchQueryMode.COUNT) return@queryBuilder
+    // No need to apply sort for count/random queries.
+    if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     // Always prefer cards with images.
     builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")

@@ -4,7 +4,6 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
-import dev.cowzy.cardgourmet.elrond.SearchQueryComplexity
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
