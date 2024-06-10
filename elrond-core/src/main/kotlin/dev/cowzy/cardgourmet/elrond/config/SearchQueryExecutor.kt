@@ -15,6 +15,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
     val flags: Set<T>,
     val sortModes: List<SortMode>,
     val distinctModes: Map<SearchQueryDistinctMode, KProperty1<*, UUID>>,
+    val fallbackDistinctMode: SearchQueryDistinctMode = SearchQueryDistinctMode.UNIQUE_CARDS,
     val fallbackSortMode: (QueryExpression) -> SortMode,
     val filters: List<QueryFilter>,
     var fallbackFilter: QueryFilter?,
