@@ -20,6 +20,7 @@ private suspend fun <T> measure(execute: suspend () -> T): MeasureResult<T> {
 suspend fun <T : Enum<T>> SearchQuery<T>.toStatistics(
     queryId: UUID,
     mode: SearchQueryMode,
+    cached: Boolean,
     attempt: Int,
     client: String,
     userId: UUID?,
@@ -45,5 +46,6 @@ suspend fun <T : Enum<T>> SearchQuery<T>.toStatistics(
         createdAt = OffsetDateTime.now(),
         client = client,
         userAgent = userAgent,
+        cached = cached
     )
 }
