@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.query
 
+import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
@@ -22,7 +23,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.search(
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
-    val distinctBy = distinctModes[query.distinctMode] ?: error("Distinct mode not found: ${query.distinctMode}")
+    val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
     return build(query, SearchQueryMode.SEARCH, applyCustomConditions)
         .limit(limit)
         .offset(offset)
@@ -35,7 +36,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.random(
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
-    val distinctBy = distinctModes[query.distinctMode] ?: error("Distinct mode not found: ${query.distinctMode}")
+    val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
     return build(query, SearchQueryMode.RANDOM, applyCustomConditions)
         .limit(limit)
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
@@ -81,7 +82,7 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.build(
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
 ): SelectQueryBuilder {
     val expression = query.normalizedExpression
-    val distinctBy = distinctModes[query.distinctMode] ?: error("Distinct mode not found: ${query.distinctMode}")
+    val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
 
     val affectedTables = (expression.collectTables() + config.table + distinctBy.table()).toMutableSet()
 

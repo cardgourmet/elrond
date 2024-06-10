@@ -1,14 +1,12 @@
 package dev.cowzy.cardgourmet.elrond.config.pcg
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCard
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
@@ -65,6 +63,11 @@ fun createPcgBaseBuilder(
     return SearchQueryExecutorBuilder<PcgSearchQueryFlag>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*PcgSearchQueryFlag.values())
+        // TODO: distinct mode unique:art
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_CARDS, PcgCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_FACES, PcgCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINTS, PcgPrint::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINT_FACES, PcgPrint::id)
         .sortModes(*PcgSortMode.values()) { expression ->
             when (expression) {
                 is BooleanQueryExpression -> PcgSortMode.RELEASE_DATE

@@ -1,15 +1,13 @@
 package dev.cowzy.cardgourmet.elrond.config.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCard
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
@@ -65,6 +63,11 @@ fun createDlcBaseBuilder(
     return SearchQueryExecutorBuilder<DlcSearchQueryFlag>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*DlcSearchQueryFlag.values())
+        // TODO: distinct mode unique:art
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_CARDS, DlcCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_FACES, DlcCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINTS, DlcPrint::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINT_FACES, DlcPrint::id)
         .sortModes(*DlcSortMode.values()) { expression ->
             when (expression) {
                 is BooleanQueryExpression -> DlcSortMode.RELEASE_DATE

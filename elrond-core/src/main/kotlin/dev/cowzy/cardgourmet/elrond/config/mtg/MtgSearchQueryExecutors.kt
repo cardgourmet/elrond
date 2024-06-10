@@ -4,10 +4,7 @@ import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorBuilder
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
@@ -99,6 +96,11 @@ fun createMtgBaseBuilder(
     return SearchQueryExecutorBuilder<MtgSearchQueryFlag>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*MtgSearchQueryFlag.values())
+        // TODO: distinct mode unique:art
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_CARDS, MtgCard::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_FACES, MtgCardFace::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINTS, MtgPrint::id)
+        .distinctMode(SearchQueryDistinctMode.UNIQUE_PRINT_FACES, MtgPrintFace::id)
         .sortModes(*MtgSortMode.values()) { expression ->
             when (expression) {
                 is BooleanQueryExpression -> MtgSortMode.RELEASE_DATE
