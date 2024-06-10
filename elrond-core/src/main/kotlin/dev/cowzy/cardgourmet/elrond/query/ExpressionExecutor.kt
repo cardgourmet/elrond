@@ -91,6 +91,7 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.build(
     val builder = config.table.selectBuilder()
         .distinctOn(distinctBy)
         .selectAs(distinctBy, "id")
+        .orderBy(distinctBy)
 
     if (mode == SearchQueryMode.SEARCH || mode == SearchQueryMode.RANDOM) {
         val sortColumns = query.sorting.mode.properties
