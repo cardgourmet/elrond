@@ -136,7 +136,12 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.build(
     this.customBuilder?.invoke(query, mode, builder)
 
     return when (mode) {
-        SearchQueryMode.RANDOM -> builder
+        SearchQueryMode.RANDOM -> QueryBuilder.selectBuilder(builder.toSqlExpression(), "innerQuery")
+            .select("innerQuery.id")
+            .select("innerQuery.printId")
+            .select("innerQuery.faceIndex")
+            .select("innerQuery.language")
+            .orderByRaw("RANDOM()")
 
         SearchQueryMode.SEARCH -> QueryBuilder.selectBuilder(builder.toSqlExpression(), "innerQuery")
             .select("innerQuery.id")
