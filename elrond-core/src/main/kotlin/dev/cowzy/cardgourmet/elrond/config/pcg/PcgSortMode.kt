@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.elrond.SortMode
 import dev.cowzy.kuery.Order
+import kotlinx.serialization.SerialName
 import kotlin.reflect.KProperty1
 
 enum class PcgSortMode(
@@ -14,13 +15,12 @@ enum class PcgSortMode(
     override val defaultOrder: Order = Order.ASCENDING
 ) : SortMode {
 
-    NAME("name", PcgCardTranslation::simpleName),
-    RARITY("rarity", PcgPrint::rarityValue),
-    SET_CODE("set_code", PcgSet::setCode),
-    COLLECTOR_NUMBER("collector_number", arrayOf(PcgPrint::sortValue, PcgPrint::collectorNumberValue, PcgPrint::collectorNumber)),
-    SUPER_TYPE("type", PcgCard::superType),
-    HEALTH("health", PcgCard::hp),
-    RELEASE_DATE("released_at", PcgSet::releaseStartDate, Order.DESCENDING);
+    @SerialName("name") NAME("name", PcgCardTranslation::simpleName),
+    @SerialName("rarity") RARITY("rarity", PcgPrint::rarityValue),
+    @SerialName("set") SET_CODE("set", arrayOf(PcgSet::setCode, PcgPrint::sortValue, PcgPrint::collectorNumberValue, PcgPrint::collectorNumber)),
+    @SerialName("type") SUPER_TYPE("type", PcgCard::superType),
+    @SerialName("health") HEALTH("health", PcgCard::hp),
+    @SerialName("released") RELEASE_DATE("released", PcgSet::releaseStartDate, Order.DESCENDING);
 
 //    PRICE_EUR("eur", MtgPrintPrice::priceEur),
 //    PRICE_USD("usd", MtgPrintPrice::priceUsd),

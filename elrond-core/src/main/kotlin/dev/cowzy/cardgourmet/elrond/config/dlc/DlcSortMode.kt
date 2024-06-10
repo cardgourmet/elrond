@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.SortMode
 import dev.cowzy.kuery.Order
+import kotlinx.serialization.SerialName
 import kotlin.reflect.KProperty1
 
 enum class DlcSortMode(
@@ -14,13 +15,13 @@ enum class DlcSortMode(
     override val defaultOrder: Order = Order.ASCENDING
 ) : SortMode {
 
-    NAME("name", DlcCardTranslation::simpleName),
-    SET_CODE("set", arrayOf(DlcSet::code, DlcPrint::collectorNumberValue, DlcPrint::collectorNumber)),
-    INK_TYPE(arrayOf("ink", "color"), arrayOf(DlcCard::inkType)),
-    STRENGTH(arrayOf("strength", "power"), arrayOf(DlcCard::strength)),
-    WILLPOWER(arrayOf("willpower", "toughness"), arrayOf(DlcCard::willpower)),
-    MOVEMENT_COST("movement", DlcCard::moveCost),
-    RELEASE_DATE("released", DlcSet::releaseDate, Order.DESCENDING);
+    @SerialName("name") NAME("name", DlcCardTranslation::simpleName),
+    @SerialName("set") SET_CODE("set", arrayOf(DlcSet::code, DlcPrint::collectorNumberValue, DlcPrint::collectorNumber)),
+    @SerialName("ink") INK_TYPE(arrayOf("ink", "color"), arrayOf(DlcCard::inkType)),
+    @SerialName("strength") STRENGTH(arrayOf("strength", "power"), arrayOf(DlcCard::strength)),
+    @SerialName("willpower") WILLPOWER(arrayOf("willpower", "toughness"), arrayOf(DlcCard::willpower)),
+    @SerialName("movement") MOVEMENT_COST("movement", DlcCard::moveCost),
+    @SerialName("released") RELEASE_DATE("released", DlcSet::releaseDate, Order.DESCENDING);
 
 //    RARITY("rarity", MtgPrint::rarity),
 //    PRICE_EUR("eur", MtgPrintPrice::priceEur),
