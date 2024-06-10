@@ -18,6 +18,8 @@ data class SearchQuery<T : Enum<T>>(
     val sorting: Sorting,
     val distinctMode: SearchQueryDistinctMode,
     val ignoredExpressions: List<IgnoredQueryValue>,
+    val filters: List<String>,
+    val filterExpressions: List<String>,
     val preferredLanguage: String?,
 )
 
@@ -49,6 +51,8 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
     val result = token.toQueryExpression(filters, fallbackFilter)
     val normalizedExpression = result.expression.normalize()
 
+    val (filters, filterExpressions) = normalizedExpression.extractFilterExpressions().unzip()
+
     return SearchQuery(
         expression = result.expression,
         normalizedExpression = normalizedExpression,
@@ -57,6 +61,8 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
         distinctMode = overrideDistinctMode ?: distinctMode.firstOrNull() ?: fallbackDistinctMode,
         ignoredExpressions = result.ignored,
         preferredLanguage = preferredLanguage,
+        filters = filters,
+        filterExpressions = filterExpressions
     )
 }
 
@@ -453,6 +459,15 @@ private fun List<ValueToken>.parseExpressionValues(
                 }
             }
         }
+    }
+}
+
+fun QueryExpression.extractFilterExpressions(): List<Pair<String, String>> {
+    return when (this) {
+        is BooleanQueryExpression -> emptyList()
+        is ValueLeafQueryExpression -> listOf(filter.keywords.minBy { it.length } to "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}")
+        is FilterLeafQueryExpression -> listOf(filter.keywords.minBy { it.length } to "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}")
+        is QueryExpressionGroup -> this.children.flatMap { it.extractFilterExpressions() }
     }
 }
 
