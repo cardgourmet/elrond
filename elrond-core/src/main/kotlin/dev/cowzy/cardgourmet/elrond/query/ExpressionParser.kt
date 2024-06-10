@@ -54,7 +54,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
         normalizedExpression = normalizedExpression,
         flags = (overrideFlags ?: queryFlags).sortedBy { it.getSerialName() },
         sorting = overrideSorting ?: sorting ?: fallbackSortMode(normalizedExpression).let { Sorting(it, it.defaultOrder) },
-        distinctMode = overrideDistinctMode ?: distinctMode.firstOrNull() ?: SearchQueryDistinctMode.UNIQUE_CARDS,
+        distinctMode = overrideDistinctMode ?: distinctMode.firstOrNull() ?: fallbackDistinctMode,
         ignoredExpressions = result.ignored,
         preferredLanguage = preferredLanguage,
     )
