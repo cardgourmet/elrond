@@ -47,5 +47,12 @@ fun String.removeExactAndNegateAndQuotes(): String {
     var result = this
     if (result.startsWith("-")) result = result.substring(1)
     if (result.startsWith("!")) result = result.substring(1)
+
+    result = when {
+        result.startsWith("'") -> result.replace("\\'", "'")
+        result.startsWith("\"") -> result.replace("\\\"", "\"")
+        else -> result
+    }
+
     return result.removeSurrounding("\"").removeSurrounding("'")
 }

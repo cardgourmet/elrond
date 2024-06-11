@@ -465,7 +465,11 @@ private fun List<ValueToken>.parseExpressionValues(
 fun QueryExpression.extractFilterExpressions(): List<Pair<String, String>> {
     return when (this) {
         is BooleanQueryExpression -> emptyList()
-        is ValueLeafQueryExpression -> listOf(filter.keywords.minBy { it.length } to "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}")
+        is ValueLeafQueryExpression -> {
+            var expression = "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
+            if (value is StringValue && value.exact) expression = "!$expression"
+            listOf(filter.keywords.minBy { it.length } to expression)
+        }
         is FilterLeafQueryExpression -> listOf(filter.keywords.minBy { it.length } to "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}")
         is QueryExpressionGroup -> this.children.flatMap { it.extractFilterExpressions() }
     }
