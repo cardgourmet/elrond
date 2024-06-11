@@ -106,7 +106,7 @@ fun <T : Enum<T>> SearchQuery<T>.toExpressionString(): String {
         distinctMode.getSerialName(),
         expression.toExpressionString().let { if (it.isNotBlank()) "($it)" else it },
         flags.joinToString(" "),
-        sorting.mode.let { "order:$it" },
+        sorting.mode.let { "order:${(it as Enum<*>).getSerialName()}" },
         sorting.order.let { "direction:${it.getSerialName()}" },
     )
 
