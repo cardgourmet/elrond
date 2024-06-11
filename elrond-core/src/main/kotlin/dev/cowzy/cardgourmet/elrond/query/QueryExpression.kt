@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.query
 
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
@@ -98,6 +99,18 @@ fun QueryExpression.normalize(): QueryExpression {
     val sortedGroups = groups.sortedWith(compareBy({ it.children.size }, { it.operator.ordinal }))
 
     return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
+}
+
+fun <T : Enum<T>> SearchQuery<T>.toExpressionString(): String {
+    val queryParts = listOf(
+        distinctMode.getSerialName(),
+        expression.toExpressionString().let { if (it.isNotBlank()) "($it)" else it },
+        flags.joinToString(" "),
+        sorting.mode.let { "order:$it" },
+        sorting.order.let { "direction:${it.getSerialName()}" },
+    )
+
+    return queryParts.filter { it.isNotBlank() }.joinToString(" ") { it.trim() }
 }
 
 fun QueryExpression.toExpressionString(topLevel: Boolean = true): String {
