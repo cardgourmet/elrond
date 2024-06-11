@@ -20,7 +20,7 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
             is Number -> "${if (it.toDouble() % 1.0 == 0.0) it.toInt().toString() else it.toDouble()}"
             is NumberValue -> "${if (it.value.toDouble() % 1.0 == 0.0) it.value.toInt().toString() else it.value.toDouble()}"
             is RegexValue -> "/${it.value.pattern.replace("/", "\\/")}/"
-            is StringValue -> if (it.exact || it.value.contains(" ")) "'${it.value.replace("'", "\\'")}'" else it.value
+            is StringValue -> if (it.exact || it.value.contains(" ")) "\"${it.value.replace("\"", "\\\"")}\"" else it.value
             is Enum<*> -> it.getSerialName().lowercase()
             else -> it.toString()
         }
