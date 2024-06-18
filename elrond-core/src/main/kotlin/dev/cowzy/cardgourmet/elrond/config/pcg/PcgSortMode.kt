@@ -17,10 +17,16 @@ enum class PcgSortMode(
 
     @SerialName("name") NAME("name", PcgCardTranslation::simpleName),
     @SerialName("rarity") RARITY("rarity", PcgPrint::rarityValue),
-    @SerialName("set") SET_CODE("set", arrayOf(PcgSet::setCode, PcgPrint::sortValue, PcgPrint::collectorNumberValue, PcgPrint::collectorNumber)),
+    @SerialName("set") SET_CODE("set", arrayOf(
+        PcgSet::setCode, PcgPrint::sortValue,
+        PcgPrint::collectorNumberValue, PcgPrint::collectorNumber
+    )),
     @SerialName("type") SUPER_TYPE("type", PcgCard::superType),
     @SerialName("health") HEALTH("health", PcgCard::hp),
-    @SerialName("released") RELEASE_DATE("released", PcgSet::releaseStartDate, Order.DESCENDING);
+    @SerialName("released") RELEASE_DATE("released", arrayOf(
+        PcgSet::releaseStartDate, PcgSet::setCode, PcgPrint::sortValue,
+        PcgPrint::collectorNumberValue, PcgPrint::collectorNumber
+    ), Order.DESCENDING);
 
 //    PRICE_EUR("eur", MtgPrintPrice::priceEur),
 //    PRICE_USD("usd", MtgPrintPrice::priceUsd),

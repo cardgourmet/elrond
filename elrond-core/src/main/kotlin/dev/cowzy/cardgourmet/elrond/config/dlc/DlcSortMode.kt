@@ -15,27 +15,21 @@ enum class DlcSortMode(
     override val defaultOrder: Order = Order.ASCENDING
 ) : SortMode {
 
-    @SerialName("name") NAME("name", DlcCardTranslation::simpleName),
-    @SerialName("set") SET_CODE("set", arrayOf(DlcSet::code, DlcPrint::collectorNumberValue, DlcPrint::collectorNumber)),
+    @SerialName("name") NAME(arrayOf("name"), DlcCardTranslation::simpleName),
+    @SerialName("set") SET_CODE(arrayOf("set"), arrayOf(DlcSet::code, DlcPrint::collectorNumberValue, DlcPrint::collectorNumber)),
     @SerialName("ink") INK_TYPE(arrayOf("ink", "color"), arrayOf(DlcCard::inkType)),
     @SerialName("strength") STRENGTH(arrayOf("strength", "power"), arrayOf(DlcCard::strength)),
     @SerialName("willpower") WILLPOWER(arrayOf("willpower", "toughness"), arrayOf(DlcCard::willpower)),
-    @SerialName("movement") MOVEMENT_COST("movement", DlcCard::moveCost),
-    @SerialName("released") RELEASE_DATE("released", DlcSet::releaseDate, Order.DESCENDING);
+    @SerialName("movement") MOVEMENT_COST(arrayOf("movement"), DlcCard::moveCost),
+    @SerialName("released") RELEASE_DATE(arrayOf("released"), arrayOf(DlcSet::releaseDate, DlcSet::code, DlcPrint::collectorNumberValue, DlcPrint::collectorNumber), Order.DESCENDING);
 
 //    RARITY("rarity", MtgPrint::rarity),
 //    PRICE_EUR("eur", MtgPrintPrice::priceEur),
 //    PRICE_USD("usd", MtgPrintPrice::priceUsd),
 //    PRICE_TIX("tix", MtgPrintPrice::priceTix);
 
-    constructor(keyword: String, properties: Array<KProperty1<*, *>>, defaultOrder: Order = Order.ASCENDING) : this(
-        arrayOf(keyword),
-        properties,
-        defaultOrder
-    )
-
-    constructor(keyword: String, property: KProperty1<*, *>, defaultOrder: Order = Order.ASCENDING) : this(
-        arrayOf(keyword),
+    constructor(keywords: Array<String>, property: KProperty1<*, *>, defaultOrder: Order = Order.ASCENDING) : this(
+        keywords,
         arrayOf(property),
         defaultOrder
     )

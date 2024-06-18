@@ -1,6 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.config.mtg
 
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.elrond.SortMode
 import dev.cowzy.kuery.Order
 import kotlinx.serialization.SerialName
@@ -24,7 +25,7 @@ enum class MtgSortMode(
     @SerialName("eur") PRICE_EUR("eur", MtgPrintPrice::priceEur),
     @SerialName("rarity") RARITY("rarity", MtgPrint::rarity),
     @SerialName("color") COLOR("color", MtgCardFace::colorSort),
-    @SerialName("released") RELEASE_DATE("released", MtgPrint::releaseDate, Order.DESCENDING),
+    @SerialName("released") RELEASE_DATE("released", arrayOf(MtgPrint::releaseDate, MtgSet::code, MtgPrint::collectorNumberValue, MtgPrint::collectorNumber), Order.DESCENDING),
     @SerialName("edhrec") EDHREC_RANK("edhrec", MtgCard::edhrecRank);
 
     // Scryfall sorting not supported by cardgourmet as of now:
