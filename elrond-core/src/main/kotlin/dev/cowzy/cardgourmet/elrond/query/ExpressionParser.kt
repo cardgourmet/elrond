@@ -68,7 +68,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
 
 fun <T : Enum<T>> SearchQueryExecutor<T>.tryTransform(query: SearchQuery<T>, attempt: Int): SearchQuery<T>? {
     if (attempt <= 0) return query
-    if (attempt >= attemptTransformers.size) return null
+    if (attempt > attemptTransformers.size) return null
 
     val transformer = attemptTransformers[attempt - 1]
     return transformer(query)
