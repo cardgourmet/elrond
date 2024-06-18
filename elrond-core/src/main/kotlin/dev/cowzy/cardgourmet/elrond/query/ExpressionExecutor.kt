@@ -170,8 +170,13 @@ private fun <T : Enum<T>> SearchQueryExecutor<T>.parseResult(
     index: ColumnIndex
 ): SearchQueryResult {
     val id = distinctBy.parse(row, index)
+
     val printId = config.printIdColumn?.parse(row, index)
+    if (config.printIdColumn == null) index.getAndIncrement()
+
     val faceIndex = config.faceIndexColumn?.parse(row, index)
+    if (config.faceIndexColumn == null) index.getAndIncrement()
+
     val language = row.getString(index.getAndIncrement())
 
     return SearchQueryResult(

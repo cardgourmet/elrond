@@ -141,7 +141,12 @@ fun createMtgBaseBuilder(
             }
         }
         .transformAttempt {
-            it.copy(flags = it.flags + MtgSearchQueryFlag.ANY_LANGUAGE + MtgSearchQueryFlag.INCLUDE_EXTRAS)
+            val anyLang = it.flags.contains(MtgSearchQueryFlag.ANY_LANGUAGE)
+            val extras = it.flags.contains(MtgSearchQueryFlag.INCLUDE_EXTRAS)
+            when {
+                anyLang && extras -> null
+                else -> it.copy(flags = it.flags + MtgSearchQueryFlag.ANY_LANGUAGE + MtgSearchQueryFlag.INCLUDE_EXTRAS)
+            }
         }
 }
 
