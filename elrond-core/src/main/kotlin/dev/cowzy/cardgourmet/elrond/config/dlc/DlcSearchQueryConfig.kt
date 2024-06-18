@@ -5,6 +5,7 @@ import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
+import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcFranchise
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
@@ -211,6 +212,11 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("franchise") {
         uuid(DlcCard::franchiseId, dlcPropertyKeys.FRANCHISE)
+        string(DlcFranchise::slug, dlcPropertyKeys.FRANCHISE) {
+            strict(true)
+            autoValues(DlcFranchise::slug)
+        }
+        string(DlcFranchise::name, dlcPropertyKeys.FRANCHISE) { autoValues(DlcFranchise::name) }
     }
 
     filter("is:inkwell") {
@@ -269,6 +275,9 @@ private val tableDependencies = mapOf(
     },
     DlcSet::class to TableDependency(DlcPrint::class) { builder ->
         builder.innerJoin(DlcSet::class) { it.whereColumn(DlcPrint::setId, DlcSet::id) }
+    },
+    DlcFranchise::class to TableDependency(DlcCard::class) { builder ->
+        builder.leftJoin(DlcFranchise::class) { it.whereColumn(DlcCard::franchiseId, DlcFranchise::id) }
     },
     CardPrice::class to TableDependency(DlcPrint::class) { builder ->
         builder.leftJoin(CardPrice::class) {
