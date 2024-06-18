@@ -6,6 +6,8 @@ import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.query.*
 import kotlinx.serialization.Serializable
+import java.text.NumberFormat
+import java.util.Locale
 
 @Serializable
 data class ExplainResult(
@@ -67,16 +69,19 @@ suspend fun QueryExpression.explain(
     i18n: LocalizationService,
     locale: UserLanguage,
     subjectKey: String,
-    amount: Int?,
+    amount: Int?, estimate: Boolean,
     withExtras: Boolean,
     preferredLanguageKey: String?,
 ): ExplainResult {
     val condition = this.explainCondition(i18n, locale)
 
+    val numberFormat = NumberFormat.getInstance(locale.toLocale())
+    val formattedAmount = amount?.let { numberFormat.format(it) }?.let { if (estimate) "~$it" else it }
+
     val mappedSubject = i18n.translate(
         locale,
         if (amount == 1) "$subjectKey.singular" else "$subjectKey.plural",
-        amount ?: ""
+        formattedAmount ?: ""
     )
 
     val subjectWithExtras = when {
@@ -105,4 +110,10 @@ suspend fun QueryExpression.explain(
         },
         filters = condition?.filters ?: emptyList()
     )
+}
+
+private fun UserLanguage.toLocale() = when (this) {
+    UserLanguage.ENGLISH -> Locale.ENGLISH
+    UserLanguage.GERMAN -> Locale.GERMAN
+    else -> Locale.ENGLISH
 }
