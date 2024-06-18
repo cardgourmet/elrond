@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
+import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcFranchise
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
@@ -212,7 +213,7 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
 
     filter("franchise") {
         uuid(DlcCard::franchiseId, "franchise_id") // TODO
-        string(DlcFranchise::slug, "franchise_slug") { // TODO
+        exactString(DlcFranchise::slug, "franchise_slug") {
             strict(true)
             autoValues(DlcFranchise::slug)
         }

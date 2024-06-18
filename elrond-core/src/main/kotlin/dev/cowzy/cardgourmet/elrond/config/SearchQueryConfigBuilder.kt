@@ -260,7 +260,9 @@ class QueryFilterBuilder(
     }
 
     fun uuid(column: KProperty1<*, UUID?>, propertyKey: String) {
-        property(UuidColumnProperty(column, descriptor = EqualsDescriptor(propertyKey)))
+        property(UuidColumnProperty(column, descriptor = EqualsDescriptor(propertyKey))) {
+            strict(true)
+        }
     }
 
     fun date(
