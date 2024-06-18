@@ -57,7 +57,9 @@ class QueryFilterBuilder(
         if (properties.contains(property)) throw IllegalArgumentException("Filter already contains property: ${property.key}")
 
         val valueTypes = property.valueDefinition.supportedValueTypes
-        val handledValueTypes = valueTypes.filter { isValueHandled(it) }
+        val valueTypeFormats = valueTypes.associateWith { property.valueDefinition.getDefinition(it).format }
+
+        val handledValueTypes = valueTypes.filter { isValueHandled(it, valueTypeFormats[it]) }
         if (handledValueTypes.isNotEmpty() && handledValueTypes.size >= valueTypes.size) {
             throw IllegalArgumentException("All supported value types are already handled by other properties: ${property.key}")
         }
@@ -260,9 +262,7 @@ class QueryFilterBuilder(
     }
 
     fun uuid(column: KProperty1<*, UUID?>, propertyKey: String) {
-        property(UuidColumnProperty(column, descriptor = EqualsDescriptor(propertyKey))) {
-            strict(true)
-        }
+        property(UuidColumnProperty(column, descriptor = EqualsDescriptor(propertyKey)))
     }
 
     fun date(
@@ -359,9 +359,13 @@ class QueryFilterBuilder(
         )
     }
 
-    private fun isValueHandled(valueType: KClass<out QueryValue<*>>): Boolean {
+    private fun isValueHandled(valueType: KClass<out QueryValue<*>>, format: String): Boolean {
         // Find all properties that support the given value type
-        val matchingProperties = properties.filter { it.valueDefinition.supportedValueTypes.contains(valueType) }
+        val matchingProperties = properties.filter { property ->
+            val valueDefinition = property.valueDefinition
+            valueDefinition.supportedValueTypes.contains(valueType) && valueDefinition.getDefinition(valueType).format == format
+        }
+
         if (matchingProperties.isEmpty()) return false
 
         val allowsArbitraryValues = when (valueType) {
