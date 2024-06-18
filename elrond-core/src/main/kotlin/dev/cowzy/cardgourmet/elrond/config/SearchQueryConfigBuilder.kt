@@ -359,7 +359,7 @@ class QueryFilterBuilder(
         )
     }
 
-    private fun isValueHandled(valueType: KClass<out QueryValue<*>>, format: String): Boolean {
+    private fun isValueHandled(valueType: KClass<out QueryValue<*>>, format: String?): Boolean {
         // Find all properties that support the given value type
         val matchingProperties = properties.filter { property ->
             val valueDefinition = property.valueDefinition
