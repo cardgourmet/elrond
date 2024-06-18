@@ -211,12 +211,12 @@ fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     }
 
     filter("franchise") {
-        uuid(DlcCard::franchiseId, dlcPropertyKeys.FRANCHISE)
-        string(DlcFranchise::slug, dlcPropertyKeys.FRANCHISE) {
+        uuid(DlcCard::franchiseId, "franchise_id") // TODO
+        string(DlcFranchise::slug, "franchise_slug") { // TODO
             strict(true)
             autoValues(DlcFranchise::slug)
         }
-        string(DlcFranchise::name, dlcPropertyKeys.FRANCHISE) { autoValues(DlcFranchise::name) }
+        string(DlcFranchise::name, "franchise_name") { autoValues(DlcFranchise::name) }
     }
 
     filter("is:inkwell") {

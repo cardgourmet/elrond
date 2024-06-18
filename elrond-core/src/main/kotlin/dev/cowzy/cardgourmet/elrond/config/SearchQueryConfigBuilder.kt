@@ -54,12 +54,12 @@ class QueryFilterBuilder(
         property: SearchQueryProperty<T>,
         provider: ValueProvider<T>?
     ) {
-        if (properties.contains(property)) throw IllegalArgumentException("Filter already contains property: $property")
+        if (properties.contains(property)) throw IllegalArgumentException("Filter already contains property: ${property.key}")
 
         val valueTypes = property.valueDefinition.supportedValueTypes
         val handledValueTypes = valueTypes.filter { isValueHandled(it) }
         if (handledValueTypes.isNotEmpty() && handledValueTypes.size >= valueTypes.size) {
-            throw IllegalArgumentException("All supported value types are already handled by other properties: $property")
+            throw IllegalArgumentException("All supported value types are already handled by other properties: ${property.key}")
         }
 
         if (provider != null) {
