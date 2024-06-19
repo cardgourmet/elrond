@@ -153,7 +153,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
                     value.input,
                     value.type,
                     value.aliases.sorted().takeIf { it.isNotEmpty() },
-                    value.resolvesTo.display.takeIf { value.resolvesTo.display != value.input },
+                    value.resolvesTo.display.takeIf { !value.resolvesTo.display.equals(value.input, ignoreCase = true) },
                     value.resolvesTo.operator
                 )
             }
