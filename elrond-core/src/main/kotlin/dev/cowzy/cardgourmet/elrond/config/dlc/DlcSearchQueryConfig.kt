@@ -11,15 +11,14 @@ import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
-import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.StringValue
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.kuery.column.transformer.LocalDateColumnTransformer
+import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 import dev.cowzy.kuery.query.selectBuilder
@@ -51,10 +50,25 @@ private val getSetMarketReleaseDates = { connection: Connection ->
         }.toMap()
 }
 
+private val getNames = { connection: Connection ->
+    DlcCardTranslation::class.selectBuilder()
+        .select(DlcCardTranslation::name)
+        .select(DlcCardTranslation::language)
+        .orderBy(DlcCardTranslation::name)
+        .get(connection) { row, index ->
+            val name = row.getString(index.getAndIncrement())
+            val language = row.getString(index.getAndIncrement())
+            language to name
+        }.groupBy { it.first }.mapValues { it.value.associate { (_, name) -> name to name } }
+}
+
+private val getNameWordBank = { connection: Connection -> getNames(connection).toWordBank() }
+
 fun SearchQueryConfigBuilder.configureBasicDlcFilters() {
     filter("name", "n") {
         simpleString(DlcCardTranslation::name, DlcCardTranslation::simpleName, propertyKeys.NAME) {
-            autoValues(DlcCardTranslation::name)
+            valuesWithLanguage(getNames, { it }, "name") // TODO: { StringValue(it, true) }
+            valuesWithLanguage(getNameWordBank, { it }, "name_part")
         }
     }
 

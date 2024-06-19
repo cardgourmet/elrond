@@ -11,10 +11,7 @@ import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
-import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.FormatDescriptor
@@ -91,15 +88,7 @@ private val getNames = { connection: Connection ->
         }.groupBy { it.first }.mapValues { it.value.associate { (_, name) -> name to name } }
 }
 
-private val getNameWordBank = { connection: Connection ->
-    val names = getNames(connection)
-
-    names.entries.associate { (language, names) ->
-        language to names.flatMap { (name, _) ->
-            name.split(" ").filter { it.length > 2 }
-        }.distinctBy { it.lowercase() }.associateWith { it }
-    }
-}
+private val getNameWordBank = { connection: Connection -> getNames(connection).toWordBank() }
 
 private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
     enumValues<MtgManaType>(

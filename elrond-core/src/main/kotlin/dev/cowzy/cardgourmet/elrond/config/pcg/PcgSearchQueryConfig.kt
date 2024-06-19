@@ -11,10 +11,7 @@ import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSetType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
-import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
-import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
@@ -48,13 +45,28 @@ private fun getSetReleaseDates(dateColumn: KProperty1<*, *>, connection: Connect
 private val getSetStartReleaseDates = { connection: Connection -> getSetReleaseDates(PcgSet::releaseStartDate, connection) }
 private val getSetEndReleaseDates = { connection: Connection -> getSetReleaseDates(PcgSet::releaseEndDate, connection) }
 
+private val getNames = { connection: Connection ->
+    PcgCardTranslation::class.selectBuilder()
+        .select(PcgCardTranslation::name)
+        .select(PcgCardTranslation::language)
+        .orderBy(PcgCardTranslation::name)
+        .get(connection) { row, index ->
+            val name = row.getString(index.getAndIncrement())
+            val language = row.getString(index.getAndIncrement())
+            language to name
+        }.groupBy { it.first }.mapValues { it.value.associate { (_, name) -> name to name } }
+}
+
+private val getNameWordBank = { connection: Connection -> getNames(connection).toWordBank() }
+
 fun SearchQueryConfigBuilder.configureBasicPcgFilters() {
     val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)
     val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE)
 
     filter("name", "n") {
         simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) {
-            autoValues(PcgCardTranslation::name)
+            valuesWithLanguage(getNames, { it }, "name") // TODO: { StringValue(it, true) }
+            valuesWithLanguage(getNameWordBank, { it }, "name_part")
         }
     }
 

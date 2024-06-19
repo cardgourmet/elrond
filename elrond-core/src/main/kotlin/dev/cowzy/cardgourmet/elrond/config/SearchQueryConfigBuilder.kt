@@ -377,3 +377,17 @@ class QueryFilterBuilder(
     }
 
 }
+
+fun Map<String, Map<String, String>>.toWordBank() = this.entries.associate { (language, names) ->
+    val words = names
+        .asSequence()
+        .mapNotNull { (name, _) -> name.split(" ").takeIf { it.size > 1 } }
+        .flatten()
+        .map { it.replace(Regex("\\P{L}"), "") }
+        .filter { it.length > 2 }
+        .map { it.lowercase() }
+        .distinct()
+        .toList()
+
+    language to words.associateWith { it }
+}

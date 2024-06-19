@@ -59,6 +59,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
         val aliases: List<String>?,
         val resolvesTo: String?,
         val resolvesToOperator: SearchQueryOperator?,
+        val language: String?,
     )
 
     fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
@@ -172,7 +173,8 @@ data class SearchQueryExecutor<T : Enum<T>>(
                     value.type,
                     value.aliases.sorted().takeIf { it.isNotEmpty() },
                     value.resolvesTo.display.takeIf { !value.resolvesTo.display.equals(value.input, ignoreCase = true) },
-                    value.resolvesTo.operator
+                    value.resolvesTo.operator,
+                    value.language
                 )
             }
         )
