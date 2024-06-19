@@ -6,12 +6,14 @@ import java.util.*
 data class ValueKey<T : Any>(
     val type: String,
     val value: T,
+    val language: String?,
     val operator: SearchQueryOperator?,
     val uniqueifyer: String?
 ) {
     constructor(value: ProvidedValue<T>, uniqueifyer: String?) : this(
         value.type,
         value.resolvesTo.value,
+        value.language,
         value.resolvesTo.operator,
         uniqueifyer
     )
@@ -39,7 +41,8 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
         operator: SearchQueryOperator?,
         type: String,
         autoAlias: Boolean,
-        merge: Boolean = true
+        merge: Boolean = true,
+        language: String? = null,
     ) {
         val aliases = mutableSetOf<String>()
 
@@ -60,7 +63,8 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
                 operator = operator
             ),
             aliases = aliases,
-            type = type
+            type = type,
+            language = language
         )
 
         val existingValue = find(providedValue)

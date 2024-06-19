@@ -99,6 +99,19 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
         }
     }
 
+    fun <V> valuesWithLanguage(provider: (Connection) -> Map<String, Map<String, V>>, transform: (V) -> T, type: String, autoAlias: Boolean = false, merge: Boolean = true) {
+        applyValues.add { connection, values, displayTransform ->
+            val mappings = provider(connection)
+            mappings.forEach { (language, entries) ->
+                entries.forEach { (input, value) ->
+                    val transformedValue = transform(value)
+                    val display = displayTransform(transformedValue)
+                    values.addOrUpdate(input, transformedValue, display, null, type, autoAlias, merge, language)
+                }
+            }
+        }
+    }
+
     fun values(entry: ProviderEntry<T>, autoAlias: Boolean = false, merge: Boolean = true) {
         applyValues.add { connection, values, displayTransform ->
             val mappings = entry.provider(connection)

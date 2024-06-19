@@ -3,8 +3,6 @@ package dev.cowzy.cardgourmet.elrond.config.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.*
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
@@ -13,13 +11,16 @@ import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
-import dev.cowzy.cardgourmet.elrond.config.*
-import dev.cowzy.cardgourmet.elrond.descriptor.*
+import dev.cowzy.cardgourmet.elrond.config.QueryFilterBuilder
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.elrond.config.TableDependency
+import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
+import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.FormatDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ManaColorsDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.mtg.ReprintNewDescriptor
-import dev.cowzy.cardgourmet.elrond.property.StringColumnProperty
 import dev.cowzy.cardgourmet.elrond.property.mtg.*
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderBuilder
 import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
@@ -81,11 +82,23 @@ private val getNames = { connection: Connection ->
     QueryBuilder.selectBuilder("mtg.search_names")
         .distinct()
         .select("mtg.search_names.name")
+        .select("mtg.search_names.language")
         .orderBy("mtg.search_names.name")
         .get(connection) { row, index ->
             val name = row.getString(index.getAndIncrement())
-            name to name
-        }.toMap()
+            val language = row.getString(index.getAndIncrement())
+            language to name
+        }.groupBy { it.first }.mapValues { it.value.associate { (_, name) -> name to name } }
+}
+
+private val getNameWordBank = { connection: Connection ->
+    val names = getNames(connection)
+
+    names.entries.associate { (language, names) ->
+        language to names.flatMap { (name, _) ->
+            name.split(" ").filter { it.length > 2 }
+        }.distinctBy { it.lowercase() }.associateWith { it }
+    }
 }
 
 private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
@@ -105,7 +118,10 @@ private fun ValueProviderBuilder<List<ManaValue>>.manaValues() {
 
 fun SearchQueryConfigBuilder.configureBasicMtgFilters() {
     filter("name", "n") {
-        property(MtgNameProperty()) { values(getNames, { StringValue(it, true) }, "name") }
+        property(MtgNameProperty()) {
+            valuesWithLanguage(getNames, { StringValue(it, true) }, "name")
+            valuesWithLanguage(getNameWordBank, { StringValue(it, false) }, "name_part")
+        }
     }
 
     filter("cmc", "mv", "manavalue", "manacost") { numeric(MtgCardFace::manaValue, mtgPropertyKeys.MANA_VALUE) }

@@ -104,7 +104,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
         }.sortedBy { it.keywords.first() }
     }
 
-    suspend fun getFilterValues(keyword: String, amount: Int, query: String?): FilterValues? {
+    suspend fun getFilterValues(keyword: String, amount: Int, query: String?, language: String? = null): FilterValues? {
         val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
 
         val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
@@ -125,24 +125,42 @@ data class SearchQueryExecutor<T : Enum<T>>(
 
             // Next find any values that contain the keyword
             val fuzzyMatches = providers
-                .map { it.getValues(query) }
+                .map { it.getValues(query, language) }
                 .flatten()
                 .filter { usedInputs.add(it.input) } - exactMatches.toSet()
 
             providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
+            // If there are no fuzzy matches, search again without the language
+            if (fuzzyMatches.isEmpty() && language != null) {
+                val languageMatches = providers
+                    .map { it.getValues(query, null) }
+                    .flatten()
+                    .filter { usedInputs.add(it.input) } - exactMatches.toSet()
+
+                providedValues.addAll(languageMatches.take(amount - providedValues.size))
+            }
+
             matchCount = providedValues.size + fuzzyMatches.size
             totalCount = providers.sumOf { it.getValues().count() }
         } else {
-            val values = providers
-                .map { it.getValues() }
+            var values = providers
+                .map { it.getValues(language) }
                 .flatten()
                 .distinctBy { it.input }
+
+            // If there are no values, search again without the language
+            if (values.isEmpty() && language != null) {
+                values = providers
+                    .map { it.getValues(null) }
+                    .flatten()
+                    .distinctBy { it.input }
+            }
 
             providedValues.addAll(values.take(amount))
 
             matchCount = values.size
-            totalCount = values.size
+            totalCount = providers.sumOf { it.getValues().count() }
         }
 
         return FilterValues(
