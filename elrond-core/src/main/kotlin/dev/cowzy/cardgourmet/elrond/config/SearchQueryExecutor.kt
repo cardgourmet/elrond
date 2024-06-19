@@ -128,6 +128,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
                 .mapNotNull { it.findValue(query) }
                 .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input) }
+                .sortedBy { it.input }
 
             providedValues.addAll(exactMatches.take(amount))
 
@@ -136,7 +137,8 @@ data class SearchQueryExecutor<T : Enum<T>>(
                 .map { it.getValues(query, preferredLanguage) }
                 .flatten()
                 .filter { type == null || it.type == type }
-                .filter { usedInputs.add(it.input) } - exactMatches.toSet()
+                .filter { usedInputs.add(it.input) }
+                .sortedBy { it.input } - exactMatches.toSet()
 
             providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
@@ -146,7 +148,8 @@ data class SearchQueryExecutor<T : Enum<T>>(
                     .map { it.getValues(query, null) }
                     .flatten()
                     .filter { type == null || it.type == type }
-                    .filter { usedInputs.add(it.input) } - exactMatches.toSet()
+                    .filter { usedInputs.add(it.input) }
+                    .sortedBy { it.input } - exactMatches.toSet()
 
                 providedValues.addAll(languageMatches.take(amount - providedValues.size))
             }
@@ -159,6 +162,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
                 .flatten()
                 .filter { type == null || it.type == type }
                 .distinctBy { it.input }
+                .sortedBy { it.input }
 
             // If there are no values, search again without the language
             if (values.isEmpty() && preferredLanguage != null) {
@@ -167,6 +171,7 @@ data class SearchQueryExecutor<T : Enum<T>>(
                     .flatten()
                     .filter { type == null || it.type == type }
                     .distinctBy { it.input }
+                    .sortedBy { it.input }
             }
 
             providedValues.addAll(values.take(amount))
