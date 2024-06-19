@@ -105,7 +105,13 @@ data class SearchQueryExecutor<T : Enum<T>>(
         }.sortedBy { it.keywords.first() }
     }
 
-    suspend fun getFilterValues(keyword: String, amount: Int, query: String?, language: String? = null): FilterValues? {
+    suspend fun getFilterValues(
+        keyword: String,
+        amount: Int,
+        query: String?,
+        preferredLanguage: String? = null,
+        type: String? = null
+    ): FilterValues? {
         val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
 
         val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
@@ -120,23 +126,26 @@ data class SearchQueryExecutor<T : Enum<T>>(
             // First find any exact matches
             val exactMatches = providers
                 .mapNotNull { it.findValue(query) }
+                .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input) }
 
             providedValues.addAll(exactMatches.take(amount))
 
             // Next find any values that contain the keyword
             val fuzzyMatches = providers
-                .map { it.getValues(query, language) }
+                .map { it.getValues(query, preferredLanguage) }
                 .flatten()
+                .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input) } - exactMatches.toSet()
 
             providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
 
             // If there are no fuzzy matches, search again without the language
-            if (fuzzyMatches.isEmpty() && language != null) {
+            if (fuzzyMatches.isEmpty() && preferredLanguage != null) {
                 val languageMatches = providers
                     .map { it.getValues(query, null) }
                     .flatten()
+                    .filter { type == null || it.type == type }
                     .filter { usedInputs.add(it.input) } - exactMatches.toSet()
 
                 providedValues.addAll(languageMatches.take(amount - providedValues.size))
@@ -146,15 +155,17 @@ data class SearchQueryExecutor<T : Enum<T>>(
             totalCount = providers.sumOf { it.getValues().count() }
         } else {
             var values = providers
-                .map { it.getValues(language) }
+                .map { it.getValues(preferredLanguage) }
                 .flatten()
+                .filter { type == null || it.type == type }
                 .distinctBy { it.input }
 
             // If there are no values, search again without the language
-            if (values.isEmpty() && language != null) {
+            if (values.isEmpty() && preferredLanguage != null) {
                 values = providers
                     .map { it.getValues(null) }
                     .flatten()
+                    .filter { type == null || it.type == type }
                     .distinctBy { it.input }
             }
 

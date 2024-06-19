@@ -27,9 +27,7 @@ class ValueProvider<T : Any>(
         { valueGroup -> dbPool.use { connection -> applyValues.forEach { it(connection, valueGroup, displayTransform) } } }
     )
 
-    suspend fun getValues(language: String? = null): Iterable<ProvidedValue<T>> = cache.getAll().apply {
-        this.filter { language == null || it.language == language }
-    }
+    suspend fun getValues(language: String? = null): Iterable<ProvidedValue<T>> = cache.getAll().filter { language == null || it.language == language }
 
     suspend fun getValues(filter: String, language: String?): Iterable<ProvidedValue<T>> {
         return getValues()
