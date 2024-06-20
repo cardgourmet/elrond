@@ -383,7 +383,7 @@ fun Map<String, Map<String, String>>.toWordBank() = this.entries.associate { (la
         .asSequence()
         .mapNotNull { (name, _) -> name.split(" ").takeIf { it.size > 1 } }
         .flatten()
-        .map { it.replace(Regex("\\P{L}"), "") }
+        .map { it.replace(Regex("[^\\p{L}-]"), "") }
         .filter { it.length > 2 }
         .map { it.lowercase() }
         .distinct()

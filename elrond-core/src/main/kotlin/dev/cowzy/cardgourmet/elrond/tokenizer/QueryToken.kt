@@ -15,7 +15,7 @@ data class QueryFilterToken(
     override val negate: Boolean
 ) : QueryToken() {
     override fun toString(): String {
-        val mappedOperator = if (exactValue) SearchQueryOperator.EQUALS else operator ?: SearchQueryOperator.CONTAINS
+        val mappedOperator = operator ?: SearchQueryOperator.CONTAINS
 
         return when {
             negate -> "-${keyword ?: ""}${mappedOperator.value}${value?.raw ?: ""}"
@@ -29,3 +29,8 @@ data class QueryTokenGroup(
     val operator: LogicalOperator,
     override val negate: Boolean
 ) : QueryToken()
+
+fun QueryToken.negate(): QueryToken = when (this) {
+    is QueryTokenGroup -> this.copy(negate = !this.negate)
+    is QueryFilterToken -> this.copy(negate = !this.negate)
+}

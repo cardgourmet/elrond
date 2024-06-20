@@ -59,12 +59,8 @@ fun List<Token>.toQueryTokens(strict: Boolean): List<QueryToken> {
             }
         }
 
-        if (negateNext) {
-            val filterToken = tokens.parseFilter(strict)
-            parsedTokens.add(filterToken.copy(negate = !filterToken.negate))
-        } else {
-            parsedTokens.add(tokens.parseFilter(strict))
-        }
+        val filterToken = tokens.parseFilter(strict)
+        parsedTokens.add(filterToken.let { if (negateNext) it.negate() else it })
 
         negateNext = false
     }
@@ -98,7 +94,7 @@ fun List<QueryToken>.toGroup(operator: LogicalOperator = LogicalOperator.AND, ne
     return QueryTokenGroup(newChildren, operator, negate)
 }
 
-fun Queue<Token>.parseFilter(strict: Boolean): QueryFilterToken {
+fun Queue<Token>.parseFilter(strict: Boolean): QueryToken {
     val first = this.poll()
 
     var stringValue: String? = null
@@ -127,7 +123,17 @@ fun Queue<Token>.parseFilter(strict: Boolean): QueryFilterToken {
             }
 
             return when {
-                second is ValueToken -> QueryFilterToken(stringValue, operator, second, exactValue, negate)
+                second is ValueToken -> {
+                    when {
+                        second is StringToken && second !is QuotedStringToken -> {
+                            second.value.split(",")
+                                .map { StringToken(it) }
+                                .map { QueryFilterToken(stringValue, operator, it, exactValue, negate = false) }
+                                .toGroup(LogicalOperator.AND, negate)
+                        }
+                        else -> QueryFilterToken(stringValue, operator, second, exactValue, negate)
+                    }
+                }
                 strict -> throw TokenizerException("Unexpected token: ${second.raw}")
                 second == null -> QueryFilterToken(stringValue, operator, null, exactValue, negate)
                 else -> QueryFilterToken(stringValue, operator, StringToken(second.raw), exactValue, negate)
