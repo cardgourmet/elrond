@@ -411,11 +411,8 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
 }
 
 private fun Iterable<QueryFilter>.findStaticFilter(token: QueryFilterToken): QueryFilter? {
-    if (token.keyword == null) return null
-    val value = "${token.keyword}${token.operator}${token.value}".trim()
-
     return this.filter { filter ->
-        filter.keywords.any { keyword -> keyword.equals(value, ignoreCase = true) }
+        filter.keywords.any { keyword -> keyword.equals(token.raw, ignoreCase = true) }
     }.find { filter ->
         filter.properties.any { it is StaticSearchQueryProperty }
     }

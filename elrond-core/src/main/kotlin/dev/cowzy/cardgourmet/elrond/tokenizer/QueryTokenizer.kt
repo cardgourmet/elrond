@@ -2,6 +2,7 @@ package dev.cowzy.cardgourmet.elrond.tokenizer
 
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
+import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.negated
 import dev.cowzy.cardgourmet.elrond.query.*
 import java.util.*
@@ -14,8 +15,8 @@ private val notRegex = Regex("(not|-)", RegexOption.IGNORE_CASE)
 
 /**
  * @param keywords The keywords used to match the filter.
- * @param values The value types that can be used with the filter mapped to the operators that can be used with them.
- * @param referenceBy The keywords by which the filter can be referenced as value (i.e. when comparing two filters to each other).
+ * @param values The value types that can be used with the filter and the operators that can be used with each of them. Include [FilterToken] to allow referencing other filters.
+ * @param referenceBy The keywords by which this filter can be referenced as a value for other filters (i.e. when comparing two filters to each other).
  */
 data class QueryTokenizerFilter(
     val keywords: List<String>,
@@ -160,8 +161,12 @@ class QueryTokenizer(
                     negate = !negate
                 }
 
-                val filter = filters.find { it.keywords.any { keyword -> keyword.equals(stringValue, true) } }
+                val staticFilter = filters.find { it.keywords.any { keyword -> keyword.equals(raw, true) } }
+                if (staticFilter != null) {
+                    return QueryFilterToken(staticFilter, stringValue, operatorToken.value, StringToken(second.raw), negate, raw)
+                }
 
+                val filter = filters.find { it.keywords.any { keyword -> keyword.equals(stringValue, true) } }
                 if (filter == null) {
                     ignoreValue(IgnoredQueryValue(raw, "unknown_filter"))
                     return null
