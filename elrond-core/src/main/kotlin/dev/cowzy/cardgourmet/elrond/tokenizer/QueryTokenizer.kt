@@ -215,7 +215,7 @@ class QueryTokenizer(
 
                                         return@mapNotNull  when {
                                             matchingFilters.size == 1 && matchingFilters.first() == filter -> {
-                                                ignoreValue(IgnoredQueryValue(it, "self_reference"))
+                                                ignoreValue(IgnoredQueryValue("${first.raw}${operatorToken.raw}$it", "self_reference"))
                                                 null
                                             }
 
