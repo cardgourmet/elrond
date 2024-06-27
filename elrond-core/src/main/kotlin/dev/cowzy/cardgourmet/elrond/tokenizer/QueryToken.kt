@@ -4,22 +4,21 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.query.LogicalOperator
 
 sealed class QueryToken {
-    abstract val negate: Boolean
+    abstract var negate: Boolean
 }
 
 data class QueryFilterToken(
+    val filter: QueryTokenizerFilter,
     val keyword: String?,
-    val operator: SearchQueryOperator?,
-    val value: ValueToken?,
-    val exactValue: Boolean,
-    override val negate: Boolean
+    val operator: SearchQueryOperator,
+    val value: ValueToken,
+    override var negate: Boolean,
+    val raw: String
 ) : QueryToken() {
     override fun toString(): String {
-        val mappedOperator = operator ?: SearchQueryOperator.CONTAINS
-
         return when {
-            negate -> "-${keyword ?: ""}${mappedOperator.value}${value?.raw ?: ""}"
-            else -> "${keyword ?: ""}${mappedOperator.value}${value?.raw ?: ""}"
+            negate -> "-${keyword ?: filter.keywords.first()}${operator.value}${value.raw}"
+            else -> "${keyword ?: filter.keywords.first()}${operator.value}${value.raw}"
         }
     }
 }
@@ -27,10 +26,12 @@ data class QueryFilterToken(
 data class QueryTokenGroup(
     val children: List<QueryToken>,
     val operator: LogicalOperator,
-    override val negate: Boolean
+    override var negate: Boolean
 ) : QueryToken()
 
-fun QueryToken.negate(): QueryToken = when (this) {
+fun QueryToken.negated(): QueryToken = when (this) {
     is QueryTokenGroup -> this.copy(negate = !this.negate)
     is QueryFilterToken -> this.copy(negate = !this.negate)
 }
+
+operator fun QueryToken.plus(other: List<QueryToken>) = listOf(this) + other

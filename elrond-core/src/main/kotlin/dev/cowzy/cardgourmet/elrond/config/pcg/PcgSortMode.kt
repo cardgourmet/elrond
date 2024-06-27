@@ -21,7 +21,7 @@ enum class PcgSortMode(
         PcgSet::setCode, PcgPrint::sortValue,
         PcgPrint::collectorNumberValue, PcgPrint::collectorNumber
     )),
-    @SerialName("type") SUPER_TYPE("type", PcgCard::superType),
+    @SerialName("type") SUPER_TYPE("type", PcgCard::types),
     @SerialName("health") HEALTH("health", PcgCard::hp),
     @SerialName("released") RELEASE_DATE("released", arrayOf(
         PcgSet::releaseStartDate, PcgSet::setCode, PcgPrint::sortValue,

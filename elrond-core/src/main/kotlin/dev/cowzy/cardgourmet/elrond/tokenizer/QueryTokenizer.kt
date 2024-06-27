@@ -1,178 +1,389 @@
 package dev.cowzy.cardgourmet.elrond.tokenizer
 
-import dev.cowzy.cardgourmet.elrond.query.LogicalOperator
+import dev.cowzy.cardgourmet.commons.getSerialName
+import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
+import dev.cowzy.cardgourmet.elrond.negated
+import dev.cowzy.cardgourmet.elrond.query.*
 import java.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
 
 private val andRegex = Regex("(and|&+)", RegexOption.IGNORE_CASE)
 private val orRegex = Regex("(or|\\|+)", RegexOption.IGNORE_CASE)
 private val notRegex = Regex("(not|-)", RegexOption.IGNORE_CASE)
 
-fun String.tokenizeToQuery(strict: Boolean): QueryToken? {
-    val tokens = this.tokenize().toQueryTokens(strict)
-    if (tokens.isEmpty()) return null
-    return tokens.toGroup()
-}
+/**
+ * @param keywords The keywords used to match the filter.
+ * @param values The value types that can be used with the filter mapped to the operators that can be used with them.
+ * @param referenceBy The keywords by which the filter can be referenced as value (i.e. when comparing two filters to each other).
+ */
+data class QueryTokenizerFilter(
+    val keywords: List<String>,
+    val values: List<QueryTokenizerFilterValue>,
+    val referenceBy: List<String> = emptyList()
+)
 
-fun List<Token>.toQueryTokens(strict: Boolean): List<QueryToken> {
-    val tokens = LinkedList(this)
-    if (tokens.isEmpty()) return emptyList()
+data class QueryTokenizerFilterValue(
+    val type: KClass<out ValueToken>,
+    val operators: List<SearchQueryOperator>
+)
 
-    val parsedTokens = mutableListOf<QueryToken>()
+data class TokenizedQuery(
+    val query: QueryToken?,
+    val ignored: List<IgnoredQueryValue>
+)
 
-    var negateNext = false
+class QueryTokenizer(
+    private val filters: List<QueryTokenizerFilter>,
+    private val fallbackFilter: QueryTokenizerFilter? = null
+) {
 
-    while (tokens.isNotEmpty()) {
-        val token = tokens.peek()
+    fun tokenizeToQuery(query: String): TokenizedQuery {
+        val ignored = mutableListOf<IgnoredQueryValue>()
+        val token = query.tokenize().toQueryTokens(ignored::add).takeIf { it.isNotEmpty() }?.toGroup()
 
-        if (token is OpenParenthesisToken) {
-            tokens.poll()
+        val optimizedTokens = token?.flatten()?.filterDuplicatesAndNegatedPairs(ignored::add) ?: emptyList()
+        val optimizedToken = when {
+            optimizedTokens.size == 1 -> optimizedTokens.single()
+            token is QueryTokenGroup -> optimizedTokens.toGroup(token.operator, token.negate)
+            else -> QueryTokenGroup(optimizedTokens, LogicalOperator.AND, false)
+        }
 
-            if (token.raw.startsWith("-")) {
-                parsedTokens.add(tokens.parseTokenGroup(strict).toGroup(negate = !negateNext))
-            } else if (negateNext) {
-                parsedTokens.add(tokens.parseTokenGroup(strict).toGroup(negate = true))
-            } else {
-                parsedTokens.addAll(tokens.parseTokenGroup(strict))
+        return TokenizedQuery(optimizedToken, ignored)
+    }
+
+    private fun List<Token>.toQueryTokens(ignoreValue: (IgnoredQueryValue) -> Unit): List<QueryToken> {
+        val tokenQueue = LinkedList(this)
+        if (tokenQueue.isEmpty()) return emptyList()
+
+        val parsedTokens = mutableListOf<QueryToken>()
+
+        var negateNext = false
+
+        while (tokenQueue.isNotEmpty()) {
+            val token = tokenQueue.peek()
+
+            if (token is OpenParenthesisToken) {
+                tokenQueue.poll()
+
+                if (token.raw.startsWith("-")) {
+                    parsedTokens.add(tokenQueue.parseTokenGroup(ignoreValue).toGroup(negate = !negateNext))
+                } else if (negateNext) {
+                    parsedTokens.add(tokenQueue.parseTokenGroup(ignoreValue).toGroup(negate = true))
+                } else {
+                    parsedTokens.addAll(tokenQueue.parseTokenGroup(ignoreValue))
+                }
+
+                negateNext = false
+                continue
+            } else if (token is StringToken) {
+                when {
+                    andRegex.matches(token.value) -> {
+                        tokenQueue.poll()
+                        negateNext = false
+                        continue
+                    }
+
+                    orRegex.matches(token.value) -> {
+                        tokenQueue.poll()
+                        val group = (parsedTokens.toGroup() + tokenQueue.toQueryTokens(ignoreValue)).toGroup(LogicalOperator.OR, negateNext)
+                        return listOf(group)
+                    }
+
+                    notRegex.matches(token.value) -> {
+                        tokenQueue.poll()
+                        negateNext = true
+                        continue
+                    }
+                }
+            }
+
+            tokenQueue.parseFilter(ignoreValue)?.let {
+                parsedTokens.add(it.let { if (negateNext) it.negated() else it })
             }
 
             negateNext = false
-            continue
-        } else if (token is StringToken) {
-            when {
-                andRegex.matches(token.value) -> {
-                    tokens.poll()
-                    negateNext = false
-                    continue
-                }
+        }
 
-                orRegex.matches(token.value) -> {
-                    tokens.poll()
-                    val group = (parsedTokens.toGroup() + tokens.toQueryTokens(strict)).toGroup(LogicalOperator.OR, negateNext)
-                    return listOf(group)
-                }
+        return parsedTokens
+    }
 
-                notRegex.matches(token.value) -> {
-                    tokens.poll()
-                    negateNext = true
-                    continue
-                }
+    private fun List<QueryToken>.toGroup(operator: LogicalOperator = LogicalOperator.AND, negate: Boolean = false): QueryToken {
+        val children = this.filter { it !is QueryTokenGroup || it.children.isNotEmpty() }
+
+        if (children.size == 1) {
+            val token = this.first()
+            if (!negate) return token
+
+            return when (token) {
+                is QueryTokenGroup -> token.copy(negate = !token.negate)
+                is QueryFilterToken -> token.copy(negate = !token.negate)
             }
         }
 
-        val filterToken = tokens.parseFilter(strict)
-        parsedTokens.add(filterToken.let { if (negateNext) it.negate() else it })
+        val newChildren = mutableListOf<QueryToken>()
 
-        negateNext = false
-    }
-
-    return parsedTokens
-}
-
-fun List<QueryToken>.toGroup(operator: LogicalOperator = LogicalOperator.AND, negate: Boolean = false): QueryToken {
-    val children = this.filter { it !is QueryTokenGroup || it.children.isNotEmpty() }
-
-    if (children.size == 1) {
-        val token = this.first()
-        if (!negate) return token
-
-        return when (token) {
-            is QueryTokenGroup -> token.copy(negate = !token.negate)
-            is QueryFilterToken -> token.copy(negate = !token.negate)
-        }
-    }
-
-    val newChildren = mutableListOf<QueryToken>()
-
-    children.forEach {
-        if (it is QueryTokenGroup && it.operator == operator && !it.negate) {
-            newChildren.addAll(it.children)
-        } else {
-            newChildren.add(it)
-        }
-    }
-
-    return QueryTokenGroup(newChildren, operator, negate)
-}
-
-fun Queue<Token>.parseFilter(strict: Boolean): QueryToken {
-    val first = this.poll()
-
-    var stringValue: String? = null
-    var negate = false
-    var exactValue = false
-
-    if (first is StringToken) {
-        var rawValue = first.raw
-        negate = rawValue.startsWith("-")
-        if (negate) rawValue = rawValue.substring(1)
-        exactValue = rawValue.startsWith("!")
-
-        stringValue = first.raw.removeExactAndNegateAndQuotes()
-
-        if (this.peek() is OperatorToken) {
-            val operatorToken = this.poll() as OperatorToken
-            val operator = operatorToken.value
-            val second = this.poll()
-
-            if (operatorToken.negate) {
-                negate = !negate
+        children.forEach {
+            if (it is QueryTokenGroup && it.operator == operator && !it.negate) {
+                newChildren.addAll(it.children)
+            } else {
+                newChildren.add(it)
             }
+        }
 
-            if (strict && second is QuotedStringToken && (!second.raw.startsWith("\"") && !second.raw.startsWith("'"))) {
-                throw TokenizerException("Unexpected token: ${second.raw}")
-            }
+        return QueryTokenGroup(newChildren, operator, negate)
+    }
 
-            return when {
-                second is ValueToken -> {
-                    when {
-                        second is StringToken && second !is QuotedStringToken -> {
-                            second.value.split(",")
-                                .map { StringToken(it) }
-                                .map { QueryFilterToken(stringValue, operator, it, exactValue, negate = false) }
-                                .toGroup(LogicalOperator.AND, negate)
+    private fun Queue<Token>.parseFilter(ignoreValue: (IgnoredQueryValue) -> Unit): QueryToken? {
+        val first = this.poll()
+
+        var stringValue: String? = null
+        var negate = false
+        var exactValue = false
+
+        if (first is StringToken) {
+            var rawValue = first.raw
+            negate = rawValue.startsWith("-")
+            if (negate) rawValue = rawValue.substring(1)
+            exactValue = rawValue.startsWith("!")
+
+            stringValue = first.raw.removeExactAndNegateAndQuotes()
+
+            if (this.peek() is OperatorToken) {
+                val operatorToken = this.poll() as OperatorToken
+                val operator = operatorToken.value
+                val second = this.poll()
+
+                val raw = "${first.raw}${operatorToken.raw}${second?.raw ?: ""}"
+
+                if (operatorToken.negate) {
+                    negate = !negate
+                }
+
+                val filter = filters.find { it.keywords.any { keyword -> keyword.equals(stringValue, true) } }
+
+                if (filter == null) {
+                    ignoreValue(IgnoredQueryValue(raw, "unknown_filter"))
+                    return null
+                }
+
+                val supportedOperators = filter.values.flatMap { it.operators }.distinct()
+                if (!supportedOperators.contains(operator)) {
+                    ignoreValue(IgnoredQueryValue(raw, "invalid_operator", supportedOperators.map { it.getSerialName() }))
+                    return null
+                }
+
+                val mappedOperator = when {
+                    operator == SearchQueryOperator.CONTAINS && exactValue -> SearchQueryOperator.EQUALS
+                    else -> operator
+                }
+
+                fun isSupported(type: KClass<out Token>): Boolean {
+                    val entry = filter.values.find { it.type.isSuperclassOf(type) } ?: return false
+                    return entry.operators.contains(mappedOperator)
+                }
+
+                return when (second) {
+                    is NumberToken -> {
+                        if (isSupported(second::class)) {
+                            QueryFilterToken(filter, stringValue, mappedOperator, second, negate, raw)
+                        } else if (isSupported(StringToken::class)) {
+                            QueryFilterToken(filter, stringValue, mappedOperator, StringToken(second.raw), negate, raw)
+                        } else {
+                            ignoreValue(IgnoredQueryValue(raw, "unsupported_value"))
+                            return null
                         }
-                        else -> QueryFilterToken(stringValue, operator, second, exactValue, negate)
                     }
+
+                    is RegexToken -> {
+                        if (isSupported(second::class)) {
+                            QueryFilterToken(filter, stringValue, mappedOperator, second, negate, raw)
+                        } else {
+                            ignoreValue(IgnoredQueryValue(raw, "unsupported_value"))
+                            return null
+                        }
+                    }
+
+                    is StringToken -> {
+                        when {
+                            second !is QuotedStringToken -> {
+                                second.value.split(",")
+                                    .mapNotNull {
+                                        val matchingFilters = filters
+                                            .filter { filter -> filter.values.map { value -> value.type }.any(::isSupported) }
+                                            .filter { filter -> filter.referenceBy.any { keyword -> keyword.equals(it, true) } }
+
+                                        return@mapNotNull  when {
+                                            matchingFilters.size == 1 && matchingFilters.first() == filter -> {
+                                                ignoreValue(IgnoredQueryValue(it, "self_reference"))
+                                                null
+                                            }
+
+                                            matchingFilters.isNotEmpty() && isSupported(FilterToken::class) -> FilterToken(matchingFilters.first(), it, it)
+
+                                            isSupported(StringToken::class) -> StringToken(it)
+
+                                            else -> {
+                                                ignoreValue(IgnoredQueryValue("${first.raw}${operatorToken.raw}$it", "unsupported_value"))
+                                                null
+                                            }
+                                        }
+                                    }
+                                    .map { QueryFilterToken(filter, stringValue, mappedOperator, it, false, "${first.raw}${operatorToken.raw}$it") }
+                                    .toGroup(LogicalOperator.AND, negate)
+                            }
+
+                            isSupported(second::class) -> QueryFilterToken(filter, stringValue, mappedOperator, second, negate, raw)
+
+                            else -> {
+                                ignoreValue(IgnoredQueryValue(raw, "unsupported_value"))
+                                return null
+                            }
+                        }
+                    }
+
+                    null -> {
+                        ignoreValue(IgnoredQueryValue(raw, "missing_value"))
+                        return null
+                    }
+
+                    else -> QueryFilterToken(filter, stringValue, mappedOperator, StringToken(second.raw), negate, raw)
                 }
-                strict -> throw TokenizerException("Unexpected token: ${second.raw}")
-                second == null -> QueryFilterToken(stringValue, operator, null, exactValue, negate)
-                else -> QueryFilterToken(stringValue, operator, StringToken(second.raw), exactValue, negate)
+            }
+        }
+
+        if (fallbackFilter == null) {
+            ignoreValue(IgnoredQueryValue(first.raw, "unknown_filter"))
+            return null
+        }
+
+        fun isSupported(type: KClass<out Token>) = fallbackFilter.values.any { it.type.isSuperclassOf(type) }
+
+        fun getOperator(type: KClass<out Token>): SearchQueryOperator {
+            val entry = fallbackFilter.values.first { it.type.isSuperclassOf(type) }
+            return when {
+                exactValue && entry.operators.contains(SearchQueryOperator.EQUALS) -> SearchQueryOperator.EQUALS
+                else -> entry.operators.firstOrNull()
+            } ?: throw IllegalArgumentException("No operator found for type ${type.simpleName} in filter ${fallbackFilter.keywords.first()}.")
+        }
+
+        return when {
+            first is StringToken && isSupported(StringToken::class) -> QueryFilterToken(fallbackFilter, null, getOperator(StringToken::class), StringToken(stringValue!!), negate, first.raw)
+            first is ValueToken && isSupported(first::class) -> QueryFilterToken(fallbackFilter, null, getOperator(first::class), first, negate = false, first.raw)
+            first == null -> return null
+
+            first is ValueToken && !isSupported(first::class) -> {
+                ignoreValue(IgnoredQueryValue(first.raw, "unsupported_value"))
+                null
+            }
+
+            else -> {
+                ignoreValue(IgnoredQueryValue(first.raw, "unknown_filter"))
+                return null
             }
         }
     }
 
-    return when {
-        first is StringToken -> QueryFilterToken(null, null, StringToken(stringValue!!), exactValue, negate)
-        first is RegexToken -> QueryFilterToken(null, null, first, exactValue = false, negate = false)
-        strict -> throw TokenizerException("Unexpected token: ${first.raw}")
-        first == null -> QueryFilterToken(null, null, null, exactValue = false, negate = false)
-        else -> QueryFilterToken(null, null, StringToken(first.raw), exactValue = false, negate = false)
-    }
-}
+    private fun Queue<Token>.parseTokenGroup(ignoreValue: (IgnoredQueryValue) -> Unit): List<QueryToken> {
+        if (this.isEmpty()) return emptyList()
 
-fun Queue<Token>.parseTokenGroup(strict: Boolean): List<QueryToken> {
-    if (this.isEmpty()) return emptyList()
+        val tokensWithinGroup = mutableListOf<Token>()
+        var openingParenthesis = 0
 
-    val tokensWithinGroup = mutableListOf<Token>()
-    var openingParenthesis = 0
-
-    while (this.isNotEmpty()) {
-        val token = this.poll()
-        if (token is OpenParenthesisToken) {
-            openingParenthesis++
-        } else if (token is CloseParenthesisToken) {
-            if (openingParenthesis == 0) {
-                return tokensWithinGroup.toQueryTokens(strict)
+        while (this.isNotEmpty()) {
+            val token = this.poll()
+            if (token is OpenParenthesisToken) {
+                openingParenthesis++
+            } else if (token is CloseParenthesisToken) {
+                if (openingParenthesis == 0) {
+                    return tokensWithinGroup.toQueryTokens(ignoreValue)
+                }
+                openingParenthesis--
             }
-            openingParenthesis--
+            tokensWithinGroup.add(token)
         }
-        tokensWithinGroup.add(token)
+
+        return tokensWithinGroup.toQueryTokens(ignoreValue)
     }
 
-    when {
-        strict -> throw TokenizerException("Unexpected end of group.")
-        else -> return tokensWithinGroup.toQueryTokens(false)
+    private fun List<QueryToken>.filterDuplicatesAndNegatedPairs(ignoreValue: (IgnoredQueryValue) -> Unit): List<QueryToken> {
+        val mutableTokens = this.toMutableList()
+
+        do {
+            var changed = false
+
+            val tokens = mutableTokens.toList()
+            for (token in tokens) {
+                if (token !is QueryFilterToken) continue
+
+                val duplicateToken = tokens
+                    .asSequence()
+                    .filterIsInstance<QueryFilterToken>()
+                    .filter { token != it }
+                    .filter { it.negate == token.negate && it.operator == token.operator }
+                    .filter { it::class == token::class }
+                    .find { it.filter == token.filter && it.operator == token.operator && it.value.isSimilarTo(token.value) }
+
+                if (duplicateToken != null) {
+                    mutableTokens.remove(duplicateToken)
+
+                    ignoreValue(IgnoredQueryValue(
+                        duplicateToken.raw,
+                        "duplicate_filter"
+                    ))
+
+                    changed = true
+                    break
+                }
+
+                val negatedToken = tokens
+                    .asSequence()
+                    .filterIsInstance<QueryFilterToken>()
+                    .filter { token != it }
+                    .filter { (it.negate != token.negate && it.operator == token.operator) || (it.negate == token.negate && it.operator.negated() == token.operator) }
+                    .filter { it::class == token::class }
+                    .find { it.filter == token.filter && it.operator == token.operator && it.value.isSimilarTo(token.value) }
+
+                if (negatedToken != null) {
+                    mutableTokens.remove(token)
+                    mutableTokens.remove(negatedToken)
+
+                    ignoreValue(IgnoredQueryValue(
+                        "${token.raw} ${negatedToken.raw}",
+                        "negated_filters"
+                    ))
+
+                    changed = true
+                    break
+                }
+            }
+        } while (changed)
+
+        return mutableTokens
     }
+
+    private fun QueryToken.flatten(): List<QueryToken> {
+        if (this !is QueryTokenGroup) return listOf(this)
+
+        val expressions = this.children.map { it.flatten() }
+
+        return when {
+            operator == LogicalOperator.AND && !negate -> expressions.flatten()
+            operator == LogicalOperator.OR && negate -> expressions.flatten().map { it.negated() }
+            else -> listOf(
+                QueryTokenGroup(
+                    expressions.mapNotNull {
+                        when (it.size) {
+                            0 -> null
+                            1 -> it.single()
+                            else -> QueryTokenGroup(it, LogicalOperator.AND, false)
+                        }
+                    },
+                    operator,
+                    negate
+                )
+            )
+        }
+    }
+
 }
-
-operator fun QueryToken.plus(other: List<QueryToken>) = listOf(this) + other

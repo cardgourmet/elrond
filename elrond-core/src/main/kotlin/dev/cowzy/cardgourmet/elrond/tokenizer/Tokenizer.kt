@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.tokenizer
 
+import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 
 fun String.tokenize(): List<Token> {
@@ -17,7 +18,7 @@ fun String.tokenize(): List<Token> {
 fun String.nextToken(): Pair<Token, String>? {
     val cleaned = this.trim()
 
-    val regex = Regex("""^(?:(-?\()|(\))|(:|!=|≠|=|>=|≥|>|<=|≤|<)|(\/(?:[^\/\\]|\\.)*\/)|(!?"(?:[^"\\]|\\.)*")|(!?'(?:[^'\\]|\\.)*')|(-?!?[^\s=:><()≠≥≤!]+))""")
+    val regex = Regex("""^(?:(-?\()|(\))|(:|!=|≠|=|>=|≥|>|<=|≤|<)|(\/(?:[^\/\\]|\\.)*\/)|(!?"(?:[^"\\]|\\.)*")|(!?'(?:[^'\\]|\\.)*')|(\d+\.\d+|\d+|\.\d+)|(-?!?[^\s=:><()≠≥≤!]+))""")
     val match = regex.find(cleaned) ?: return null
 
     val groups = match.groupValues
@@ -29,7 +30,7 @@ fun String.nextToken(): Pair<Token, String>? {
 
             val operator = when {
                 isNotEquals -> SearchQueryOperator.EQUALS
-                else -> SearchQueryOperator.tryParse(groups[3]) ?: throw TokenizerException("Invalid operator: ${groups[3]}")
+                else -> SearchQueryOperator.tryParse(groups[3]) ?: throw TokenizerException(groups[3], "invalid_operator", SearchQueryOperator.values().map { it.getSerialName() })
             }
 
             OperatorToken(operator, isNotEquals, groups[3])
@@ -37,7 +38,8 @@ fun String.nextToken(): Pair<Token, String>? {
         groups[4].isNotEmpty() -> RegexToken(Regex(groups[4].removeSurrounding("/")), groups[4])
         groups[5].isNotEmpty() -> QuotedStringToken(groups[5].removeExactAndNegateAndQuotes(), groups[5])
         groups[6].isNotEmpty() -> QuotedStringToken(groups[6].removeExactAndNegateAndQuotes(), groups[6])
-        else -> StringToken(groups[7].removeExactAndNegateAndQuotes(), groups[7])
+        groups[7].isNotEmpty() -> NumberToken(groups[7].toDouble(), groups[7])
+        else -> StringToken(groups[8].removeExactAndNegateAndQuotes(), groups[8])
     }
 
     return token to cleaned.substring(match.range.last + 1)

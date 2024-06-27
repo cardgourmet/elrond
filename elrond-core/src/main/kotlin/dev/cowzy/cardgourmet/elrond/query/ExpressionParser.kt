@@ -40,14 +40,16 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
     overrideDistinctMode: SearchQueryDistinctMode? = null,
     overrideFlags: Set<T>? = null,
     overrideSorting: Sorting? = null,
-    preferredLanguage: String? = null,
-    strict: Boolean = false
+    preferredLanguage: String? = null
 ): SearchQuery<T> {
     val (queryWithoutDistinctMode, distinctMode) = query.stripFlags<SearchQueryDistinctMode> { it.keywords.toSet() + it.getSerialName() }
     val (queryWithoutFlags, queryFlags) = queryWithoutDistinctMode.stripFlags(flags)
     val (queryWithoutSorting, sorting) = queryWithoutFlags.stripSorting(sortModes)
 
-    val token = queryWithoutSorting.tokenizeToQuery(strict)
+    val tokenizerFilters = this.filters.map(QueryFilter::toTokenizerFilter)
+    val tokenizer = QueryTokenizer(tokenizerFilters, fallbackFilter?.toTokenizerFilter())
+
+    val (token, ignored) = tokenizer.tokenizeToQuery(queryWithoutSorting)
     val result = token.toQueryExpression(filters, fallbackFilter)
     val normalizedExpression = result.expression.normalize()
 
@@ -59,12 +61,40 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
         flags = (overrideFlags ?: queryFlags).sortedBy { it.getSerialName() },
         sorting = overrideSorting ?: sorting ?: fallbackSortMode(normalizedExpression).let { Sorting(it, it.defaultOrder) },
         distinctMode = overrideDistinctMode ?: distinctMode.firstOrNull() ?: fallbackDistinctMode,
-        ignoredExpressions = result.ignored,
+        ignoredExpressions = ignored + result.ignored,
         preferredLanguage = preferredLanguage,
         filters = filters,
         filterExpressions = filterExpressions
     )
 }
+
+private fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
+    keywords = keywords,
+    values = properties.flatMap { property ->
+        property.valueDefinition.supportedValueTypes.mapNotNull { type ->
+            val valueTokenType = when (type) {
+                StringValue::class -> StringToken::class
+                NumberValue::class -> NumberToken::class
+                RegexValue::class -> RegexToken::class
+                else -> return@mapNotNull null
+            }
+
+            valueTokenType to property.supportedOperators
+        } + property.comparableTo.let {
+            when {
+                it.any() -> listOf(FilterToken::class to property.supportedOperators)
+                else -> emptyList()
+            }
+        }
+    }.groupBy { type ->
+        type.first
+    }.mapValues { (_, value) ->
+        value.flatMap { entry -> entry.second.toList() }.distinct().sortedBy { operator -> operator.ordinal }
+    }.map { QueryTokenizerFilterValue(it.key, it.value) },
+    referenceBy = (keywords - ignoreReferenceKeywords).takeIf {
+        properties.any { it.comparableTo.any() }
+    } ?: emptyList()
+)
 
 fun <T : Enum<T>> SearchQueryExecutor<T>.tryTransform(query: SearchQuery<T>, attempt: Int): SearchQuery<T>? {
     if (attempt <= 0) return query
@@ -167,11 +197,6 @@ private suspend fun QueryToken.parseQueryExpression(
                 return null to ignoredValues
             }
 
-            val operator = when {
-                this.exactValue -> SearchQueryOperator.EQUALS
-                else -> this.operator ?: SearchQueryOperator.CONTAINS
-            }
-
             val supportedValueTypes = filter.properties
                 .map { prop ->
                     when {
@@ -183,7 +208,7 @@ private suspend fun QueryToken.parseQueryExpression(
                 .distinct()
                 .toTypedArray()
 
-            val values = this.value?.let { listOf(it) }?.parseExpressionValues(supportedValueTypes, filter, filters) ?: emptyList()
+            val values = listOf(this.value).parseExpressionValues(supportedValueTypes, filter, filters)
 
             if (values.isEmpty()) {
                 ignoredValues.add(IgnoredQueryValue(this.toString(), "empty_value"))
@@ -330,6 +355,7 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
             if (expression !is PropertyQueryExpression) continue
 
             val duplicateExpression = expressions
+                .asSequence()
                 .filterIsInstance<PropertyQueryExpression>()
                 .filter { expression != it }
                 .filter { it.negate == expression.negate && it.operator == expression.operator }
@@ -354,6 +380,7 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
             }
 
             val negatedExpression = expressions
+                .asSequence()
                 .filterIsInstance<PropertyQueryExpression>()
                 .filter { expression != it }
                 .filter { (it.negate != expression.negate && it.operator == expression.operator) || (it.negate == expression.negate && it.operator.negated() == expression.operator) }
@@ -384,7 +411,7 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
 }
 
 private fun Iterable<QueryFilter>.findStaticFilter(token: QueryFilterToken): QueryFilter? {
-    if (token.keyword == null || token.operator == null) return null
+    if (token.keyword == null) return null
     val value = "${token.keyword}${token.operator}${token.value}".trim()
 
     return this.filter { filter ->
@@ -442,17 +469,29 @@ private fun List<ValueToken>.parseExpressionValues(
                 }
             }
 
-            is StringToken -> {
-                val matchingFilter = filters.findFilter(token.value, true)
-                val matchingProperties = matchingFilter?.let { filter.findComparableProperties(it) }
+            is NumberToken -> {
+                if (supportedValueTypes.contains(NumberValue::class)) {
+                    return@map NumberValue(token.value)
+                } else if (supportedValueTypes.contains(StringValue::class)) {
+                    return@map StringValue(token.value.toString())
+                } else {
+                    return@map null
+                }
+            }
 
-                val number = token.value.toDoubleOrNull()
+            is FilterToken -> {
+                val matchingFilter = filters.findFilter(token.keyword, true)
+                val matchingProperties = matchingFilter?.let { filter.findComparableProperties(it) }
 
                 if (matchingFilter != null && matchingProperties != null) {
                     return@map FilterValue(matchingFilter, matchingProperties)
-                } else if (number != null && supportedValueTypes.contains(NumberValue::class)) {
-                    return@map NumberValue(number)
-                } else if (token.value.isNotBlank() && supportedValueTypes.contains(StringValue::class)) {
+                } else {
+                    return@map null
+                }
+            }
+
+            is StringToken -> {
+                if (token.value.isNotBlank() && supportedValueTypes.contains(StringValue::class)) {
                     return@map StringValue(token.value)
                 } else {
                     return@map null
