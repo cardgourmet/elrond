@@ -187,9 +187,21 @@ private suspend fun QueryToken.parseQueryExpression(
         }
 
         is QueryFilterToken -> {
+            val staticFilter = filters.findStaticFilter(this)
+            if (staticFilter != null) {
+                return ValueLeafQueryExpression(
+                    staticFilter,
+                    staticFilter.properties.first { it is StaticSearchQueryProperty } as SearchQueryProperty<Any>,
+                    this.operator,
+                    Unit,
+                    this.negate,
+                    this.raw
+                ) to ignoredValues
+            }
+
             val filter = when (this.keyword) {
                 null -> fallbackFilter
-                else -> filters.findStaticFilter(this) ?: filters.findFilter(this.keyword)
+                else -> filters.findFilter(this.keyword)
             }
 
             if (filter == null) {
@@ -286,14 +298,14 @@ private suspend fun QueryToken.parseQueryExpression(
                     if (matchingProperty == null) {
                         ignoredValues.add(
                             IgnoredQueryValue(
-                            this.toString(),
-                            "unsupported_operator",
-                            propertyCandidates.asSequence().map { (prop, _) ->
-                                prop.supportedOperators.toList()
-                            }.flatten().distinct().map {
-                                it.value
-                            }.sorted().toList()
-                        )
+                                this.toString(),
+                                "unsupported_operator",
+                                propertyCandidates.asSequence().map { (prop, _) ->
+                                    prop.supportedOperators.toList()
+                                }.flatten().distinct().map {
+                                    it.value
+                                }.sorted().toList()
+                            )
                         )
                         return@map null
                     }
