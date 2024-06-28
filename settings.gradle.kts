@@ -4,3 +4,5 @@ plugins {
 rootProject.name = "elrond"
 include("elrond-core")
 include("elrond-user")
+include("elrond-tokenizer")
+include("elrond-tcg")

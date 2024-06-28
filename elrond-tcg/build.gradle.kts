@@ -1,10 +1,3 @@
-val artifactVersion: String by project
-val ktorVersion: String by project
-val logbackVersion: String by project
-val commonsVersion: String by project
-val chefVersion: String by project
-val kueryVersion: String by project
-
 plugins {
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.serialization") version "1.8.21"
@@ -12,17 +5,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":elrond-tokenizer"))
-    implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
-    implementation("dev.cowzy.cardgourmet:chef-commons:$chefVersion")
-    implementation("dev.cowzy:kuery-orm:$kueryVersion")
-
-    // Coroutine
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-
-    // PostgreSQL
-    implementation("org.postgresql:postgresql:42.6.0")
-
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 

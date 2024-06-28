@@ -1,6 +1,5 @@
 package dev.cowzy.cardgourmet.elrond.tokenizer
 
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 
 fun String.tokenize(): List<Token> {
@@ -30,7 +29,7 @@ fun String.nextToken(): Pair<Token, String>? {
 
             val operator = when {
                 isNotEquals -> SearchQueryOperator.EQUALS
-                else -> SearchQueryOperator.tryParse(groups[3]) ?: throw TokenizerException(groups[3], "invalid_operator", SearchQueryOperator.values().map { it.getSerialName() })
+                else -> SearchQueryOperator.tryParse(groups[3]) ?: throw TokenizerException(groups[3], "invalid_operator", SearchQueryOperator.values().map { it.value })
             }
 
             OperatorToken(operator, isNotEquals, groups[3])

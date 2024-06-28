@@ -3,8 +3,8 @@ package dev.cowzy.cardgourmet.elrond
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.query.*
+import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import kotlinx.serialization.Serializable
 import java.text.NumberFormat
 import java.util.Locale

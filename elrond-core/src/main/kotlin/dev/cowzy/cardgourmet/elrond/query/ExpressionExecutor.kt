@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
+import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.query.*
 import dev.cowzy.kuery.reflection.columnName

@@ -5,7 +5,7 @@ import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.query.LogicalOperator
+import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import kotlin.reflect.KClass
 
 abstract class SearchQueryProperty<OutputType : Any>(

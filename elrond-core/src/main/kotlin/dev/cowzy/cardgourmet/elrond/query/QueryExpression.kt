@@ -4,6 +4,8 @@ import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
+import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
+import dev.cowzy.cardgourmet.elrond.tokenizer.invert
 
 sealed class QueryExpression(var negate: Boolean, val rawValue: String? = null)
 
@@ -43,13 +45,6 @@ class FilterLeafQueryExpression(
     negate: Boolean,
     rawValue: String? = null
 ) : PropertyQueryExpression(filter, property, operator, negate, rawValue)
-
-enum class LogicalOperator { AND, OR }
-
-fun LogicalOperator.invert() = when (this) {
-    LogicalOperator.AND -> LogicalOperator.OR
-    LogicalOperator.OR -> LogicalOperator.AND
-}
 
 class QueryExpressionGroup(
     val children: List<QueryExpression>,

@@ -1,7 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.tokenizer
 
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
-import dev.cowzy.cardgourmet.elrond.query.LogicalOperator
 
 sealed class QueryToken {
     abstract var negate: Boolean

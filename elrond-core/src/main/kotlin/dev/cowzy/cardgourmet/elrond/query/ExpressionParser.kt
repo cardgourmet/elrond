@@ -8,7 +8,6 @@ import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.*
 import dev.cowzy.kuery.Order
-import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 
 data class SearchQuery<T : Enum<T>>(
@@ -26,13 +25,6 @@ data class SearchQuery<T : Enum<T>>(
 data class QueryExpressionBuilderResult(
     val expression: QueryExpression = BooleanQueryExpression(true),
     val ignored: List<IgnoredQueryValue> = emptyList()
-)
-
-@Serializable
-data class IgnoredQueryValue(
-    val value: String,
-    val reason: String,
-    val supportedValues: List<String>? = null
 )
 
 suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
@@ -201,7 +193,7 @@ private suspend fun QueryToken.parseQueryExpression(
 
             val filter = when (this.keyword) {
                 null -> fallbackFilter
-                else -> filters.findFilter(this.keyword)
+                else -> filters.findFilter(this.keyword!!)
             }
 
             if (filter == null) {

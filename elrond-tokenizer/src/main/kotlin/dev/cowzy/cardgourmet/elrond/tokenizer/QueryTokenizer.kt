@@ -1,10 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.tokenizer
 
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
-import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.negated
-import dev.cowzy.cardgourmet.elrond.query.*
+import kotlinx.serialization.Serializable
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
@@ -12,6 +10,20 @@ import kotlin.reflect.full.isSuperclassOf
 private val andRegex = Regex("(and|&+)", RegexOption.IGNORE_CASE)
 private val orRegex = Regex("(or|\\|+)", RegexOption.IGNORE_CASE)
 private val notRegex = Regex("(not|-)", RegexOption.IGNORE_CASE)
+
+@Serializable
+data class IgnoredQueryValue(
+    val value: String,
+    val reason: String,
+    val supportedValues: List<String>? = null
+)
+
+enum class LogicalOperator { AND, OR }
+
+fun LogicalOperator.invert() = when (this) {
+    LogicalOperator.AND -> LogicalOperator.OR
+    LogicalOperator.OR -> LogicalOperator.AND
+}
 
 /**
  * @param keywords The keywords used to match the filter.
@@ -174,7 +186,7 @@ class QueryTokenizer(
 
                 val supportedOperators = filter.values.flatMap { it.operators }.distinct()
                 if (!supportedOperators.contains(operator)) {
-                    ignoreValue(IgnoredQueryValue(raw, "invalid_operator", supportedOperators.map { it.getSerialName() }))
+                    ignoreValue(IgnoredQueryValue(raw, "invalid_operator", supportedOperators.map { it.value }))
                     return null
                 }
 
