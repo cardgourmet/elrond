@@ -134,16 +134,12 @@ private suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<Distinct
     return when (mode) {
         SearchQueryMode.RANDOM -> QueryBuilder.selectBuilder(builder.toSqlExpression(), "innerQuery")
             .select("innerQuery.id")
-            .select("innerQuery.printId")
-            .select("innerQuery.faceIndex")
-            .select("innerQuery.language")
+            .apply { config.customFields.keys.forEach { key -> select("innerQuery.$key") } }
             .orderByRaw("RANDOM()")
 
         SearchQueryMode.SEARCH -> QueryBuilder.selectBuilder(builder.toSqlExpression(), "innerQuery")
             .select("innerQuery.id")
-            .select("innerQuery.printId")
-            .select("innerQuery.faceIndex")
-            .select("innerQuery.language")
+            .apply { config.customFields.keys.forEach { key -> select("innerQuery.$key") } }
             .also { searchBuilder ->
                 val sortColumns = query.sorting.mode.properties
 
