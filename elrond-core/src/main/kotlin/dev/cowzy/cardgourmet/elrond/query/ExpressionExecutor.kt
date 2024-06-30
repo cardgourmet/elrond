@@ -97,13 +97,9 @@ private suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<Distinct
     if (mode == SearchQueryMode.SEARCH || mode == SearchQueryMode.RANDOM) {
         val sortColumns = query.sorting.mode.properties
 
-        config.customFields.entries.sortedBy { it.key }.forEach { (key, field) ->
-            val property = field.properties.firstOrNull { affectedTables.contains(it.table()) } ?: field.properties.firstOrNull()
-            property?.let { affectedTables.add(it.table()) }
-            builder.selectRaw("${property?.columnName()} as $key")
-        }
-
         if (mode == SearchQueryMode.SEARCH) {
+            affectedTables.addAll(sortColumns.map { it.table() })
+
             sortColumns.forEach { column ->
                 val type = column.returnType.classifier as KClass<*>
                 val sortName = "sort_${column.simpleColumnName()}"
@@ -114,6 +110,12 @@ private suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<Distinct
                     builder.selectAs(column.columnName(), sortName)
                 }
             }
+        }
+
+        config.customFields.entries.sortedBy { it.key }.forEach { (key, field) ->
+            val property = field.properties.firstOrNull { affectedTables.contains(it.table()) } ?: field.properties.firstOrNull()
+            property?.let { affectedTables.add(it.table()) }
+            builder.selectRaw("${property?.columnName()} as $key")
         }
     }
 
