@@ -9,7 +9,7 @@ import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.cardgourmet.tcg.config.card.dlc.DlcCardSearchQueryFlag
 import dev.cowzy.cardgourmet.tcg.config.card.dlc.applyDlcSort
 import dev.cowzy.cardgourmet.tcg.config.card.dlc.configureBasicDlcCardFilters
@@ -18,7 +18,7 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(DlcCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(UserCard::language, DlcCardTranslation::language)
     }
@@ -46,7 +46,7 @@ private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDi
 }
 
 
-fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
     }
@@ -59,7 +59,7 @@ fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
         .build()
 }
 
-fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
         configureCollectionFilters()

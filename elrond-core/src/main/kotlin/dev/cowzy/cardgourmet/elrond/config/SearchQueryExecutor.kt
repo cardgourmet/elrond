@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
-data class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
+open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
     val config: SearchQuerySqlConfig,
     val flags: Set<SearchFlag>,
     val sortModes: List<SortMode>,

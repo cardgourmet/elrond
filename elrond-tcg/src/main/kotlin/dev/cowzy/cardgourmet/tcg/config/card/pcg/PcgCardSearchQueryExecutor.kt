@@ -11,12 +11,12 @@ import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(PcgCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereInRaw(PcgCardTranslation::language, "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
@@ -42,7 +42,7 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDi
     applyPcgSort(query, builder)
 }
 
-fun applyPcgSort(query: SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, builder: SelectQueryBuilder) {
+fun applyPcgSort(query: SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder) {
     builder.orderByRaw("array_position(ARRAY[?, 'en'], ${PcgCardTranslation::language.columnName()})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
@@ -58,17 +58,17 @@ fun applyPcgSort(query: SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDistin
 
 fun createPcgCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
-    return SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode>(config)
+): SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+    return SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*PcgCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_CARDS, PcgCard::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_FACES, PcgCard::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_PRINTS, PcgPrint::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_PRINT_FACES, PcgPrint::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_CARDS, PcgCard::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_FACES, PcgCard::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_PRINTS, PcgPrint::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_PRINT_FACES, PcgPrint::id)
         .sortModes(*PcgCardSortMode.values()) { expression ->
             when (expression) {
                 is BooleanQueryExpression -> PcgCardSortMode.RELEASE_DATE
@@ -91,7 +91,7 @@ fun createPcgCardBaseBuilder(
         }
 }
 
-fun createPcgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createPcgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
     }

@@ -7,7 +7,7 @@ import dev.cowzy.kuery.Order
 import kotlinx.serialization.SerialName
 import kotlin.reflect.KProperty1
 
-enum class MtgCardCardSortMode(
+enum class MtgCardSortMode(
     override val keywords: Array<String>,
     override val properties: Array<KProperty1<*, *>>,
     override val defaultOrder: Order = Order.ASCENDING

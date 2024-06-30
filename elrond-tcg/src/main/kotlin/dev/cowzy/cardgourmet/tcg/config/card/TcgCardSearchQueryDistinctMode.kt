@@ -6,7 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class TcgSearchQueryDistinctMode(
+enum class TcgCardSearchQueryDistinctMode(
     override val keywords: Array<String>,
     override val key: String
 ) : SearchQueryDistinctMode {

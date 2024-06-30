@@ -9,12 +9,12 @@ import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.cardgourmet.tcg.config.card.mtg.*
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     val preferMode = query.flags.firstOfOrNull(MtgCardSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgCardSearchQueryFlag.INCLUDE_EXTRAS)) {
@@ -44,7 +44,7 @@ private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgSearchQueryDi
     applyMtgSortPostLanguage(query, builder, preferMode)
 }
 
-fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
     }
@@ -57,7 +57,7 @@ fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
         .build()
 }
 
-fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
         configureCollectionFilters()

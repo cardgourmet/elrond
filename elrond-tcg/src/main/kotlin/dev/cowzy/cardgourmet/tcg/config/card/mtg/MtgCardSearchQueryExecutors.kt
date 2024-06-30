@@ -9,12 +9,12 @@ import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     val preferMode = query.flags.firstOfOrNull(MtgCardSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgCardSearchQueryFlag.INCLUDE_EXTRAS)) {
@@ -70,7 +70,7 @@ fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSear
     }
 }
 
-fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?) {
+fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?) {
     builder.orderByRaw("array_position(ARRAY[?, 'en'], ${MtgPrintFaceTranslation::language.columnName()})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
@@ -91,21 +91,21 @@ fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgSearc
 
 fun createMtgCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
-    return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode>(config)
+): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+    return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*MtgCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_CARDS, MtgCard::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_FACES, MtgCardFace::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_PRINTS, MtgPrint::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_PRINT_FACES, MtgPrintFace::id)
-        .sortModes(*MtgCardCardSortMode.values()) { expression ->
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_CARDS, MtgCard::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_FACES, MtgCardFace::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_PRINTS, MtgPrint::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_PRINT_FACES, MtgPrintFace::id)
+        .sortModes(*MtgCardSortMode.values()) { expression ->
             when (expression) {
-                is BooleanQueryExpression -> MtgCardCardSortMode.RELEASE_DATE
-                else -> MtgCardCardSortMode.NAME
+                is BooleanQueryExpression -> MtgCardSortMode.RELEASE_DATE
+                else -> MtgCardSortMode.NAME
             }
         }
         .customTables { query, mode ->
@@ -151,7 +151,7 @@ fun createMtgCardBaseBuilder(
         }
 }
 
-fun createMtgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createMtgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
     }

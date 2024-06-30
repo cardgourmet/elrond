@@ -12,12 +12,12 @@ import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(DlcCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereInRaw(DlcCardTranslation::language, "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
@@ -43,7 +43,7 @@ private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDi
     applyDlcSort(query, builder)
 }
 
-fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode>, builder: SelectQueryBuilder) {
+fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder) {
     builder.orderByRaw("array_position(ARRAY[?, 'en'], ${DlcPrintTranslation::language.columnName()})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
@@ -58,17 +58,17 @@ fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDistin
 
 fun createDlcCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
-    return SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode>(config)
+): SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+    return SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*DlcCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_CARDS, DlcCard::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_FACES, DlcCard::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_PRINTS, DlcPrint::id)
-        .distinctMode(TcgSearchQueryDistinctMode.UNIQUE_PRINT_FACES, DlcPrint::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_CARDS, DlcCard::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_FACES, DlcCard::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_PRINTS, DlcPrint::id)
+        .distinctMode(TcgCardSearchQueryDistinctMode.UNIQUE_PRINT_FACES, DlcPrint::id)
         .sortModes(*DlcCardSortMode.values()) { expression ->
             when (expression) {
                 is BooleanQueryExpression -> DlcCardSortMode.RELEASE_DATE
@@ -91,7 +91,7 @@ fun createDlcCardBaseBuilder(
         }
 }
 
-fun createDlcCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createDlcCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
     }

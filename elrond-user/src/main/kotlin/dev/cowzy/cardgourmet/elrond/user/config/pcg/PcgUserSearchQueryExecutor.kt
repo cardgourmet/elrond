@@ -9,7 +9,7 @@ import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.cardgourmet.tcg.config.card.pcg.PcgCardSearchQueryFlag
 import dev.cowzy.cardgourmet.tcg.config.card.pcg.applyPcgSort
 import dev.cowzy.cardgourmet.tcg.config.card.pcg.configureBasicPcgCardFilters
@@ -18,7 +18,7 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
     if (!query.flags.contains(PcgCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(UserCard::language, PcgCardTranslation::language)
     }
@@ -45,7 +45,7 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgSearchQueryDi
     applyPcgSort(query, builder)
 }
 
-fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
     }
@@ -58,7 +58,7 @@ fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
         .build()
 }
 
-fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
         configureCollectionFilters()
