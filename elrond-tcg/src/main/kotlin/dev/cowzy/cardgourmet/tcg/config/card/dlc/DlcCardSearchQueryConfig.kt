@@ -1,9 +1,11 @@
 package dev.cowzy.cardgourmet.tcg.config.card.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
 import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
+import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcFranchise
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
@@ -266,6 +268,10 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
         applyTagProperties()
     }
 
+    filter("artworkcolor", "artcolor") {
+        stringArray(CardImageColor::nearestColors, propertyKeys.ARTWORK_COLOR)
+    }
+
     // TODO: new/in
     // TODO: rarity
     // TODO: prints/sets (reprints)
@@ -300,6 +306,13 @@ private val tableDependencies = mapOf(
     },
     CardImage::class to TableDependency(DlcPrintTranslation::class) { builder ->
         builder.leftJoin(CardImage::class) { it.whereColumn(CardImage::printTranslationId, DlcPrintTranslation::id) }
+    },
+    CardImageColor::class to TableDependency(DlcPrintTranslation::class) { builder ->
+        builder.leftJoin(CardImageColor::class) {
+            it
+                .where(CardImageColor::game, GameType.DISNEY_LORCANA)
+                .whereColumn(CardImageColor::printTranslationId, DlcPrintTranslation::id)
+        }
     }
 )
 

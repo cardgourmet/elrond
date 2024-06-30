@@ -1,9 +1,11 @@
 package dev.cowzy.cardgourmet.tcg.config.card.mtg
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
+import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
 import dev.cowzy.cardgourmet.commons.*
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
@@ -465,6 +467,10 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("mtgjson", "mtgjsonid") {
         exactString(MtgPrintIdentifier::mtgjsonId, mtgPropertyKeys.MTGJSON_ID)
     }
+
+    filter("artworkcolor", "artcolor") {
+        stringArray(CardImageColor::nearestColors, propertyKeys.ARTWORK_COLOR)
+    }
 }
 
 private val tableDependencies = mapOf(
@@ -514,6 +520,13 @@ private val tableDependencies = mapOf(
     },
     CardImage::class to TableDependency(MtgPrintFaceTranslation::class) { builder ->
         builder.leftJoin(CardImage::class) { it.whereColumn(CardImage::printTranslationId, MtgPrintFaceTranslation::id) }
+    },
+    CardImageColor::class to TableDependency(MtgPrintFaceTranslation::class) { builder ->
+        builder.leftJoin(CardImageColor::class) {
+            it
+                .where(CardImageColor::game, GameType.DISNEY_LORCANA)
+                .whereColumn(CardImageColor::printTranslationId, MtgPrintFaceTranslation::id)
+        }
     }
 )
 
