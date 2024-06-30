@@ -100,7 +100,7 @@ fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQue
     val queryParts = listOf(
         distinctMode.getSerialName(),
         expression.toExpressionString().let { if (it.isNotBlank()) "($it)" else it },
-        flags.joinToString(" "),
+        flags.joinToString(" ") { it.getSerialName() },
         sorting.mode.let { "order:${(it as Enum<*>).getSerialName()}" },
         sorting.order.let { "direction:${it.getSerialName()}" },
     )
