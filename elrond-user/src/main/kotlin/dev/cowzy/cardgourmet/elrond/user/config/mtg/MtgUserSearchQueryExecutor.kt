@@ -3,24 +3,25 @@ package dev.cowzy.cardgourmet.elrond.user.config.mtg
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
 import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.mtg.*
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
+import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.mtg.*
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
-    val preferMode = query.flags.firstOfOrNull(MtgSearchQueryFlag.preferModes)
+private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+    val preferMode = query.flags.firstOfOrNull(MtgCardSearchQueryFlag.preferModes)
 
-    if (!query.flags.contains(MtgSearchQueryFlag.INCLUDE_EXTRAS)) {
+    if (!query.flags.contains(MtgCardSearchQueryFlag.INCLUDE_EXTRAS)) {
         builder.whereInRaw(MtgPrint::id, "(SELECT id FROM ${Schemata.MAGIC_THE_GATHERING}.primary_print_ids)")
     }
 
-    if (!query.flags.contains(MtgSearchQueryFlag.ANY_LANGUAGE)) {
+    if (!query.flags.contains(MtgCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(UserCard::language, MtgCardFaceTranslation::language)
     }
 
@@ -43,22 +44,22 @@ private val queryBuilder: ((SearchQuery<MtgSearchQueryFlag>, SearchQueryMode, Se
     applyMtgSortPostLanguage(query, builder, preferMode)
 }
 
-fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
-    val builder = SearchQueryConfigBuilder(providers) {
-        configureBasicMtgFilters()
+fun createMtgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+    val builder = SearchQueryFilterBuilder(providers) {
+        configureBasicMtgCardFilters()
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgBaseBuilder(mtgSearchQueryConfig, fallbackFilter = defaultFilter)
+    return createMtgCardBaseBuilder(mtgSearchQueryConfig, fallbackFilter = defaultFilter)
         .filters(filters)
         .build()
 }
 
-fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgSearchQueryFlag> {
-    val builder = SearchQueryConfigBuilder(providers) {
-        configureBasicMtgFilters()
+fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+    val builder = SearchQueryFilterBuilder(providers) {
+        configureBasicMtgCardFilters()
         configureCollectionFilters()
         configureMtgCollectionFilters()
     }
@@ -66,7 +67,7 @@ fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool): Search
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgBaseBuilder(mtgSearchQueryConfig, queryBuilder, defaultFilter)
+    return createMtgCardBaseBuilder(mtgSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(filters)
         .build()
 }

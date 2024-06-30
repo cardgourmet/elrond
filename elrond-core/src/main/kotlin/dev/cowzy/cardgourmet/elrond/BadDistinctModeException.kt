@@ -1,7 +1,6 @@
 package dev.cowzy.cardgourmet.elrond
 
 import dev.cowzy.cardgourmet.commons.getSerialName
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryDistinctMode
 
-class BadDistinctModeException(distinctMode: SearchQueryDistinctMode)
+class BadDistinctModeException(distinctMode: Enum<*>)
     : Exception("The distinction mode ${distinctMode.getSerialName()} is not supported for this query.")

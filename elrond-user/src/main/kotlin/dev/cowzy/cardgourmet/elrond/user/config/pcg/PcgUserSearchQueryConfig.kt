@@ -6,20 +6,18 @@ import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.commons.user.User
-import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
-import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.commons.user.*
+import dev.cowzy.cardgourmet.elrond.config.CustomField
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.pcg.pcgBasicSearchQueryConfig
+import dev.cowzy.cardgourmet.tcg.config.card.pcg.pcgBasicCardSearchQueryConfig
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-fun SearchQueryConfigBuilder.configurePcgCollectionFilters() {
+fun SearchQueryFilterBuilder.configurePcgCollectionFilters() {
     filter("medium", "mediums") {
         exactString(UserCard::medium, propertyKeys.MEDIUM) { values("paper", type = "medium") }
     }
@@ -53,7 +51,11 @@ private val tableDependencies = mapOf(
     },
 )
 
-val pcgSearchQueryConfig = pcgBasicSearchQueryConfig.copy(
-    languageColumns = arrayOf(UserCard::language, *pcgBasicSearchQueryConfig.languageColumns),
-    tableDependencies = pcgBasicSearchQueryConfig.tableDependencies + tableDependencies,
+@Suppress("UNCHECKED_CAST")
+val pcgSearchQueryConfig = pcgBasicCardSearchQueryConfig.copy(
+    customFields = pcgBasicCardSearchQueryConfig.customFields.toMutableMap().apply {
+        val field = this["language"]!! as CustomField<LanguageCode>
+        this["language"] = CustomField(UserCard::language, *field.properties.toTypedArray())
+    },
+    tableDependencies = pcgBasicCardSearchQueryConfig.tableDependencies + tableDependencies,
 )

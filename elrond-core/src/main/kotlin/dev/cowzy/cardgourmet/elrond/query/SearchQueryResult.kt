@@ -4,7 +4,8 @@ import java.util.UUID
 
 data class SearchQueryResult(
     val id: UUID,
-    val matchedPrintId: UUID? = null,
-    val matchedFaceIndex: Int? = null,
-    val matchedLanguage: String? = null,
-)
+    val customFields: Map<String, Any?>,
+) {
+    @Suppress("UNCHECKED_CAST")
+    fun <T> getCustomField(name: String): T? = customFields[name] as? T
+}

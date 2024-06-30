@@ -10,18 +10,18 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
-data class SearchQueryExecutor<T : Enum<T>>(
-    val config: SearchQueryConfig,
-    val flags: Set<T>,
+data class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
+    val config: SearchQuerySqlConfig,
+    val flags: Set<SearchFlag>,
     val sortModes: List<SortMode>,
-    val distinctModes: Map<SearchQueryDistinctMode, KProperty1<*, UUID>>,
-    val fallbackDistinctMode: SearchQueryDistinctMode = SearchQueryDistinctMode.UNIQUE_CARDS,
+    val distinctModes: Map<DistinctMode, KProperty1<*, UUID>>,
+    val fallbackDistinctMode: DistinctMode,
     val fallbackSortMode: (QueryExpression) -> SortMode,
     val filters: List<QueryFilter>,
     var fallbackFilter: QueryFilter?,
-    val attemptTransformers: List<SearchQueryTransformer<T>>,
-    val customTables: ((SearchQuery<T>, SearchQueryMode) -> Set<KClass<*>>)?,
-    val customBuilder: ((SearchQuery<T>, SearchQueryMode, SelectQueryBuilder) -> Unit)?
+    val attemptTransformers: List<SearchQueryTransformer<SearchFlag, DistinctMode>>,
+    val customTables: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode) -> Set<KClass<*>>)?,
+    val customBuilder: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit)?
 ) {
     @Serializable
     data class SearchQueryFilter(
@@ -197,23 +197,24 @@ data class SearchQueryExecutor<T : Enum<T>>(
     }
 }
 
-typealias SearchQueryTransformer<T> = (SearchQuery<T>) -> SearchQuery<T>?
+typealias SearchQueryTransformer<F, D> = (SearchQuery<F, D>) -> SearchQuery<F, D>?
 
-class SearchQueryExecutorBuilder<T : Enum<T>>(
-    private val config: SearchQueryConfig
+class SearchQueryExecutorBuilder<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
+    private val config: SearchQuerySqlConfig
 ) {
 
-    private val flags = mutableSetOf<T>()
+    private val flags = mutableSetOf<SearchFlag>()
     private val sortModes = mutableListOf<SortMode>()
     private var fallbackSortMode: (QueryExpression) -> SortMode = { sortModes.first() }
-    private val distinctModes = mutableMapOf<SearchQueryDistinctMode, KProperty1<*, UUID>>()
+    private var fallbackDistinctMode: DistinctMode? = null
+    private val distinctModes = mutableMapOf<DistinctMode, KProperty1<*, UUID>>()
     private val filters = mutableListOf<QueryFilter>()
     private var fallbackFilter: QueryFilter? = null
-    private val attemptTransformers = mutableListOf<SearchQueryTransformer<T>>()
-    private var customTables: ((SearchQuery<T>, SearchQueryMode) -> Set<KClass<*>>)? = null
-    private var customBuilder: ((SearchQuery<T>, SearchQueryMode, SelectQueryBuilder) -> Unit)? = null
+    private val attemptTransformers = mutableListOf<SearchQueryTransformer<SearchFlag, DistinctMode>>()
+    private var customTables: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode) -> Set<KClass<*>>)? = null
+    private var customBuilder: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit)? = null
 
-    fun flags(vararg flags: T) = this.apply { this.flags.addAll(flags) }
+    fun flags(vararg flags: SearchFlag) = this.apply { this.flags.addAll(flags) }
 
     fun sortModes(vararg sortModes: SortMode, fallback: (QueryExpression) -> SortMode) = this.apply {
         this.sortModes.addAll(sortModes)
@@ -224,13 +225,18 @@ class SearchQueryExecutorBuilder<T : Enum<T>>(
 
     fun fallbackFilter(filter: QueryFilter?) = this.apply { this.fallbackFilter = filter }
 
-    fun transformAttempt(transform: SearchQueryTransformer<T>) = this.apply { this.attemptTransformers.add(transform) }
+    fun transformAttempt(transform: SearchQueryTransformer<SearchFlag, DistinctMode>) = this.apply { this.attemptTransformers.add(transform) }
 
-    fun customTables(builder: (SearchQuery<T>, SearchQueryMode) -> Set<KClass<*>>) = this.apply { this.customTables = builder }
+    fun customTables(builder: (SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode) -> Set<KClass<*>>) = this.apply { this.customTables = builder }
 
-    fun customBuilder(builder: (SearchQuery<T>, SearchQueryMode, SelectQueryBuilder) -> Unit) = this.apply { this.customBuilder = builder }
+    fun customBuilder(builder: (SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = this.apply { this.customBuilder = builder }
 
-    fun distinctMode(distinctMode: SearchQueryDistinctMode, property: KProperty1<*, UUID>) = this.apply { this.distinctModes[distinctMode] = property }
+    fun fallbackDistinctMode(distinctMode: DistinctMode) = this.apply { this.fallbackDistinctMode = distinctMode }
+
+    fun distinctMode(distinctMode: DistinctMode, property: KProperty1<*, UUID>) = this.apply {
+        if (fallbackDistinctMode == null) fallbackDistinctMode = distinctMode
+        this.distinctModes[distinctMode] = property
+    }
 
     fun build() = SearchQueryExecutor(
         config = config,
@@ -242,6 +248,7 @@ class SearchQueryExecutorBuilder<T : Enum<T>>(
         attemptTransformers = attemptTransformers,
         customTables = customTables,
         customBuilder = customBuilder,
-        distinctModes = distinctModes
+        distinctModes = distinctModes,
+        fallbackDistinctMode = distinctModes.keys.first()
     )
 }

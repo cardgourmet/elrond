@@ -1,3 +1,7 @@
+val commonsVersion: String by project
+val chefVersion: String by project
+val kueryVersion: String by project
+
 plugins {
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.serialization") version "1.8.21"
@@ -5,6 +9,12 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":elrond-core"))
+    implementation(project(":elrond-tokenizer"))
+    implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
+    implementation("dev.cowzy.cardgourmet:chef-commons:$chefVersion")
+    implementation("dev.cowzy:kuery-orm:$kueryVersion")
+
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 

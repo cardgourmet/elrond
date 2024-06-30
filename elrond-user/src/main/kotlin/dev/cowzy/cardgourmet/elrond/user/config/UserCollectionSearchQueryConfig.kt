@@ -5,7 +5,7 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.user.property.PrintConditionProperty
@@ -13,7 +13,7 @@ import dev.cowzy.cardgourmet.elrond.user.property.PrintConditionProperty
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-fun SearchQueryConfigBuilder.configureCollectionFilters() {
+fun SearchQueryFilterBuilder.configureCollectionFilters() {
     filter("id") { uuid(UserCard::id, propertyKeys.USER_CARD_ID) }
     filter("quantity", "qty", "amount") { numeric(UserCard::amount, collectionPropertyKeys.QUANTITY) }
     filter("condition", "cond") { property(PrintConditionProperty()) }

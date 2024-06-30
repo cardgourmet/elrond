@@ -3,19 +3,23 @@ package dev.cowzy.cardgourmet.elrond.user.config.dlc
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.config.dlc.*
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
+import dev.cowzy.cardgourmet.tcg.config.card.TcgSearchQueryDistinctMode
+import dev.cowzy.cardgourmet.tcg.config.card.dlc.DlcCardSearchQueryFlag
+import dev.cowzy.cardgourmet.tcg.config.card.dlc.applyDlcSort
+import dev.cowzy.cardgourmet.tcg.config.card.dlc.configureBasicDlcCardFilters
+import dev.cowzy.cardgourmet.tcg.config.card.dlc.createDlcCardBaseBuilder
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
-    if (!query.flags.contains(DlcSearchQueryFlag.ANY_LANGUAGE)) {
+private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+    if (!query.flags.contains(DlcCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(UserCard::language, DlcCardTranslation::language)
     }
 
@@ -42,22 +46,22 @@ private val queryBuilder: ((SearchQuery<DlcSearchQueryFlag>, SearchQueryMode, Se
 }
 
 
-fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
-    val builder = SearchQueryConfigBuilder(providers) {
-        configureBasicDlcFilters()
+fun createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+    val builder = SearchQueryFilterBuilder(providers) {
+        configureBasicDlcCardFilters()
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcBaseBuilder(dlcSearchQueryConfig, fallbackFilter = defaultFilter)
+    return createDlcCardBaseBuilder(dlcSearchQueryConfig, fallbackFilter = defaultFilter)
         .filters(filters)
         .build()
 }
 
-fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcSearchQueryFlag> {
-    val builder = SearchQueryConfigBuilder(providers) {
-        configureBasicDlcFilters()
+fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgSearchQueryDistinctMode> {
+    val builder = SearchQueryFilterBuilder(providers) {
+        configureBasicDlcCardFilters()
         configureCollectionFilters()
         configureDlcCollectionFilters()
     }
@@ -65,7 +69,7 @@ fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): Search
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcBaseBuilder(dlcSearchQueryConfig, queryBuilder, defaultFilter)
+    return createDlcCardBaseBuilder(dlcSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(filters)
         .build()
 }

@@ -1,8 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
+import dev.cowzy.cardgourmet.elrond.config.SearchQuerySqlConfig
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import dev.cowzy.kuery.ColumnIndex
@@ -18,8 +18,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 
-suspend fun <T : Enum<T>> SearchQueryExecutor<T>.search(
-    query: SearchQuery<T>,
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.search(
+    query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int, offset: Int,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
@@ -31,8 +31,8 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.search(
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
-suspend fun <T : Enum<T>> SearchQueryExecutor<T>.random(
-    query: SearchQuery<T>,
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.random(
+    query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
@@ -43,25 +43,25 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.random(
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
-suspend fun <T : Enum<T>> SearchQueryExecutor<T>.count(
-    query: SearchQuery<T>,
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.count(
+    query: SearchQuery<SearchFlag, DistinctMode>,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ) = build(query, SearchQueryMode.COUNT, applyCustomConditions).single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
 
-data class QueryExecutionResult<T : Enum<T>, Result>(
-    val query: SearchQuery<T>,
+data class QueryExecutionResult<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, Result>(
+    val query: SearchQuery<SearchFlag, DistinctMode>,
     val attempt: Int,
     val result: Result?,
 )
 
-suspend fun <T : Enum<T>, Result> SearchQueryExecutor<T>.execute(
-    query: SearchQuery<T>,
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, Result> SearchQueryExecutor<SearchFlag, DistinctMode>.execute(
+    query: SearchQuery<SearchFlag, DistinctMode>,
     retry: Boolean = true,
-    execute: suspend (SearchQuery<T>) -> Pair<Result, Boolean>
-): QueryExecutionResult<T, Result> {
+    execute: suspend (SearchQuery<SearchFlag, DistinctMode>) -> Pair<Result, Boolean>
+): QueryExecutionResult<SearchFlag, DistinctMode, Result> {
     var attempt = 0
-    var transformedQuery: SearchQuery<T> = query
+    var transformedQuery: SearchQuery<SearchFlag, DistinctMode> = query
     var result: Result? = null
 
     do {
@@ -77,19 +77,19 @@ suspend fun <T : Enum<T>, Result> SearchQueryExecutor<T>.execute(
     return QueryExecutionResult(transformedQuery, attempt, result)
 }
 
-private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.build(
-    query: SearchQuery<T>,
+private suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
+    query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
 ): SelectQueryBuilder {
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
 
-    val affectedTables = (expression.collectTables() + config.table + distinctBy.table()).toMutableSet()
+    val affectedTables = (expression.collectTables() + config.baseTable + distinctBy.table()).toMutableSet()
 
     this.customTables?.invoke(query, mode)?.let { affectedTables.addAll(it) }
 
-    val builder = config.table.selectBuilder()
+    val builder = config.baseTable.selectBuilder()
         .distinctOn(distinctBy)
         .selectAs(distinctBy, "id")
         .orderBy(distinctBy)
@@ -97,18 +97,11 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.build(
     if (mode == SearchQueryMode.SEARCH || mode == SearchQueryMode.RANDOM) {
         val sortColumns = query.sorting.mode.properties
 
-        val printIdColumn = config.printIdColumn
-        printIdColumn?.let { affectedTables.add(it.table()) }
-        builder.selectRaw("${printIdColumn?.columnName()} as printId")
-
-        val faceIndexColumn = config.faceIndexColumn
-        faceIndexColumn?.let { affectedTables.add(it.table()) }
-        builder.selectRaw("${faceIndexColumn?.columnName()} as faceIndex")
-
-        affectedTables.addAll(query.sorting.mode.properties.map { it.table() })
-
-        val languageColumn = config.languageColumns.firstOrNull { affectedTables.contains(it.table()) }
-        builder.selectRaw("${languageColumn?.columnName()} as language")
+        config.customFields.entries.sortedBy { it.key }.forEach { (key, field) ->
+            val property = field.properties.firstOrNull { affectedTables.contains(it.table()) } ?: field.properties.firstOrNull()
+            property?.let { affectedTables.add(it.table()) }
+            builder.selectRaw("${property?.columnName()} as $key")
+        }
 
         if (mode == SearchQueryMode.SEARCH) {
             sortColumns.forEach { column ->
@@ -165,26 +158,27 @@ private suspend fun <T : Enum<T>> SearchQueryExecutor<T>.build(
     }
 }
 
-private fun <T : Enum<T>> SearchQueryExecutor<T>.parseResult(
+private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.parseResult(
     distinctBy: KProperty1<*, UUID>,
     row: ResultSet,
     index: ColumnIndex
 ): SearchQueryResult {
     val id = distinctBy.parse(row, index)
 
-    val printId = config.printIdColumn?.parse(row, index)
-    if (config.printIdColumn == null) index.getAndIncrement()
+    val customFields = config.customFields.mapValues { (key, field) ->
+        val property = field.properties.firstOrNull()
 
-    val faceIndex = config.faceIndexColumn?.parse(row, index)
-    if (config.faceIndexColumn == null) index.getAndIncrement()
+        if (property == null) {
+            index.getAndIncrement()
+            return@mapValues null
+        }
 
-    val language = row.getString(index.getAndIncrement())
+        return@mapValues property.parse(row, index)
+    }
 
     return SearchQueryResult(
         id = id,
-        matchedPrintId = printId,
-        matchedFaceIndex = faceIndex,
-        matchedLanguage = language
+        customFields = customFields
     )
 }
 
@@ -277,9 +271,9 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 
 fun SelectQueryBuilder.applyJoins(
     tables: Set<KClass<*>>,
-    config: SearchQueryConfig
+    config: SearchQuerySqlConfig
 ): SelectQueryBuilder {
-    val joinedTables = mutableSetOf(config.table)
+    val joinedTables = mutableSetOf(config.baseTable)
 
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach

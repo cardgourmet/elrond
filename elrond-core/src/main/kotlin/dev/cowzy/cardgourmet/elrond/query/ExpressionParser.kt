@@ -2,7 +2,6 @@ package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
@@ -10,12 +9,17 @@ import dev.cowzy.cardgourmet.elrond.tokenizer.*
 import dev.cowzy.kuery.Order
 import kotlin.reflect.KClass
 
-data class SearchQuery<T : Enum<T>>(
+interface SearchQueryDistinctMode {
+    val keywords: Array<String>
+    val key: String
+}
+
+data class SearchQuery<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
     val expression: QueryExpression,
     val normalizedExpression: QueryExpression,
-    val flags: List<T>,
+    val flags: List<SearchFlag>,
     val sorting: Sorting,
-    val distinctMode: SearchQueryDistinctMode,
+    val distinctMode: DistinctMode,
     val ignoredExpressions: List<IgnoredQueryValue>,
     val filters: List<String>,
     val filterExpressions: List<String>,
@@ -27,14 +31,14 @@ data class QueryExpressionBuilderResult(
     val ignored: List<IgnoredQueryValue> = emptyList()
 )
 
-suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
+suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQueryExecutor<SearchFlag, DistinctMode>.parse(
     query: String,
-    overrideDistinctMode: SearchQueryDistinctMode? = null,
-    overrideFlags: Set<T>? = null,
+    overrideDistinctMode: DistinctMode? = null,
+    overrideFlags: Set<SearchFlag>? = null,
     overrideSorting: Sorting? = null,
     preferredLanguage: String? = null
-): SearchQuery<T> {
-    val (queryWithoutDistinctMode, distinctMode) = query.stripFlags<SearchQueryDistinctMode> { it.keywords.toSet() + it.getSerialName() }
+) : SearchQuery<SearchFlag, DistinctMode> where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
+    val (queryWithoutDistinctMode, distinctMode) = query.stripFlags<DistinctMode> { it.keywords.toSet() + it.getSerialName() }
     val (queryWithoutFlags, queryFlags) = queryWithoutDistinctMode.stripFlags(flags)
     val (queryWithoutSorting, sorting) = queryWithoutFlags.stripSorting(sortModes)
 
@@ -60,7 +64,7 @@ suspend fun <T : Enum<T>> SearchQueryExecutor<T>.parse(
     )
 }
 
-private fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
+fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
     keywords = keywords,
     values = properties.flatMap { property ->
         property.valueDefinition.supportedValueTypes.mapNotNull { type ->
@@ -88,7 +92,10 @@ private fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
     } ?: emptyList()
 )
 
-fun <T : Enum<T>> SearchQueryExecutor<T>.tryTransform(query: SearchQuery<T>, attempt: Int): SearchQuery<T>? {
+fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.tryTransform(
+    query: SearchQuery<SearchFlag, DistinctMode>,
+    attempt: Int
+): SearchQuery<SearchFlag, DistinctMode>? {
     if (attempt <= 0) return query
     if (attempt > attemptTransformers.size) return null
 
@@ -96,7 +103,7 @@ fun <T : Enum<T>> SearchQueryExecutor<T>.tryTransform(query: SearchQuery<T>, att
     return transformer(query)
 }
 
-private fun String.stripSorting(sortModes: List<SortMode>): Pair<String, Sorting?> {
+fun String.stripSorting(sortModes: List<SortMode>): Pair<String, Sorting?> {
     val (queryWithoutSortModes, parsedSortModes) = this.stripValues(sortModes) { mode ->
         mode.keywords.map { "order:$it" }.toSet()
     }
@@ -153,7 +160,12 @@ suspend fun QueryToken?.toQueryExpression(
     val optimizedExpressions = expression.flattenExpressions().filterDuplicatesAndNegatedPairs { ignoredValues.add(it) }
     val optimizedExpression = when {
         optimizedExpressions.size == 1 -> optimizedExpressions.single()
-        expression is QueryExpressionGroup -> QueryExpressionGroup(optimizedExpressions, expression.operator, expression.negate)
+        expression is QueryExpressionGroup -> QueryExpressionGroup(
+            optimizedExpressions,
+            expression.operator,
+            expression.negate
+        )
+
         else -> QueryExpressionGroup(optimizedExpressions, LogicalOperator.AND, false)
     }
 
@@ -204,7 +216,9 @@ private suspend fun QueryToken.parseQueryExpression(
             val supportedValueTypes = filter.properties
                 .map { prop ->
                     when {
-                        prop.valueDefinition.provider?.getValues()?.any() == true -> prop.valueDefinition.supportedValueTypes + StringValue::class
+                        prop.valueDefinition.provider?.getValues()
+                            ?.any() == true -> prop.valueDefinition.supportedValueTypes + StringValue::class
+
                         else -> prop.valueDefinition.supportedValueTypes
                     }
                 }
@@ -248,7 +262,9 @@ private suspend fun QueryToken.parseQueryExpression(
                 } else {
                     val propertyCandidates = filter.properties.mapNotNull inner@{ prop ->
                         val supportsValueType = prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }
-                        val supportsValueMappings = value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues()?.any() == true)
+                        val supportsValueMappings =
+                            value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues()
+                                ?.any() == true)
                         if (!supportsValueType && !supportsValueMappings) return@inner null
 
                         val provider = prop.valueDefinition.provider
@@ -267,7 +283,8 @@ private suspend fun QueryToken.parseQueryExpression(
                         }
 
                         if (!supportsValueType) return@inner null
-                        val definition = prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
+                        val definition =
+                            prop.valueDefinition.getDefinition(value::class) as QueryValueMapping<*, QueryValue<*>, Any>
 
                         try {
                             val transformedValue = definition.transform(value, operator)
@@ -303,7 +320,7 @@ private suspend fun QueryToken.parseQueryExpression(
                     }
 
                     if (matchingProperty.second.first.let { it is StringValue && it.value.isBlank() }) {
-                        ignoredValues.add(IgnoredQueryValue(this.toString(),"empty_value"))
+                        ignoredValues.add(IgnoredQueryValue(this.toString(), "empty_value"))
                         return@map null
                     }
 
@@ -334,17 +351,19 @@ private fun QueryExpression.flattenExpressions(): List<QueryExpression> {
     return when {
         operator == LogicalOperator.AND && !negate -> expressions.flatten()
         operator == LogicalOperator.OR && negate -> expressions.flatten().map { it.apply { negate = !negate } }
-        else -> listOf(QueryExpressionGroup(
-            expressions.mapNotNull {
-                when (it.size) {
-                    0 -> null
-                    1 -> it.single()
-                    else -> QueryExpressionGroup(it, LogicalOperator.AND, false)
-                }
-            },
-            operator,
-            negate
-        ))
+        else -> listOf(
+            QueryExpressionGroup(
+                expressions.mapNotNull {
+                    when (it.size) {
+                        0 -> null
+                        1 -> it.single()
+                        else -> QueryExpressionGroup(it, LogicalOperator.AND, false)
+                    }
+                },
+                operator,
+                negate
+            )
+        )
     }
 }
 
@@ -374,10 +393,12 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
             if (duplicateExpression != null) {
                 mutableExpressions.remove(duplicateExpression)
 
-                ignoreValue(IgnoredQueryValue(
-                    duplicateExpression.rawValue!!,
-                    "duplicate_filter"
-                ))
+                ignoreValue(
+                    IgnoredQueryValue(
+                        duplicateExpression.rawValue!!,
+                        "duplicate_filter"
+                    )
+                )
 
                 changed = true
                 break
@@ -400,10 +421,12 @@ private fun List<QueryExpression>.filterDuplicatesAndNegatedPairs(ignoreValue: (
                 mutableExpressions.remove(expression)
                 mutableExpressions.remove(negatedExpression)
 
-                ignoreValue(IgnoredQueryValue(
-                    "${expression.rawValue} ${negatedExpression.rawValue}",
-                    "negated_filters"
-                ))
+                ignoreValue(
+                    IgnoredQueryValue(
+                        "${expression.rawValue} ${negatedExpression.rawValue}",
+                        "negated_filters"
+                    )
+                )
 
                 changed = true
                 break
@@ -506,10 +529,12 @@ fun QueryExpression.extractFilterExpressions(): List<Pair<String, String>> {
     return when (this) {
         is BooleanQueryExpression -> emptyList()
         is ValueLeafQueryExpression -> {
-            var expression = "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
+            var expression =
+                "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
             if (value is StringValue && value.exact) expression = "!$expression"
             listOf(filter.keywords.minBy { it.length } to expression)
         }
+
         is FilterLeafQueryExpression -> listOf(filter.keywords.minBy { it.length } to "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}")
         is QueryExpressionGroup -> this.children.flatMap { it.extractFilterExpressions() }
     }

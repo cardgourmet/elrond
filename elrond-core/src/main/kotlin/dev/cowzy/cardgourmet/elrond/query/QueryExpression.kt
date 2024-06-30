@@ -96,7 +96,7 @@ fun QueryExpression.normalize(): QueryExpression {
     return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
 }
 
-fun <T : Enum<T>> SearchQuery<T>.toExpressionString(): String {
+fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQuery<SearchFlag, DistinctMode>.toExpressionString(): String {
     val queryParts = listOf(
         distinctMode.getSerialName(),
         expression.toExpressionString().let { if (it.isNotBlank()) "($it)" else it },

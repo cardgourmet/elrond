@@ -13,6 +13,7 @@ plugins {
 
 dependencies {
     implementation(project(":elrond-core"))
+    implementation(project(":elrond-tcg"))
     implementation(project(":elrond-tokenizer"))
     implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
     implementation("dev.cowzy.cardgourmet:commons-user:$commonsVersion")

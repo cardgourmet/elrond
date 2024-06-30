@@ -6,20 +6,18 @@ import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.commons.user.User
-import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
-import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.commons.user.*
+import dev.cowzy.cardgourmet.elrond.config.CustomField
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.dlc.dlcBasicSearchQueryConfig
+import dev.cowzy.cardgourmet.tcg.config.card.dlc.dlcBasicCardSearchQueryConfig
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-fun SearchQueryConfigBuilder.configureDlcCollectionFilters() {
+fun SearchQueryFilterBuilder.configureDlcCollectionFilters() {
     filter("finishes", "finish") {
         // TODO: value provider
         stringArrayAndCardinality(UserCard::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH)
@@ -57,7 +55,11 @@ private val tableDependencies = mapOf(
     },
 )
 
-val dlcSearchQueryConfig = dlcBasicSearchQueryConfig.copy(
-    languageColumns = arrayOf(UserCard::language, *dlcBasicSearchQueryConfig.languageColumns),
-    tableDependencies = dlcBasicSearchQueryConfig.tableDependencies + tableDependencies,
+@Suppress("UNCHECKED_CAST")
+val dlcSearchQueryConfig = dlcBasicCardSearchQueryConfig.copy(
+    customFields = dlcBasicCardSearchQueryConfig.customFields.toMutableMap().apply {
+        val field = this["language"]!! as CustomField<LanguageCode>
+        this["language"] = CustomField(UserCard::language, *field.properties.toTypedArray())
+    },
+    tableDependencies = dlcBasicCardSearchQueryConfig.tableDependencies + tableDependencies,
 )

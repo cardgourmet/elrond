@@ -8,21 +8,19 @@ import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.commons.user.User
-import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
-import dev.cowzy.cardgourmet.commons.user.UserCardBinder
-import dev.cowzy.cardgourmet.elrond.config.SearchQueryConfigBuilder
+import dev.cowzy.cardgourmet.commons.user.*
+import dev.cowzy.cardgourmet.elrond.config.CustomField
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.TableDependency
-import dev.cowzy.cardgourmet.elrond.config.mtg.mtgBasicSearchQueryConfig
 import dev.cowzy.cardgourmet.elrond.user.property.mtg.MtgUserCardFoilProperty
+import dev.cowzy.cardgourmet.tcg.config.card.mtg.mtgBasicSearchQueryConfig
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
 
 private val propertyKeys = Strings.Query.Property
 private val collectionPropertyKeys = Strings.Query.Collection.Property
 
-fun SearchQueryConfigBuilder.configureMtgCollectionFilters() {
+fun SearchQueryFilterBuilder.configureMtgCollectionFilters() {
 //    val nameValueProvider = valueProviderPool.getOrPut("mtg_name") { MtgNameValueProvider(it) }
 //    filter("name", "n") {
 //        property(MtgUserNameProperty(nameValueProvider))
@@ -75,7 +73,11 @@ private val tableDependencies = mapOf(
     },
 )
 
+@Suppress("UNCHECKED_CAST")
 val mtgSearchQueryConfig = mtgBasicSearchQueryConfig.copy(
-    languageColumns = arrayOf(UserCard::language, *mtgBasicSearchQueryConfig.languageColumns),
+    customFields = mtgBasicSearchQueryConfig.customFields.toMutableMap().apply {
+        val field = this["language"]!! as CustomField<LanguageCode>
+        this["language"] = CustomField(UserCard::language, *field.properties.toTypedArray())
+    },
     tableDependencies = mtgBasicSearchQueryConfig.tableDependencies + tableDependencies,
 )
