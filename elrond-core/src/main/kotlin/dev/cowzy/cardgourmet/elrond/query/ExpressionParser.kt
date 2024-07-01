@@ -31,22 +31,45 @@ data class QueryExpressionBuilderResult(
     val ignored: List<IgnoredQueryValue> = emptyList()
 )
 
+data class SearchQueryParseConfig<SearchFlag : Enum<SearchFlag>, DistinctMode>(
+    val overrideDistinctMode: DistinctMode? = null,
+    val overrideFlags: Set<SearchFlag>? = null,
+    val overrideSorting: Sorting? = null,
+    val preferredLanguage: String? = null,
+    val whitelistedFilters: Set<String> = emptySet(),
+    val blacklistedFilters: Set<String> = emptySet()
+) where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
+
+    init {
+        if (whitelistedFilters.any() && blacklistedFilters.any()) {
+            throw IllegalArgumentException("Cannot have both blacklisted and whitelisted filters.")
+        }
+    }
+
+    fun isFilterAllowed(filter: QueryFilter) = when {
+        whitelistedFilters.any() -> filter.keywords.any { whitelistedFilters.contains(it) }
+        blacklistedFilters.any() -> filter.keywords.none { blacklistedFilters.contains(it) }
+        else -> true
+    }
+
+}
+
 suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQueryExecutor<SearchFlag, DistinctMode>.parse(
     query: String,
-    overrideDistinctMode: DistinctMode? = null,
-    overrideFlags: Set<SearchFlag>? = null,
-    overrideSorting: Sorting? = null,
-    preferredLanguage: String? = null
+    config: SearchQueryParseConfig<SearchFlag, DistinctMode> = SearchQueryParseConfig()
 ) : SearchQuery<SearchFlag, DistinctMode> where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
     val (queryWithoutDistinctMode, distinctMode) = query.stripFlags<DistinctMode> { it.keywords.toSet() + it.getSerialName() }
     val (queryWithoutFlags, queryFlags) = queryWithoutDistinctMode.stripFlags(flags)
     val (queryWithoutSorting, sorting) = queryWithoutFlags.stripSorting(sortModes)
 
-    val tokenizerFilters = this.filters.map(QueryFilter::toTokenizerFilter)
+    val allowedFilters = filters.filter(config::isFilterAllowed)
+    val fallbackFilter = fallbackFilter?.takeIf(config::isFilterAllowed)
+
+    val tokenizerFilters = allowedFilters.map(QueryFilter::toTokenizerFilter)
     val tokenizer = QueryTokenizer(tokenizerFilters, fallbackFilter?.toTokenizerFilter())
 
     val (token, ignored) = tokenizer.tokenizeToQuery(queryWithoutSorting)
-    val result = token.toQueryExpression(filters, fallbackFilter)
+    val result = token.toQueryExpression(allowedFilters, fallbackFilter)
     val normalizedExpression = result.expression.normalize()
 
     val (filters, filterExpressions) = normalizedExpression.extractFilterExpressions().unzip()
@@ -54,11 +77,11 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     return SearchQuery(
         expression = result.expression,
         normalizedExpression = normalizedExpression,
-        flags = (overrideFlags ?: queryFlags).sortedBy { it.getSerialName() },
-        sorting = overrideSorting ?: sorting ?: fallbackSortMode(normalizedExpression).let { Sorting(it, it.defaultOrder) },
-        distinctMode = overrideDistinctMode ?: distinctMode.firstOrNull() ?: fallbackDistinctMode,
+        flags = (config.overrideFlags ?: queryFlags).sortedBy { it.getSerialName() },
+        sorting = config.overrideSorting ?: sorting ?: fallbackSortMode(normalizedExpression).let { Sorting(it, it.defaultOrder) },
+        distinctMode = config.overrideDistinctMode ?: distinctMode.firstOrNull() ?: fallbackDistinctMode,
         ignoredExpressions = ignored + result.ignored,
-        preferredLanguage = preferredLanguage,
+        preferredLanguage = config.preferredLanguage,
         filters = filters,
         filterExpressions = filterExpressions
     )
