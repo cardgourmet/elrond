@@ -37,7 +37,8 @@ data class SearchQueryParseConfig<SearchFlag : Enum<SearchFlag>, DistinctMode>(
     val overrideSorting: Sorting? = null,
     val preferredLanguage: String? = null,
     val whitelistedFilters: Set<String> = emptySet(),
-    val blacklistedFilters: Set<String> = emptySet()
+    val blacklistedFilters: Set<String> = emptySet(),
+    val whitelistedValueTypes: Set<KClass<out QueryValue<*>>> = emptySet(),
 ) where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
 
     init {
@@ -65,7 +66,17 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     val allowedFilters = filters.filter(config::isFilterAllowed)
     val fallbackFilter = fallbackFilter?.takeIf(config::isFilterAllowed)
 
-    val tokenizerFilters = allowedFilters.map(QueryFilter::toTokenizerFilter)
+    val whitelistedValueTypes = config.whitelistedValueTypes.mapNotNull {
+        when (it) {
+            StringValue::class -> StringToken::class
+            NumberValue::class -> NumberToken::class
+            RegexValue::class -> RegexToken::class
+            FilterValue::class -> FilterToken::class
+            else -> null
+        }
+    }.toSet()
+
+    val tokenizerFilters = allowedFilters.map { it.toTokenizerFilter(whitelistedValueTypes) }
     val tokenizer = QueryTokenizer(tokenizerFilters, fallbackFilter?.toTokenizerFilter())
 
     val (token, ignored) = tokenizer.tokenizeToQuery(queryWithoutSorting)
@@ -87,7 +98,9 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     )
 }
 
-fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
+fun QueryFilter.toTokenizerFilter(
+    whitelistedValueTypes: Set<KClass<out ValueToken>> = emptySet()
+) = QueryTokenizerFilter(
     keywords = keywords,
     values = properties.flatMap { property ->
         property.valueDefinition.supportedValueTypes.mapNotNull { type ->
@@ -105,6 +118,8 @@ fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
                 else -> emptyList()
             }
         }
+    }.filter {
+        whitelistedValueTypes.isEmpty() || whitelistedValueTypes.contains(it.first)
     }.groupBy { type ->
         type.first
     }.mapValues { (_, value) ->
