@@ -48,7 +48,8 @@ data class TokenizedQuery(
 
 class QueryTokenizer(
     private val filters: List<QueryTokenizerFilter>,
-    private val fallbackFilter: QueryTokenizerFilter? = null
+    private val fallbackFilter: QueryTokenizerFilter? = null,
+    private val whitelistedValueTypes: Set<KClass<out ValueToken>> = emptySet()
 ) {
 
     fun tokenizeToQuery(query: String): TokenizedQuery {
@@ -196,8 +197,9 @@ class QueryTokenizer(
                 }
 
                 fun isSupported(type: KClass<out Token>): Boolean {
+                    val isWhitelisted = whitelistedValueTypes.isEmpty() || whitelistedValueTypes.any { it.isSuperclassOf(type) }
                     val entry = filter.values.find { it.type.isSuperclassOf(type) } ?: return false
-                    return entry.operators.contains(mappedOperator)
+                    return isWhitelisted && entry.operators.contains(mappedOperator)
                 }
 
                 return when (second) {
@@ -274,7 +276,10 @@ class QueryTokenizer(
             return null
         }
 
-        fun isSupported(type: KClass<out Token>) = fallbackFilter.values.any { it.type.isSuperclassOf(type) }
+        fun isSupported(type: KClass<out Token>): Boolean {
+            val isWhitelisted = whitelistedValueTypes.isEmpty() || whitelistedValueTypes.any { it.isSuperclassOf(type) }
+            return isWhitelisted && fallbackFilter.values.any { it.type.isSuperclassOf(type) }
+        }
 
         fun getOperator(type: KClass<out Token>): SearchQueryOperator {
             val entry = fallbackFilter.values.first { it.type.isSuperclassOf(type) }

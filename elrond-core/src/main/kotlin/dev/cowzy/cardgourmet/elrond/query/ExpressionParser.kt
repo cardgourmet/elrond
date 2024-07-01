@@ -76,8 +76,8 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
         }
     }.toSet()
 
-    val tokenizerFilters = allowedFilters.map { it.toTokenizerFilter(whitelistedValueTypes) }
-    val tokenizer = QueryTokenizer(tokenizerFilters, fallbackFilter?.toTokenizerFilter())
+    val tokenizerFilters = allowedFilters.map(QueryFilter::toTokenizerFilter)
+    val tokenizer = QueryTokenizer(tokenizerFilters, fallbackFilter?.toTokenizerFilter(), whitelistedValueTypes)
 
     val (token, ignored) = tokenizer.tokenizeToQuery(queryWithoutSorting)
     val result = token.toQueryExpression(allowedFilters, fallbackFilter)
@@ -98,9 +98,7 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     )
 }
 
-fun QueryFilter.toTokenizerFilter(
-    whitelistedValueTypes: Set<KClass<out ValueToken>> = emptySet()
-) = QueryTokenizerFilter(
+fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
     keywords = keywords,
     values = properties.flatMap { property ->
         property.valueDefinition.supportedValueTypes.mapNotNull { type ->
@@ -118,8 +116,6 @@ fun QueryFilter.toTokenizerFilter(
                 else -> emptyList()
             }
         }
-    }.filter {
-        whitelistedValueTypes.isEmpty() || whitelistedValueTypes.contains(it.first)
     }.groupBy { type ->
         type.first
     }.mapValues { (_, value) ->
