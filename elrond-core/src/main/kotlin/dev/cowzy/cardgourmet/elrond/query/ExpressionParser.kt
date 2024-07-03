@@ -98,9 +98,8 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     )
 }
 
-fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
-    keywords = keywords,
-    values = properties.flatMap { property ->
+fun QueryFilter.toTokenizerFilter(): QueryTokenizerFilter {
+    val values = properties.flatMap { property ->
         property.valueDefinition.supportedValueTypes.mapNotNull { type ->
             val valueTokenType = when (type) {
                 StringValue::class -> StringToken::class
@@ -115,16 +114,21 @@ fun QueryFilter.toTokenizerFilter() = QueryTokenizerFilter(
                 it.any() -> listOf(FilterToken::class to property.supportedOperators)
                 else -> emptyList()
             }
-        }
+        } + (property.valueDefinition.provider?.let {
+            listOf(StringToken::class to property.supportedOperators)
+        } ?: emptyList())
     }.groupBy { type ->
         type.first
     }.mapValues { (_, value) ->
         value.flatMap { entry -> entry.second.toList() }.distinct().sortedBy { operator -> operator.ordinal }
-    }.map { QueryTokenizerFilterValue(it.key, it.value) },
-    referenceBy = (keywords - ignoreReferenceKeywords).takeIf {
-        properties.any { it.comparableTo.any() }
-    } ?: emptyList()
-)
+    }.map { QueryTokenizerFilterValue(it.key, it.value) }.toMutableList()
+
+    return QueryTokenizerFilter(
+        keywords = keywords,
+        values = values,
+        referenceBy = (keywords - ignoreReferenceKeywords).takeIf { properties.any { it.comparableTo.any() } } ?: emptyList()
+    )
+}
 
 fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.tryTransform(
     query: SearchQuery<SearchFlag, DistinctMode>,

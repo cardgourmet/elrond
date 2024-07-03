@@ -73,7 +73,7 @@ fun QueryExpression.normalize(): QueryExpression {
     }
 
     // Normalize the children.
-    val expressions = this.children.map { it.normalize() }
+    val expressions = group.children.map { it.normalize() }
 
     // Unpack nested groups if they have the same operator.
     val unpackedChildren = expressions.filterIsInstance<QueryExpressionGroup>().filter { it.operator == group.operator }.flatMap { it.children }
