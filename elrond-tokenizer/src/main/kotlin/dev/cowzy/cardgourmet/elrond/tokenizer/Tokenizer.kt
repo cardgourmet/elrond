@@ -17,7 +17,7 @@ fun String.tokenize(): List<Token> {
 fun String.nextToken(): Pair<Token, String>? {
     val cleaned = this.trim()
 
-    val regex = Regex("""^(?:(-?\()|(\))|(:|!=|≠|=|>=|≥|>|<=|≤|<)|(\/(?:[^\/\\]|\\.)*\/)|(!?"(?:[^"\\]|\\.)*")|(!?'(?:[^'\\]|\\.)*')|(\d+\.\d+|\d+|\.\d+)|(-?!?[^\s=:><()≠≥≤!]+))""")
+    val regex = Regex("""^(?:(-?\()|(\))|(:|!=|≠|=|>=|≥|>|<=|≤|<)|(\/(?:[^\/\\]|\\.)*\/)|(!?"(?:[^"\\]|\\.)*")|(!?'(?:[^'\\]|\\.)*')|(\d+\.\d+|\d+|\.\d+)(?=${'$'}|[\s()])|(-?!?[^\s=:><()≠≥≤!]+))""")
     val match = regex.find(cleaned) ?: return null
 
     val groups = match.groupValues
