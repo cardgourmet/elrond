@@ -125,7 +125,7 @@ fun QueryExpression.toExpressionString(topLevel: Boolean = true): String {
             }
 
             when {
-                topLevel -> this.children.joinToString(operator) { it.toExpressionString(false) }
+                topLevel && !this.negate -> this.children.joinToString(operator) { it.toExpressionString(false) }
                 else -> "(${this.children.joinToString(operator) { it.toExpressionString(false) }})"
             }
         }
