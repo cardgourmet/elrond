@@ -14,6 +14,7 @@ import dev.cowzy.kuery.reflection.table
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.*
+import kotlin.math.exp
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
@@ -223,18 +224,26 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
                     if (children.size > 1) {
                         val conditions = children.map { it.operator to it.value }
 
-                        if (expression.operator == LogicalOperator.AND && property.handleJoinedAnd) {
-                            when (negate) {
-                                true -> builder.whereNotSuspend { property.applyMultipleConditions(builder, LogicalOperator.AND, conditions) }
-                                false -> builder.whereSuspend { property.applyMultipleConditions(builder, LogicalOperator.AND, conditions) }
+                        when {
+                            expression.operator == LogicalOperator.AND && negate && property.handleJoinedOr -> {
+                                builder.whereNotSuspend { property.applyMultipleConditions(it, LogicalOperator.OR, conditions) }
+                                return@forEach
                             }
-                            return@forEach
-                        } else if (expression.operator == LogicalOperator.OR && property.handleJoinedOr) {
-                            when (negate) {
-                                true -> builder.orWhereNotSuspend { property.applyMultipleConditions(builder, LogicalOperator.OR, conditions) }
-                                false -> builder.orWhereSuspend { property.applyMultipleConditions(builder, LogicalOperator.OR, conditions) }
+
+                            expression.operator == LogicalOperator.AND && !negate && property.handleJoinedAnd -> {
+                                builder.whereSuspend { property.applyMultipleConditions(it, LogicalOperator.AND, conditions) }
+                                return@forEach
                             }
-                            return@forEach
+
+                            expression.operator == LogicalOperator.OR && negate && property.handleJoinedAnd -> {
+                                builder.orWhereNotSuspend { property.applyMultipleConditions(it, LogicalOperator.AND, conditions) }
+                                return@forEach
+                            }
+
+                            expression.operator == LogicalOperator.OR && !negate && property.handleJoinedOr -> {
+                                builder.orWhereSuspend { property.applyMultipleConditions(it, LogicalOperator.OR, conditions) }
+                                return@forEach
+                            }
                         }
                     }
 
