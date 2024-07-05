@@ -39,6 +39,7 @@ data class SearchQueryParseConfig<SearchFlag : Enum<SearchFlag>, DistinctMode>(
     val whitelistedFilters: Set<String> = emptySet(),
     val blacklistedFilters: Set<String> = emptySet(),
     val whitelistedValueTypes: Set<KClass<out QueryValue<*>>> = emptySet(),
+    val validationRules: Set<QueryValidationRule> = emptySet()
 ) where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
 
     init {
@@ -59,9 +60,23 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     query: String,
     config: SearchQueryParseConfig<SearchFlag, DistinctMode> = SearchQueryParseConfig()
 ) : SearchQuery<SearchFlag, DistinctMode> where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
+    val failedValidations = mutableSetOf<QueryValidationRule>()
+
     val (queryWithoutDistinctMode, distinctMode) = query.stripFlags<DistinctMode> { it.keywords.toSet() + it.getSerialName() }
     val (queryWithoutFlags, queryFlags) = queryWithoutDistinctMode.stripFlags(flags)
     val (queryWithoutSorting, sorting) = queryWithoutFlags.stripSorting(sortModes)
+
+    if (config.validationRules.contains(QueryValidationRule.NO_CUSTOM_DISTINCT_MODE) && distinctMode.any()) {
+        failedValidations.add(QueryValidationRule.NO_CUSTOM_DISTINCT_MODE)
+    }
+
+    if (config.validationRules.contains(QueryValidationRule.NO_CUSTOM_SORTING) && sorting != null) {
+        failedValidations.add(QueryValidationRule.NO_CUSTOM_SORTING)
+    }
+
+    if (config.validationRules.contains(QueryValidationRule.NO_CUSTOM_FLAGS) && queryFlags.any()) {
+        failedValidations.add(QueryValidationRule.NO_CUSTOM_FLAGS)
+    }
 
     val allowedFilters = filters.filter(config::isFilterAllowed)
     val fallbackFilter = fallbackFilter?.takeIf(config::isFilterAllowed)
@@ -84,6 +99,18 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     val normalizedExpression = result.expression.normalize()
 
     val (filters, filterExpressions) = normalizedExpression.extractFilterExpressions().unzip()
+
+    if (config.validationRules.contains(QueryValidationRule.NO_IGNORED_VALUES) && (ignored.any() || result.ignored.any())) {
+        failedValidations.add(QueryValidationRule.NO_IGNORED_VALUES)
+    }
+
+    if (config.validationRules.contains(QueryValidationRule.NOT_EMPTY) && normalizedExpression is BooleanQueryExpression) {
+        failedValidations.add(QueryValidationRule.NOT_EMPTY)
+    }
+
+    if (failedValidations.any()) {
+        throw QueryParserValidationException(failedValidations)
+    }
 
     return SearchQuery(
         expression = result.expression,
@@ -193,10 +220,11 @@ suspend fun QueryToken?.toQueryExpression(
     val (rawExpression, rawIgnoredValues) = this.parseQueryExpression(filters, fallbackFilter)
 
     val ignoredValues = rawIgnoredValues.toMutableList()
-    val expression = rawExpression ?: BooleanQueryExpression(true)
+    val expression = rawExpression ?: return QueryExpressionBuilderResult()
 
     val optimizedExpressions = expression.flattenExpressions().filterDuplicatesAndNegatedPairs { ignoredValues.add(it) }
     val optimizedExpression = when {
+        optimizedExpressions.isEmpty() -> return QueryExpressionBuilderResult()
         optimizedExpressions.size == 1 -> optimizedExpressions.single()
         expression is QueryExpressionGroup -> QueryExpressionGroup(
             optimizedExpressions,
