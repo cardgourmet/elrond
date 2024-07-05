@@ -44,7 +44,8 @@ abstract class StringSearchQueryProperty(
 
         when (value) {
             is StringValue -> when (mappedOperator) {
-                SearchQueryOperator.EQUALS -> builder.where("UPPER(${getRawSql(value)})", "=", value = value.value.uppercase())
+//                SearchQueryOperator.EQUALS -> builder.where("UPPER(${getRawSql(value)})", "=", value = value.value.uppercase())
+                SearchQueryOperator.EQUALS -> builder.where(getRawSql(value), "ILIKE", value = value.value)
                 SearchQueryOperator.CONTAINS -> builder.where(getRawSql(value), "ILIKE", value = "%${value.value}%")
                 else -> throw IllegalStateException("Unsupported operator: $mappedOperator")
             }

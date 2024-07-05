@@ -63,12 +63,13 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
             is StringValue -> {
                 val nameColumn = when {
                     value.exact && operator == SearchQueryOperator.CONTAINS -> "mtg.search_names.name"
-                    value.exact -> "UPPER(mtg.search_names.name)"
+                    value.exact -> "mtg.search_names.name" //"UPPER(mtg.search_names.name)"
                     else -> "mtg.search_names.simple_name"
                 }
 
                 when (operator) {
-                    SearchQueryOperator.EQUALS -> this.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
+//                    SearchQueryOperator.EQUALS -> this.where(nameColumn, "=", value = if (value.exact) value.value.uppercase() else value.value)
+                    SearchQueryOperator.EQUALS -> this.where(nameColumn, "ILIKE", value = value.value)
                     SearchQueryOperator.CONTAINS -> this.where(nameColumn, "ILIKE", value = "%${value.value}%")
                     else -> throw IllegalStateException("Unsupported operator: $operator")
                 }
