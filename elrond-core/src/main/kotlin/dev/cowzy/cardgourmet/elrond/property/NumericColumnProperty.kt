@@ -11,8 +11,8 @@ class NumericColumnProperty(
 ) : NumericExpressionProperty(
     columns.joinToString(" + ") { it.columnName() }.let {
         when (offset) {
-            0.0 -> it
-            else -> "($it + $offset)"
+            0.0 -> "COALESCE($it, 0)"
+            else -> "(COALESCE($it, 0) + $offset)"
         }
     },
     columns.map { it.table() }.distinct().toTypedArray(),
