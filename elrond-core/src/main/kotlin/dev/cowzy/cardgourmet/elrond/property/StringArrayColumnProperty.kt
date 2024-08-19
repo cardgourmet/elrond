@@ -7,6 +7,7 @@ import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.kuery.query.whereNotNull
 import kotlin.reflect.KProperty1
 
 class StringArrayColumnProperty(
@@ -32,8 +33,11 @@ class StringArrayColumnProperty(
     ) {
         val apply: (ConcreteWhereQueryBuilder) -> Unit = {
             columns.forEach { column ->
-                it.orWhereRaw(column, "@>", "ARRAY[${column.placeholder()}]::text[]") { stmt, index ->
-                    stmt.setString(index.getAndIncrement(), value)
+                it.orWhere { inner ->
+                    inner.whereNotNull(column)
+                    inner.whereRaw(column, "@>", "ARRAY[${column.placeholder()}]::text[]") { stmt, index ->
+                        stmt.setString(index.getAndIncrement(), value)
+                    }
                 }
             }
         }

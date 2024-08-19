@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
+import dev.cowzy.kuery.query.whereNotNull
 import kotlin.reflect.KClass
 
 abstract class StringSearchQueryProperty(
@@ -42,11 +43,14 @@ abstract class StringSearchQueryProperty(
             else -> operator
         }
 
+        val rawSql = getRawSql(value)
+        builder.whereNotNull(rawSql)
+
         when (value) {
             is StringValue -> when (mappedOperator) {
-//                SearchQueryOperator.EQUALS -> builder.where("UPPER(${getRawSql(value)})", "=", value = value.value.uppercase())
-                SearchQueryOperator.EQUALS -> builder.where(getRawSql(value), "ILIKE", value = value.value)
-                SearchQueryOperator.CONTAINS -> builder.where(getRawSql(value), "ILIKE", value = "%${value.value}%")
+//                SearchQueryOperator.EQUALS -> builder.where("UPPER($rawSql)", "=", value = value.value.uppercase())
+                SearchQueryOperator.EQUALS -> builder.where(rawSql, "ILIKE", value = value.value)
+                SearchQueryOperator.CONTAINS -> builder.where(rawSql, "ILIKE", value = "%${value.value}%")
                 else -> throw IllegalStateException("Unsupported operator: $mappedOperator")
             }
 
@@ -57,7 +61,7 @@ abstract class StringSearchQueryProperty(
                     else -> throw IllegalStateException("Unsupported operator: $operator")
                 }
 
-                builder.where(getRawSql(value), "~*", value = pattern)
+                builder.where(rawSql, "~*", value = pattern)
             }
 
             else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")

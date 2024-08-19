@@ -7,6 +7,7 @@ import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
+import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
@@ -32,6 +33,7 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
         operator: SearchQueryOperator,
         value: ValueType
     ) {
+        builder.whereNotNull(column)
         builder.whereRaw(column, "@>", "ARRAY[${column.placeholder()}]::text[]") { stmt, index ->
             stmt.setString(index.getAndIncrement(), value.getSerialName())
         }

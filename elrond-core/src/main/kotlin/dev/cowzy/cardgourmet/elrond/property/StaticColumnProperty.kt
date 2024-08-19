@@ -5,6 +5,8 @@ import dev.cowzy.kuery.query.whereNotRaw
 import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
+import dev.cowzy.kuery.query.orWhereNotRaw
+import dev.cowzy.kuery.query.whereNotNull
 import kotlin.reflect.KProperty1
 
 class StaticColumnProperty(
@@ -16,8 +18,10 @@ class StaticColumnProperty(
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T) {
         if (inverted) {
-            builder.whereNotRaw(column.columnName())
+            builder.whereNull(column)
+            builder.orWhereNotRaw(column.columnName())
         } else {
+            builder.whereNotNull(column)
             builder.whereRaw(column.columnName())
         }
     }

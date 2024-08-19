@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
+import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 
@@ -30,6 +31,8 @@ class StringRegexProperty(
     ) {
         val escapedValue = value.replace(Regex("[^\\p{L}\\p{N}]"), ".")
         val pattern = this.mapPattern(escapedValue, operator)
+
+        builder.whereNotNull(column)
         builder.where(column, "~*", value = pattern)
     }
 

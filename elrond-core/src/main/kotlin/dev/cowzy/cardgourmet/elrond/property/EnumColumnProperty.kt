@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaField
@@ -31,6 +32,8 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
         operator: SearchQueryOperator,
         value: ValueType
     ) {
+        builder.whereNotNull(column)
+
         if (column.javaField!!.type.isEnum) {
             builder.where(column, value)
         } else {

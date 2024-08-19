@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
+import dev.cowzy.kuery.query.whereNotNull
 import kotlin.reflect.KClass
 
 abstract class NumericSearchQueryProperty(
@@ -26,6 +27,7 @@ abstract class NumericSearchQueryProperty(
         operator: SearchQueryOperator,
         value: Number
     ) {
+        builder.whereNotNull(getRawSql())
         builder.where(getRawSql(), operator.toNumericSqlOperator(), value)
     }
 
@@ -38,7 +40,15 @@ abstract class NumericSearchQueryProperty(
             throw IllegalStateException("Unsupported property type: ${other::class.simpleName}")
         }
 
-        builder.whereRaw(getRawSql(), operator.toNumericSqlOperator(), other.getRawSql())
+        builder.where {
+            builder.whereNotNull(getRawSql())
+            builder.whereNotNull(other.getRawSql())
+            builder.whereRaw(getRawSql(), operator.toNumericSqlOperator(), other.getRawSql())
+        }.orWhere {
+            builder.whereNull(getRawSql())
+            builder.whereNull(other.getRawSql())
+        }
+
     }
 
     abstract fun getRawSql(): String

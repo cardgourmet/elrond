@@ -4,6 +4,7 @@ import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
+import dev.cowzy.kuery.query.whereNotNull
 import java.util.UUID
 import kotlin.reflect.KProperty1
 
@@ -26,6 +27,7 @@ class UuidColumnProperty(
     }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T, operator: SearchQueryOperator, value: UUID) {
+        builder.whereNotNull(column)
         builder.where(column, value)
     }
 }
