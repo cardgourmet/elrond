@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.elrond.user.config
 import dev.cowzy.cardgourmet.commons.Currency
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.commons.user.UserCardAcquisition
 import dev.cowzy.cardgourmet.commons.user.UserCardBinder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
@@ -66,18 +65,6 @@ fun SearchQueryFilterBuilder.configureCollectionFilters() {
 
     filter("binder:none") {
         property(StaticNullColumnProperty(UserCard::binderId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.BINDER, true)))
-    }
-
-    filter("acquisition") {
-        uuid(UserCard::acquisitionId, collectionPropertyKeys.ACQUISITION_ID)
-        string(UserCardAcquisition::name, collectionPropertyKeys.ACQUISITION)
-    }
-
-    filter("acquisitionname") { string(UserCardAcquisition::name, collectionPropertyKeys.ACQUISITION) }
-    filter("acquisitionid") { uuid(UserCard::acquisitionId, collectionPropertyKeys.ACQUISITION_ID) }
-
-    filter("acquisition:none") {
-        property(StaticNullColumnProperty(UserCard::acquisitionId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.IsSet.KEY, collectionPropertyKeys.ACQUISITION, true)))
     }
 
     // TODO: notes
