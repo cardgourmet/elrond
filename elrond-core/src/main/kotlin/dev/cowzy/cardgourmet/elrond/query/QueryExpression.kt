@@ -1,10 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.commons.getSerialName
-import dev.cowzy.cardgourmet.elrond.NumberValue
-import dev.cowzy.cardgourmet.elrond.QueryFilter
-import dev.cowzy.cardgourmet.elrond.RegexValue
-import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
+import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import dev.cowzy.cardgourmet.elrond.tokenizer.invert
@@ -112,7 +109,14 @@ fun QueryExpression.toStructuredExplanation(): QueryExplanationPart? {
             filter = this.filter.keywords.minBy { it.length },
             filterOperator = this.operator,
             property = this.property.key,
-            value = this.rawValue,
+            value = when (this.value) {
+                is RegexValue -> this.value.value.pattern
+                is NumberValue -> this.value.value.toString()
+                is QueryValue<*> -> this.value.value.toString()
+                is Regex -> this.value.pattern
+                is Number -> this.value.toString()
+                else -> this.value.toString()
+            },
             valueType = when (this.value) {
                 is RegexValue, is Regex -> QueryExplanationValueType.REGEX
                 is NumberValue, is Number -> QueryExplanationValueType.NUMBER

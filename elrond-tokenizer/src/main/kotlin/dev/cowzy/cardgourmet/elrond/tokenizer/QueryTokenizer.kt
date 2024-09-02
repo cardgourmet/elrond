@@ -246,7 +246,11 @@ class QueryTokenizer(
 
                                             matchingFilters.isNotEmpty() && isSupported(FilterToken::class) -> FilterToken(matchingFilters.first(), it, it)
 
-                                            isSupported(StringToken::class) -> StringToken(it)
+                                            isSupported(StringToken::class) -> when {
+                                                second.raw.isNotBlank() && second.raw.toSimpleString().isNotBlank() -> StringToken(it)
+                                                second.raw.isNotBlank() -> QuotedStringToken(it)
+                                                else -> StringToken(it)
+                                            }
 
                                             else -> {
                                                 ignoreValue(IgnoredQueryValue("${first.raw}${operatorToken.raw}$it", "unsupported_value"))
