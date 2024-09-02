@@ -109,12 +109,7 @@ fun QueryExpression.toStructuredExplanation(): QueryExplanationPart? {
             filter = this.filter.keywords.minBy { it.length },
             filterOperator = this.operator,
             property = this.property.key,
-            value = when (this.valueToken) {
-                is RegexToken -> this.valueToken.value.pattern
-                is NumberToken -> this.valueToken.value.toString()
-                is StringToken -> this.valueToken.value
-                else -> this.value.toString()
-            },
+            value = property.valueDefinition.formatValue(value),
             valueType = when (this.valueToken) {
                 is RegexToken -> QueryExplanationValueType.REGEX
                 is NumberToken -> QueryExplanationValueType.NUMBER
