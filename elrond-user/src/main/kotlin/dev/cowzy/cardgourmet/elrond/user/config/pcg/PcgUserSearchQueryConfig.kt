@@ -43,9 +43,6 @@ private val tableDependencies = mapOf(
     UserCardBinder::class to TableDependency(UserCard::class) { builder ->
         builder.leftJoin(UserCardBinder::class) { it.whereColumn(UserCardBinder::id, UserCard::binderId) }
     },
-    UserCardAcquisition::class to TableDependency(UserCard::class) { builder ->
-        builder.leftJoin(UserCardAcquisition::class) { it.whereColumn(UserCardAcquisition::id, UserCard::acquisitionId) }
-    },
     User::class to TableDependency(UserCard::class) { builder ->
         builder.innerJoin(User::class) { it.whereColumn(User::id, UserCard::userId) }
     },
