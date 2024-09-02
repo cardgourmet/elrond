@@ -1,7 +1,9 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.commons.getSerialName
+import dev.cowzy.cardgourmet.elrond.NumberValue
 import dev.cowzy.cardgourmet.elrond.QueryFilter
+import dev.cowzy.cardgourmet.elrond.RegexValue
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
@@ -94,6 +96,42 @@ fun QueryExpression.normalize(): QueryExpression {
     val sortedGroups = groups.sortedWith(compareBy({ it.children.size }, { it.operator.ordinal }))
 
     return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
+}
+
+fun QueryExpression.toStructuredExplanation(): QueryExplanationPart? {
+    return when (this) {
+        is QueryExpressionGroup -> QueryExplanationPart(
+            type = QueryExplanationType.GROUP,
+            negate = this.negate,
+            groupOperator = this.operator,
+            children = this.children.mapNotNull { it.toStructuredExplanation() },
+        )
+        is ValueLeafQueryExpression -> QueryExplanationPart(
+            type = QueryExplanationType.FILTER,
+            negate = this.negate,
+            filter = this.filter.keywords.minBy { it.length },
+            filterOperator = this.operator,
+            property = this.property.key,
+            value = this.rawValue,
+            valueType = when (this.value) {
+                is RegexValue, is Regex -> QueryExplanationValueType.REGEX
+                is NumberValue, is Number -> QueryExplanationValueType.NUMBER
+                is Unit -> null
+                else -> QueryExplanationValueType.STRING
+            },
+        )
+        is FilterLeafQueryExpression -> QueryExplanationPart(
+            type = QueryExplanationType.FILTER,
+            negate = this.negate,
+            filter = this.filter.keywords.minBy { it.length },
+            filterOperator = this.operator,
+            property = this.property.key,
+            value = this.otherFilter.keywords.minBy { it.length },
+            valueType = QueryExplanationValueType.FILTER,
+            valueProperty = this.otherProperty.key,
+        )
+        is BooleanQueryExpression -> null
+    }
 }
 
 fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQuery<SearchFlag, DistinctMode>.toExpressionString(): String {

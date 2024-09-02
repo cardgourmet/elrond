@@ -2,6 +2,7 @@ package dev.cowzy.cardgourmet.elrond.tokenizer
 
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.negated
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.*
 import kotlin.reflect.KClass
@@ -18,7 +19,11 @@ data class IgnoredQueryValue(
     val supportedValues: List<String>? = null
 )
 
-enum class LogicalOperator { AND, OR }
+@Serializable
+enum class LogicalOperator {
+    @SerialName("and") AND,
+    @SerialName("or") OR
+}
 
 fun LogicalOperator.invert() = when (this) {
     LogicalOperator.AND -> LogicalOperator.OR
