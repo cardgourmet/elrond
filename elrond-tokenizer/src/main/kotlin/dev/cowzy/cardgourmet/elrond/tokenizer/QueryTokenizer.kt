@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.tokenizer
 
+import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.negated
 import kotlinx.serialization.SerialName
@@ -271,7 +272,15 @@ class QueryTokenizer(
                         return null
                     }
 
-                    else -> QueryFilterToken(filter, stringValue, mappedOperator, StringToken(second.raw), negate, raw)
+                    else -> {
+                        val value = when {
+                            second.raw.isNotBlank() && second.raw.toSimpleString().isNotBlank() -> StringToken(second.raw)
+                            second.raw.isNotBlank() -> QuotedStringToken(second.raw)
+                            else -> StringToken(second.raw)
+                        }
+
+                        QueryFilterToken(filter, stringValue, mappedOperator, value, negate, raw)
+                    }
                 }
             }
         }
@@ -295,7 +304,15 @@ class QueryTokenizer(
         }
 
         return when {
-            first is StringToken && isSupported(StringToken::class) -> QueryFilterToken(fallbackFilter, null, getOperator(StringToken::class), StringToken(stringValue!!), negate, first.raw)
+            first is StringToken && isSupported(StringToken::class) -> {
+                val value = when {
+                    stringValue!!.isNotBlank() && stringValue.toSimpleString().isNotBlank() -> StringToken(stringValue)
+                    stringValue.isNotBlank() -> QuotedStringToken(stringValue)
+                    else -> StringToken(stringValue)
+                }
+
+                QueryFilterToken(fallbackFilter, null, getOperator(StringToken::class), value, negate, first.raw)
+            }
             first is ValueToken && isSupported(first::class) -> QueryFilterToken(fallbackFilter, null, getOperator(first::class), first, negate = false, first.raw)
             first == null -> return null
 

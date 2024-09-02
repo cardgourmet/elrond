@@ -1,3 +1,5 @@
+val commonsVersion: String by project
+
 plugins {
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.serialization") version "1.8.21"
@@ -5,6 +7,8 @@ plugins {
 }
 
 dependencies {
+    implementation("dev.cowzy.cardgourmet:commons-core:$commonsVersion")
+
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 
