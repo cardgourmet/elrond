@@ -265,6 +265,7 @@ private suspend fun QueryToken.parseQueryExpression(
                     this.operator,
                     Unit,
                     this.negate,
+                    this.value,
                     this.raw
                 ) to ignoredValues
             }
@@ -396,7 +397,8 @@ private suspend fun QueryToken.parseQueryExpression(
                         matchingProperty.second.second ?: operator,
                         matchingProperty.second.first,
                         negated,
-                        this.toString()
+                        valueToken = this.value,
+                        rawValue = this.toString()
                     )
                 }
             }.filterNotNull()

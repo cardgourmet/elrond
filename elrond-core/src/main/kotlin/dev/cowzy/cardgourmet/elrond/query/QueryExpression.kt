@@ -3,8 +3,7 @@ package dev.cowzy.cardgourmet.elrond.query
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
-import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
-import dev.cowzy.cardgourmet.elrond.tokenizer.invert
+import dev.cowzy.cardgourmet.elrond.tokenizer.*
 
 sealed class QueryExpression(var negate: Boolean, val rawValue: String? = null)
 
@@ -32,6 +31,7 @@ class ValueLeafQueryExpression(
     operator: SearchQueryOperator,
     val value: Any,
     negate: Boolean,
+    val valueToken: ValueToken,
     rawValue: String? = null
 ) : PropertyQueryExpression(filter, property, operator, negate, rawValue)
 
@@ -56,7 +56,7 @@ private fun <T : QueryExpression> T.invert(): T {
     return when (this) {
         is BooleanQueryExpression -> BooleanQueryExpression(!this.negate)
         is QueryExpressionGroup -> QueryExpressionGroup(this.children.map { it.invert() }, this.operator.invert(), !this.negate)
-        is ValueLeafQueryExpression -> ValueLeafQueryExpression(this.filter, this.property, this.operator, this.value, !this.negate, this.rawValue)
+        is ValueLeafQueryExpression -> ValueLeafQueryExpression(this.filter, this.property, this.operator, this.value, !this.negate, this.valueToken, this.rawValue)
         is FilterLeafQueryExpression -> FilterLeafQueryExpression(this.filter, this.property, this.operator, this.otherFilter, this.otherProperty, !this.negate, this.rawValue)
         else -> throw IllegalArgumentException("Unsupported expression type: ${this::class.simpleName}")
     } as T
@@ -109,18 +109,15 @@ fun QueryExpression.toStructuredExplanation(): QueryExplanationPart? {
             filter = this.filter.keywords.minBy { it.length },
             filterOperator = this.operator,
             property = this.property.key,
-            value = when (this.value) {
-                is RegexValue -> this.value.value.pattern
-                is NumberValue -> this.value.value.toString()
-                is QueryValue<*> -> this.value.value.toString()
-                is Regex -> this.value.pattern
-                is Number -> this.value.toString()
+            value = when (this.valueToken) {
+                is RegexToken -> this.valueToken.value.pattern
+                is NumberToken -> this.valueToken.value.toString()
+                is StringToken -> this.valueToken.value
                 else -> this.value.toString()
             },
-            valueType = when (this.value) {
-                is RegexValue, is Regex -> QueryExplanationValueType.REGEX
-                is NumberValue, is Number -> QueryExplanationValueType.NUMBER
-                is Unit -> null
+            valueType = when (this.valueToken) {
+                is RegexToken -> QueryExplanationValueType.REGEX
+                is NumberToken -> QueryExplanationValueType.NUMBER
                 else -> QueryExplanationValueType.STRING
             },
         )
