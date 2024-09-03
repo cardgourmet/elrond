@@ -96,7 +96,7 @@ class QueryTokenizer(
 
                 negateNext = false
                 continue
-            } else if (token is StringToken) {
+            } else if (token is StringToken && token !is QuotedStringToken) {
                 when {
                     andRegex.matches(token.value) -> {
                         tokenQueue.poll()
