@@ -115,8 +115,8 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         }
     }
 
-    filter("cmc", "mv", "manavalue", "manacost") { numeric(MtgCardFace::manaValue, mtgPropertyKeys.MANA_VALUE) }
-    filter("display", "mana", "m", "manadisplay") { property(MtgManaDisplayProperty()) }
+    filter("manavalue", "cmc", "mv") { numeric(MtgCardFace::manaValue, mtgPropertyKeys.MANA_VALUE) }
+    filter("manadisplay", "display", "mana", "m") { property(MtgManaDisplayProperty()) }
     filter("devotion") { property(MtgDevotionProperty()) }
 
     filter("color", "colors", "c") {
@@ -135,7 +135,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         }
     }
 
-    filter("id", "identity", "coloridentity", "ci", "commander") {
+    filter("coloridentity", "id", "identity", "ci", "commander") {
         ignoreReference("commander")
         cardinality(MtgCard::colorIdentity, mtgPropertyKeys.COLOR_IDENTITY_COUNT, manaCardinalityMappings)
         property(MtgManaArrayColumnProperty(MtgCard::colorIdentity, true, NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))) {
@@ -168,7 +168,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         numericAndString(MtgCardFace::defenseValue, MtgCardFace::defenseDisplay, mtgPropertyKeys.DEFENSE)
     }
 
-    filter("pt", "powtou", "combinedpt", "heft") {
+    filter("combinedpt", "pt", "powtou", "heft") {
         numeric(MtgCardFace::powerValue, MtgCardFace::toughnessValue, propertyKey = mtgPropertyKeys.COMBINED_POWER_TOUGHNESS)
     }
 
@@ -192,7 +192,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("sets", "setcount") { property(MtgSetCountProperty()) }
     filter("papersets", "papersetcount") { property(MtgPaperSetCountProperty()) }
 
-    filter("finishes", "finish") {
+    filter("finish", "finishes") {
         stringArrayAndCardinality(MtgPrint::finishes, propertyKeys.FINISH_COUNT, propertyKeys.FINISH) {
             strict(true)
             autoArrayValues(MtgPrint::finishes, "finish", true)
@@ -302,7 +302,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         stringArray(MtgCard::reprintIn, ReprintDescriptor(ReprintDescriptor.Mode.REPRINT_IN), "reprint_in")
     }
 
-    filter("promo", "promotypes", "promotype") {
+    filter("promo", "promotype", "promotypes") {
         stringArrayAndCardinality(MtgPrint::promoTypes, mtgPropertyKeys.PROMO_TYPE_COUNT, mtgPropertyKeys.PROMO_TYPE)
     }
 
@@ -332,7 +332,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         }
     }
 
-    filter("typeline", "type", "types", "t") {
+    filter("type", "typeline", "types", "t") {
         cardinality(MtgCardFace::types, MtgCardFace::superTypes, MtgCardFace::subTypes, propertyKey = mtgPropertyKeys.TYPE_COUNT)
         stringArray(MtgCardFace::types, mtgPropertyKeys.TYPE)
         stringArray(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE)
@@ -352,7 +352,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         stringArrayAndCardinality(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE_COUNT, mtgPropertyKeys.SUB_TYPE)
     }
 
-    filter("oracle", "oracletext", "o") {
+    filter("text", "oracle", "oracletext", "o") {
         simpleString(MtgCardFaceTranslation::oracleText, MtgCardFaceTranslation::simpleOracleText, propertyKeys.TEXT)
     }
 
@@ -397,7 +397,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         string(MtgPrint::artist, propertyKeys.ARTIST)
     }
 
-    filter("cn", "number", "collectornumber") {
+    filter("collectornumber", "cn", "number") {
         numericAndString(MtgPrint::collectorNumberValue, MtgPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
     }
 

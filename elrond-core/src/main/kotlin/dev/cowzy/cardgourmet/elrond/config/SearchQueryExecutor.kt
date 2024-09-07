@@ -101,7 +101,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                 SearchQueryProperty(property.key, valueTypes.sortedBy { it.type }, operators)
             }
 
-            SearchQueryFilter(filter.keywords.sorted(), properties, providesValues, !allowsAnyValue, filter.inverted)
+            SearchQueryFilter(filter.keywords, properties, providesValues, !allowsAnyValue, filter.inverted)
         }.sortedBy { it.keywords.first() }
     }
 

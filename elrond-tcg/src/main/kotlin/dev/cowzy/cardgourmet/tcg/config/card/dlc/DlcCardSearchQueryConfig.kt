@@ -181,7 +181,7 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
         }
     }
 
-    filter("cn", "number", "collectornumber") {
+    filter("collectornumber", "cn", "number") {
         numericAndString(DlcPrint::collectorNumberValue, DlcPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
     }
 
