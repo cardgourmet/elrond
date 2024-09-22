@@ -62,11 +62,23 @@ fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSear
         else -> Unit
     }
 
-    // Next, sort by set (if required).
+    // Next, sort by custom properties.
     if (preferMode == MtgCardSearchQueryFlag.PREFER_PROMO) {
         builder.orderByRaw("CASE WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 1 ELSE 2 END")
     } else if (preferMode == MtgCardSearchQueryFlag.PREFER_ARENA) {
         builder.orderByRaw("CASE WHEN(${MtgPrint::mediums.columnName()} = ARRAY['arena']::text[]) THEN 1 ELSE 2 END")
+    } else if (preferMode == MtgCardSearchQueryFlag.PREFER_SPECIAL) {
+        builder.orderByRaw("CASE " +
+                "WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 1" +
+                "WHEN(${MtgPrint::setCode.columnName()} = 'SLD') THEN 2 " +
+                "WHEN(${MtgPrintFaceTranslation::flavorName.columnName()} IS NOT NULL) THEN 3 " +
+                "ELSE 4 END")
+    } else if (preferMode == MtgCardSearchQueryFlag.PREFER_BASIC) {
+        builder.orderByRaw("CASE " +
+                "WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 4" +
+                "WHEN(${MtgPrint::setCode.columnName()} = 'SLD') THEN 3 " +
+                "WHEN(${MtgPrintFaceTranslation::flavorName.columnName()} IS NOT NULL) THEN 2 " +
+                "ELSE 1 END")
     }
 }
 

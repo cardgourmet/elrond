@@ -9,8 +9,10 @@ enum class MtgCardSearchQueryFlag {
 
     @SerialName("include:extras") INCLUDE_EXTRAS,
     @SerialName("lang:any") ANY_LANGUAGE,
+    @SerialName("prefer:basic") PREFER_BASIC,
+    @SerialName("prefer:special") PREFER_SPECIAL,
     @SerialName("prefer:oldest") PREFER_OLDEST,
-    @SerialName("prefer:newest") PREFER_NEWEST,
+    @SerialName("prefer:newest") @JsonNames("prefer:newest", "prefer:latest") PREFER_NEWEST,
     @SerialName("prefer:promo") PREFER_PROMO,
     @SerialName("prefer:arena") @JsonNames("prefer:alchemy", "prefer:arena") PREFER_ARENA,
     @SerialName("prefer:usd-low") PREFER_USD_LOW,
@@ -24,6 +26,8 @@ enum class MtgCardSearchQueryFlag {
         val preferModes = setOf(
             PREFER_OLDEST,
             PREFER_NEWEST,
+            PREFER_BASIC,
+            PREFER_SPECIAL,
             PREFER_PROMO,
             PREFER_ARENA,
             PREFER_EUR_HIGH,
