@@ -37,6 +37,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         val key: String,
         val valueTypes: List<ValueType>,
         val operators: List<String>,
+        val providedValueTypes: List<String>,
     )
 
     @Serializable
@@ -62,7 +63,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         val language: String?,
     )
 
-    fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
+    suspend fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
         val filters = this.filters.filter { filter ->
             query?.let { query ->
                 filter.keywords.any { it.toSimpleString().contains(query.toSimpleString()) }
@@ -98,7 +99,9 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                     allowsAnyValue = true
                 }
 
-                SearchQueryProperty(property.key, valueTypes.sortedBy { it.type }, operators)
+                val providedValueTypes = provider?.getValues()?.map { it.type }?.distinct() ?: emptyList()
+
+                SearchQueryProperty(property.key, valueTypes.sortedBy { it.type }, operators, providedValueTypes)
             }
 
             SearchQueryFilter(filter.keywords, properties, providesValues, !allowsAnyValue, filter.inverted)
