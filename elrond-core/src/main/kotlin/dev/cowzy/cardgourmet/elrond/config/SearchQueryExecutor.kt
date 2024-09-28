@@ -105,6 +105,14 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         }.sortedBy { it.keywords.first() }
     }
 
+    suspend fun getFilterValueTypes(): List<String> {
+        return filters.flatMap { filter ->
+            filter.properties.flatMap { property ->
+                property.valueDefinition.provider?.getValues()?.map { it.type } ?: emptyList()
+            }
+        }.distinct().sorted()
+    }
+
     suspend fun getFilterValues(
         keyword: String,
         amount: Int,
