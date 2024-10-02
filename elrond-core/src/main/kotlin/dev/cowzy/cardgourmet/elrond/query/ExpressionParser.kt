@@ -224,7 +224,7 @@ suspend fun QueryToken?.toQueryExpression(
 
     val optimizedExpressions = expression.flattenExpressions().filterDuplicatesAndNegatedPairs { ignoredValues.add(it) }
     val optimizedExpression = when {
-        optimizedExpressions.isEmpty() -> return QueryExpressionBuilderResult()
+        optimizedExpressions.isEmpty() -> BooleanQueryExpression(true)
         optimizedExpressions.size == 1 -> optimizedExpressions.single()
         expression is QueryExpressionGroup -> QueryExpressionGroup(
             optimizedExpressions,

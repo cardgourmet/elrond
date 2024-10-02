@@ -193,7 +193,7 @@ class QueryTokenizer(
 
                 val supportedOperators = filter.values.flatMap { it.operators }.distinct()
                 if (!supportedOperators.contains(operator)) {
-                    ignoreValue(IgnoredQueryValue(raw, "invalid_operator", supportedOperators.map { it.value }))
+                    ignoreValue(IgnoredQueryValue(raw, "unsupported_operator", supportedOperators.map { it.value }))
                     return null
                 }
 
