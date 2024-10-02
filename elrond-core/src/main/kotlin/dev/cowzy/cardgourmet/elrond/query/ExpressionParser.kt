@@ -280,6 +280,18 @@ private suspend fun QueryToken.parseQueryExpression(
                 return null to ignoredValues
             }
 
+            val supportedOperators = filter.properties.flatMap { it.supportedOperators.toList() }.toSet()
+            if (!supportedOperators.contains(this.operator)) {
+                ignoredValues.add(
+                    IgnoredQueryValue(
+                        this.toString(),
+                        "unsupported_operator",
+                        supportedOperators.map { it.value }.sorted().toList()
+                    )
+                )
+                return null to ignoredValues
+            }
+
             val supportedValueTypes = filter.properties
                 .map { prop ->
                     when {

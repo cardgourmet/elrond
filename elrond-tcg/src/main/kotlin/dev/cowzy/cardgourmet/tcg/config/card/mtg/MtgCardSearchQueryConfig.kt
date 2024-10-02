@@ -33,7 +33,6 @@ import java.sql.Connection
 import java.time.format.DateTimeFormatter
 
 val manaCardinalityMappings = mapOf(
-    "colorless" to (0 to SearchQueryOperator.EQUALS),
     "monocolor" to (1 to SearchQueryOperator.EQUALS),
     "bicolor" to (2 to SearchQueryOperator.EQUALS),
     "dualcolor" to (2 to SearchQueryOperator.EQUALS),
@@ -41,8 +40,11 @@ val manaCardinalityMappings = mapOf(
     "quadcolor" to (4 to SearchQueryOperator.EQUALS),
     "omnicolor" to (5 to SearchQueryOperator.EQUALS),
     "multicolor" to (2 to SearchQueryOperator.GREATER_THAN_OR_EQUALS),
+    "none" to (0 to SearchQueryOperator.EQUALS),
     "any" to (1 to SearchQueryOperator.GREATER_THAN_OR_EQUALS)
 )
+
+val manaCardinalityMappingsWithColorless = manaCardinalityMappings + mapOf("colorless" to (0 to SearchQueryOperator.EQUALS))
 
 val mtgLayoutMappings = mapOf(
     "art" to "art_series",
@@ -120,7 +122,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("devotion") { property(MtgDevotionProperty()) }
 
     filter("color", "colors", "c") {
-        cardinality(MtgCardFace::colors, mtgPropertyKeys.COLOR_COUNT, manaCardinalityMappings)
+        cardinality(MtgCardFace::colors, mtgPropertyKeys.COLOR_COUNT, manaCardinalityMappingsWithColorless)
         property(MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
@@ -137,7 +139,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
 
     filter("coloridentity", "id", "identity", "ci", "commander") {
         ignoreReference("commander")
-        cardinality(MtgCard::colorIdentity, mtgPropertyKeys.COLOR_IDENTITY_COUNT, manaCardinalityMappings)
+        cardinality(MtgCard::colorIdentity, mtgPropertyKeys.COLOR_IDENTITY_COUNT, manaCardinalityMappingsWithColorless)
         property(MtgManaArrayColumnProperty(MtgCard::colorIdentity, true, NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
@@ -145,7 +147,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("indicator", "indicatorcolors") {
-        cardinality(MtgCardFace::colorIndicator, mtgPropertyKeys.COLOR_INDICATOR_COUNT, manaCardinalityMappings)
+        cardinality(MtgCardFace::colorIndicator, mtgPropertyKeys.COLOR_INDICATOR_COUNT, manaCardinalityMappingsWithColorless)
         property(MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_INDICATOR, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
