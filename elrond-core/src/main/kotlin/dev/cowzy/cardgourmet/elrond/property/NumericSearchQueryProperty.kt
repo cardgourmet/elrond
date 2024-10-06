@@ -40,13 +40,13 @@ abstract class NumericSearchQueryProperty(
             throw IllegalStateException("Unsupported property type: ${other::class.simpleName}")
         }
 
-        builder.where {
-            builder.whereNotNull(getRawSql())
-            builder.whereNotNull(other.getRawSql())
-            builder.whereRaw(getRawSql(), operator.toNumericSqlOperator(), other.getRawSql())
-        }.orWhere {
-            builder.whereNull(getRawSql())
-            builder.whereNull(other.getRawSql())
+        builder.where { inner ->
+            inner.whereNotNull(getRawSql())
+            inner.whereNotNull(other.getRawSql())
+            inner.whereRaw(getRawSql(), operator.toNumericSqlOperator(), other.getRawSql())
+        }.orWhere { inner ->
+            inner.whereNull(getRawSql())
+            inner.whereNull(other.getRawSql())
         }
 
     }
