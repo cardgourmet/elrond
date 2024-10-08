@@ -122,6 +122,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("devotion") { property(MtgDevotionProperty()) }
 
     filter("color", "colors", "c") {
+        ignoreReference("c")
         cardinality(MtgCardFace::colors, mtgPropertyKeys.COLOR_COUNT, manaCardinalityMappingsWithColorless)
         property(MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
