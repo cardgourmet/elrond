@@ -239,26 +239,28 @@ class QueryFilterBuilder(
         column: KProperty1<*, List<*>?>,
         propertyKey: String,
         mappings: Map<String, Pair<Number, SearchQueryOperator?>>? = null,
-        mappingsType: String = "string"
+        mappingsType: String = "string",
+        distinctValues: Boolean = false
     ) {
         val configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = mappings?.let {
             { valuesWithOperator(mappings, mappingsType) }
         }
 
-        property(ArrayCardinalityProperty(column, propertyKey = propertyKey), configureProvider)
+        property(ArrayCardinalityProperty(column, distinctValues = distinctValues, propertyKey = propertyKey), configureProvider)
     }
 
     fun cardinality(
         vararg columns: KProperty1<*, List<*>?>,
         propertyKey: String,
         mappings: Map<String, Pair<Number, SearchQueryOperator?>>? = null,
-        mappingsType: String = "string"
+        mappingsType: String = "string",
+        distinctValues: Boolean = false
     ) {
         val configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = mappings?.let {
             { valuesWithOperator(mappings, mappingsType) }
         }
 
-        property(ArrayCardinalityProperty(columns = columns, propertyKey = propertyKey), configureProvider)
+        property(ArrayCardinalityProperty(columns = columns, distinctValues = distinctValues, propertyKey = propertyKey), configureProvider)
     }
 
     fun uuid(column: KProperty1<*, UUID?>, propertyKey: String) {

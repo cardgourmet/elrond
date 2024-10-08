@@ -7,6 +7,7 @@ import kotlin.reflect.KProperty1
 
 class ArrayCardinalityProperty(
     private vararg val columns: KProperty1<*, *>,
+    private val distinctValues: Boolean = false,
     propertyKey: String
 ) : NumericSearchQueryProperty(
     affectedTables = columns.map { it.table() }.distinct().toTypedArray(),
@@ -20,6 +21,11 @@ class ArrayCardinalityProperty(
         }
     }
 
-    override fun getRawSql() = columns.joinToString(" + ") { "cardinality(${it.columnName()})" }
+    override fun getRawSql() = columns.joinToString(" + ") {
+        when {
+            distinctValues -> "cardinality(array(select distinct unnest(${it.columnName()})))"
+            else -> "cardinality(${it.columnName()})"
+        }
+    }
 
 }

@@ -130,13 +130,18 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         }
     }
 
-    filter("produces") {
-        cardinality(MtgCardFace::producesMana, mtgPropertyKeys.PRODUCED_MANA_COUNT, manaCardinalityMappings)
+    filter("produces", "producedcolors") {
+        cardinality(MtgCardFace::producesMana, mtgPropertyKeys.PRODUCED_MANA_COUNT, manaCardinalityMappings, distinctValues = true)
         property(MtgManaArrayColumnProperty(MtgCardFace::producesMana, descriptor = NumericDescriptor(mtgPropertyKeys.PRODUCED_MANA, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
+
+//    filter("producedamount") {
+//        // TODO: Custom property key
+//        cardinality(MtgCardFace::producesMana, mtgPropertyKeys.PRODUCED_MANA_COUNT, manaCardinalityMappings)
+//    }
 
     filter("coloridentity", "id", "identity", "ci", "commander") {
         ignoreReference("commander")
