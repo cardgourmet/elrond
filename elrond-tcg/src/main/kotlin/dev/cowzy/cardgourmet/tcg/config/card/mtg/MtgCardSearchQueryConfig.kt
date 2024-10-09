@@ -412,9 +412,14 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("rarity", "r") { property(MtgRarityProperty(valueProviderPool)) }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum<MtgLanguage>(MtgPrintFaceTranslation::language, AvailableInDescriptor(propertyKeys.PRINT), "print_language", display = { value, i18n, locale ->
-            i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${value.getSerialName()}")
-        })
+        enum<MtgLanguage>(MtgPrintFaceTranslation::language,
+            AvailableInDescriptor(propertyKeys.PRINT),
+            "print_language",
+            aliasResolver = { it.keys },
+            display = { value, i18n, locale ->
+                i18n.translate(locale, "${Strings.Query.Mtg.Language.KEY}.${value.getSerialName()}")
+            }
+        )
     }
 
     filter("cardlang", "cardlanguage") {
