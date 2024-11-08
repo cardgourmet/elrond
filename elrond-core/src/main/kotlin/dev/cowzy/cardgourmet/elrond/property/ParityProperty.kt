@@ -35,8 +35,8 @@ class ParityProperty(val property: NumericSearchQueryProperty) : SearchQueryProp
         value: Parity
     ) {
         when (value) {
-            Parity.EVEN -> builder.where("mod(abs(${property.getRawSql()}), 0)", 0)
-            Parity.ODD -> builder.where("mod(abs(${property.getRawSql()}), 1)", 1)
+            Parity.EVEN -> builder.where("abs(${property.getRawSql()})::integer % 2", 0)
+            Parity.ODD -> builder.where("abs(${property.getRawSql()})::integer % 2", 1)
         }
     }
 
