@@ -92,7 +92,14 @@ class QueryFilterBuilder(
         offset: Double = 0.0,
         configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = null
     ) {
-        property(NumericColumnProperty(column, offset = offset, propertyKey = propertyKey), configureProvider)
+        val numericProperty = NumericColumnProperty(column, offset = offset, propertyKey = propertyKey)
+
+        property(ParityProperty(numericProperty)) {
+            strict(true)
+            enumValues<Parity>("parity")
+        }
+
+        property(numericProperty, configureProvider)
     }
 
     fun numeric(
@@ -101,7 +108,14 @@ class QueryFilterBuilder(
         offset: Double = 0.0,
         configureProvider: (ValueProviderBuilder<Number>.() -> Unit)? = null
     ) {
-        property(NumericColumnProperty(*columns, offset = offset, propertyKey = propertyKey), configureProvider)
+        val numericProperty = NumericColumnProperty(*columns, offset = offset, propertyKey = propertyKey)
+
+        property(ParityProperty(numericProperty)) {
+            strict(true)
+            enumValues<Parity>("parity")
+        }
+
+        property(numericProperty, configureProvider)
     }
 
     fun numericAndString(
