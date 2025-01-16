@@ -121,11 +121,14 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         amount: Int,
         query: String?,
         preferredLanguage: String? = null,
-        type: String? = null
+        type: String? = null,
+        operator: SearchQueryOperator? = null
     ): FilterValues? {
         val filter = this.filters.firstOrNull { it.keywords.contains(keyword.lowercase()) } ?: return null
 
-        val providers = filter.properties.mapNotNull { it.valueDefinition.provider }
+        val providers = filter.properties
+            .filter { operator == null || it.supportedOperators.contains(operator) }
+            .mapNotNull { it.valueDefinition.provider }
 
         val providedValues = mutableListOf<ProvidedValue<*>>()
         val totalCount: Int
