@@ -76,6 +76,10 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
         numericAndString(PcgPrint::collectorNumberValue, PcgPrint::collectorNumber, propertyKeys.COLLECTOR_NUMBER)
     }
 
+    filter("sortorder", "sortvalue", "setorder", "releaseorder") {
+        numeric(PcgPrint::sortValue, pcgPropertyKeys.SORT_VALUE)
+    }
+
     filter("rarity") {
         numeric(PcgPrint::rarityValue, propertyKeys.RARITY)
         enum<PcgRarity>(PcgPrint::rarity, propertyKeys.RARITY) { it.keys }

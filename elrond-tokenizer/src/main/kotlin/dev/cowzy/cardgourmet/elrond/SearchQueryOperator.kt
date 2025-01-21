@@ -1,7 +1,9 @@
 package dev.cowzy.cardgourmet.elrond
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class SearchQueryOperator(val value: String, vararg val aliases: String) {
     @SerialName(":") CONTAINS(":"),
     @SerialName(">=") GREATER_THAN_OR_EQUALS(">=", "≥"),
