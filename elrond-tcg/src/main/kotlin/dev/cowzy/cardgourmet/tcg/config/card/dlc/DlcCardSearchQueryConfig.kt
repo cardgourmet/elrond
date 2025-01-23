@@ -3,9 +3,9 @@ package dev.cowzy.cardgourmet.tcg.config.card.dlc
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
 import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
+import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcRarity
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.dlc.*
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcFranchise
 import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
@@ -15,8 +15,10 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.property.*
+import dev.cowzy.cardgourmet.elrond.property.StaticColumnProperty
+import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.autoValues
+import dev.cowzy.cardgourmet.tcg.property.dlc.DlcRarityProperty
 import dev.cowzy.kuery.column.transformer.LocalDateColumnTransformer
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
@@ -250,7 +252,12 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
         uuid(DlcCard::id, propertyKeys.PRINT_ID)
     }
 
+    filter("rarity") {
+        property(DlcRarityProperty(valueProviderPool))
+    }
+
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
+        enum<DlcRarity>(DlcPrint::rarity, propertyKeys.RARITY) { it.keys }
         enum<DlcInkType>(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
         string(DlcCard::type, dlcPropertyKeys.TYPE) {
             strict(true)

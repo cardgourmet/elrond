@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.tcg.config.card.pcg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrintFaceTranslation
 import dev.cowzy.cardgourmet.commons.database.card.pcg.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgEra
@@ -19,6 +18,8 @@ import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
 import dev.cowzy.cardgourmet.elrond.values.autoValues
+import dev.cowzy.cardgourmet.tcg.property.pcg.PcgRarityProperty
+import dev.cowzy.cardgourmet.tcg.property.pcg.PcgStageProperty
 import dev.cowzy.kuery.column.transformer.LocalDateColumnTransformer
 import dev.cowzy.kuery.query.innerJoin
 import dev.cowzy.kuery.query.leftJoin
@@ -81,8 +82,7 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
     }
 
     filter("rarity") {
-        numeric(PcgPrint::rarityValue, propertyKeys.RARITY)
-        enum<PcgRarity>(PcgPrint::rarity, propertyKeys.RARITY) { it.keys }
+        property(PcgRarityProperty(valueProviderPool))
     }
 
     filter("mark", "regulationmark") {
@@ -164,6 +164,7 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
     }
 
     filter("stage", "evolution", "evolutionstage") {
+        property(PcgStageProperty(valueProviderPool))
         enum<PcgEvolutionStage>(PcgCard::evolutionStage, pcgPropertyKeys.EVOLUTION_STAGE)
     }
 

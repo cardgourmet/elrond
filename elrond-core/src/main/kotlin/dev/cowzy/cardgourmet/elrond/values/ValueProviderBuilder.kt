@@ -215,5 +215,6 @@ private fun selectStrings(columns: Array<out KProperty1<*, *>>, connection: Conn
         .apply { columns.drop(1).forEach { union(select(it)) } }
         .get(connection) { row, index -> row.getString(index.getAndIncrement()) }
         .filterNotNull()
+        .filter { it.isNotBlank() }
         .distinct()
 }

@@ -3,9 +3,9 @@ package dev.cowzy.cardgourmet.tcg.config.card.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
 import dev.cowzy.cardgourmet.commons.*
+import dev.cowzy.cardgourmet.commons.catalogue.MtgRarity
 import dev.cowzy.cardgourmet.commons.database.card.CardPrice
 import dev.cowzy.cardgourmet.commons.database.card.mtg.*
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrintTranslation
 import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
@@ -16,13 +16,13 @@ import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
+import dev.cowzy.cardgourmet.elrond.values.ValueProviderBuilder
+import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
+import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.cardgourmet.tcg.descriptor.mtg.FormatDescriptor
 import dev.cowzy.cardgourmet.tcg.descriptor.mtg.ManaColorsDescriptor
 import dev.cowzy.cardgourmet.tcg.descriptor.mtg.ReprintDescriptor
 import dev.cowzy.cardgourmet.tcg.descriptor.mtg.ReprintNewDescriptor
-import dev.cowzy.cardgourmet.elrond.values.ValueProviderBuilder
-import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
-import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.cardgourmet.tcg.property.mtg.*
 import dev.cowzy.kuery.query.QueryBuilder
 import dev.cowzy.kuery.query.innerJoin
@@ -246,7 +246,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
             autoValues(MtgCard::layout, "layout", autoAlias = true)
             values(mtgLayoutMappings, "layout")
         }
-        property(MtgRarityProperty(valueProviderPool))
+        enum<MtgRarity>(MtgPrint::rarity, propertyKeys.RARITY) { it.keywords.toList() }
         stringArray(MtgPrint::finishes, propertyKeys.FINISH) {
             strict(true)
             autoArrayValues(MtgPrint::finishes, "finish", true)
