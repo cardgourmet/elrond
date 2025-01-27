@@ -63,8 +63,8 @@ private val getNames = { connection: Connection ->
 private val getNameWordBank = { connection: Connection -> getNames(connection).toWordBank() }
 
 fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
-    val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE)
-    val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE)
+    val weaknessDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.WeakAgainst.TRUE, Strings.Query.Pcg.Comparison.WeakAgainst.FALSE, propertyKey = propertyKeys.CARD)
+    val resistanceDescriptor = SimplePropertyDescriptor(Strings.Query.Pcg.Comparison.ResistantAgainst.TRUE, Strings.Query.Pcg.Comparison.ResistantAgainst.FALSE, propertyKey = propertyKeys.CARD)
 
     filter("name", "n") {
         simpleString(PcgCardTranslation::name, PcgCardTranslation::simpleName, propertyKeys.NAME) {
