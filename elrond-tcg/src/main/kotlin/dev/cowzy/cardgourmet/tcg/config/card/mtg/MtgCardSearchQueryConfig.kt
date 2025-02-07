@@ -44,7 +44,10 @@ val manaCardinalityMappings = mapOf(
     "any" to (1 to SearchQueryOperator.GREATER_THAN_OR_EQUALS)
 )
 
-val manaCardinalityMappingsWithColorless = manaCardinalityMappings + mapOf("colorless" to (0 to SearchQueryOperator.EQUALS))
+val manaCardinalityMappingsWithColorless = manaCardinalityMappings + mapOf(
+    "colorless" to (0 to SearchQueryOperator.EQUALS),
+    "c" to (0 to SearchQueryOperator.EQUALS)
+)
 
 val mtgLayoutMappings = mapOf(
     "art" to "art_series",
@@ -124,15 +127,36 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("color", "colors", "c") {
         ignoreReference("c")
         cardinality(MtgCardFace::colors, mtgPropertyKeys.COLOR_COUNT, manaCardinalityMappingsWithColorless)
-        property(MtgManaArrayColumnProperty(MtgCardFace::colors, descriptor = ManaColorsDescriptor(mtgPropertyKeys.MANA_COLORS, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
+        property(
+            MtgManaArrayColumnProperty(
+                MtgCardFace::colors,
+                descriptor = ManaColorsDescriptor(
+                    mtgPropertyKeys.MANA_COLORS,
+                    mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS
+                )
+            )
+        ) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
 
     filter("produces", "producedcolors") {
-        cardinality(MtgCardFace::producesMana, mtgPropertyKeys.PRODUCED_MANA_COUNT, manaCardinalityMappings, distinctValues = true)
-        property(MtgManaArrayColumnProperty(MtgCardFace::producesMana, descriptor = NumericDescriptor(mtgPropertyKeys.PRODUCED_MANA, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
+        cardinality(
+            MtgCardFace::producesMana,
+            mtgPropertyKeys.PRODUCED_MANA_COUNT,
+            manaCardinalityMappings,
+            distinctValues = true
+        )
+        property(
+            MtgManaArrayColumnProperty(
+                MtgCardFace::producesMana,
+                descriptor = NumericDescriptor(
+                    mtgPropertyKeys.PRODUCED_MANA,
+                    mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS
+                )
+            )
+        ) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
@@ -146,15 +170,36 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("coloridentity", "id", "identity", "ci", "commander") {
         ignoreReference("commander")
         cardinality(MtgCard::colorIdentity, mtgPropertyKeys.COLOR_IDENTITY_COUNT, manaCardinalityMappingsWithColorless)
-        property(MtgManaArrayColumnProperty(MtgCard::colorIdentity, true, NumericDescriptor(mtgPropertyKeys.COLOR_IDENTITY, mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS))) {
+        property(
+            MtgManaArrayColumnProperty(
+                MtgCard::colorIdentity,
+                true,
+                NumericDescriptor(
+                    mtgPropertyKeys.COLOR_IDENTITY,
+                    mapContainsTo = SearchQueryOperator.LESS_THAN_OR_EQUALS
+                )
+            )
+        ) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
     }
 
     filter("indicator", "indicatorcolors") {
-        cardinality(MtgCardFace::colorIndicator, mtgPropertyKeys.COLOR_INDICATOR_COUNT, manaCardinalityMappingsWithColorless)
-        property(MtgManaArrayColumnProperty(MtgCardFace::colorIndicator, descriptor = NumericDescriptor(mtgPropertyKeys.COLOR_INDICATOR, mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS))) {
+        cardinality(
+            MtgCardFace::colorIndicator,
+            mtgPropertyKeys.COLOR_INDICATOR_COUNT,
+            manaCardinalityMappingsWithColorless
+        )
+        property(
+            MtgManaArrayColumnProperty(
+                MtgCardFace::colorIndicator,
+                descriptor = NumericDescriptor(
+                    mtgPropertyKeys.COLOR_INDICATOR,
+                    mapContainsTo = SearchQueryOperator.GREATER_THAN_OR_EQUALS
+                )
+            )
+        ) {
             transform { items -> items.joinToString("") { ManaDisplay(it).toString() } }
             manaValues()
         }
@@ -177,7 +222,11 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("combinedpt", "pt", "powtou", "heft") {
-        numeric(MtgCardFace::powerValue, MtgCardFace::toughnessValue, propertyKey = mtgPropertyKeys.COMBINED_POWER_TOUGHNESS)
+        numeric(
+            MtgCardFace::powerValue,
+            MtgCardFace::toughnessValue,
+            propertyKey = mtgPropertyKeys.COMBINED_POWER_TOUGHNESS
+        )
     }
 
     filter("faces", "facecount") { numeric(MtgCard::faceCount, propertyKeys.FACE_COUNT) }
@@ -271,24 +320,33 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("legal", "legalformats", "legalin", "format") {
-        stringArrayAndCardinality(MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(
-            FormatDescriptor.Type.LEGAL), "legal_format") {
+        stringArrayAndCardinality(
+            MtgPrint::formatsLegal, mtgPropertyKeys.LEGAL_FORMATS_COUNT, FormatDescriptor(
+                FormatDescriptor.Type.LEGAL
+            ), "legal_format"
+        ) {
             strict(true)
             enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("restricted", "restrictedformats", "restrictedin") {
-        stringArrayAndCardinality(MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(
-            FormatDescriptor.Type.RESTRICTED), "restricted_format") {
+        stringArrayAndCardinality(
+            MtgPrint::formatsRestricted, mtgPropertyKeys.RESTRICTED_FORMATS_COUNT, FormatDescriptor(
+                FormatDescriptor.Type.RESTRICTED
+            ), "restricted_format"
+        ) {
             strict(true)
             enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
     }
 
     filter("banned", "bannedformats", "bannedin") {
-        stringArrayAndCardinality(MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(
-            FormatDescriptor.Type.BANNED), "banned_format") {
+        stringArrayAndCardinality(
+            MtgPrint::formatsBanned, mtgPropertyKeys.BANNED_FORMATS_COUNT, FormatDescriptor(
+                FormatDescriptor.Type.BANNED
+            ), "banned_format"
+        ) {
             strict(true)
             enumValues<MtgFormat>("format", transform = { it.getSerialName() })
         }
@@ -341,11 +399,20 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("type", "typeline", "types", "t") {
-        cardinality(MtgCardFace::types, MtgCardFace::superTypes, MtgCardFace::subTypes, propertyKey = mtgPropertyKeys.TYPE_COUNT)
+        cardinality(
+            MtgCardFace::types,
+            MtgCardFace::superTypes,
+            MtgCardFace::subTypes,
+            propertyKey = mtgPropertyKeys.TYPE_COUNT
+        )
         stringArray(MtgCardFace::types, mtgPropertyKeys.TYPE)
         stringArray(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE)
         stringArray(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE)
-        simpleString(MtgCardFaceTranslation::typeLine, MtgCardFaceTranslation::simpleTypeLine, mtgPropertyKeys.TYPE_LINE)
+        simpleString(
+            MtgCardFaceTranslation::typeLine,
+            MtgCardFaceTranslation::simpleTypeLine,
+            mtgPropertyKeys.TYPE_LINE
+        )
     }
 
     filter("basetype", "basetypes") {
@@ -365,15 +432,27 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("fulloracle", "fulloracletext", "fo") {
-        simpleString(MtgCardFaceTranslation::fullOracleText, MtgCardFaceTranslation::simpleFullOracleText, propertyKeys.TEXT_WITH_REMINDERS)
+        simpleString(
+            MtgCardFaceTranslation::fullOracleText,
+            MtgCardFaceTranslation::simpleFullOracleText,
+            propertyKeys.TEXT_WITH_REMINDERS
+        )
     }
 
     filter("flavorname", "fn") {
-        simpleString(MtgPrintFaceTranslation::flavorName, simpleColumn = MtgPrintFaceTranslation::simpleFlavorName, mtgPropertyKeys.FLAVOR_NAME)
+        simpleString(
+            MtgPrintFaceTranslation::flavorName,
+            simpleColumn = MtgPrintFaceTranslation::simpleFlavorName,
+            mtgPropertyKeys.FLAVOR_NAME
+        )
     }
 
     filter("flavor", "flavortext", "ft") {
-        simpleString(MtgPrintFaceTranslation::flavorText, MtgPrintFaceTranslation::simpleFlavorText, propertyKeys.FLAVOR_TEXT)
+        simpleString(
+            MtgPrintFaceTranslation::flavorText,
+            MtgPrintFaceTranslation::simpleFlavorText,
+            propertyKeys.FLAVOR_TEXT
+        )
     }
 
     filter("frame") {
@@ -385,7 +464,11 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("frameeffect", "frameeffects", "frameffect") {
-        stringArrayAndCardinality(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT_COUNT, mtgPropertyKeys.FRAME_EFFECT)
+        stringArrayAndCardinality(
+            MtgPrint::frameEffects,
+            mtgPropertyKeys.FRAME_EFFECT_COUNT,
+            mtgPropertyKeys.FRAME_EFFECT
+        )
     }
 
     filter("stamp") {
@@ -412,7 +495,8 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("rarity", "r") { property(MtgRarityProperty(valueProviderPool)) }
 
     filter("lang", "language", "printlang", "printlanguage") {
-        enum<MtgLanguage>(MtgPrintFaceTranslation::language,
+        enum<MtgLanguage>(
+            MtgPrintFaceTranslation::language,
             AvailableInDescriptor(propertyKeys.PRINT),
             "print_language",
             aliasResolver = { it.keys },
@@ -423,9 +507,13 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("cardlang", "cardlanguage") {
-        enum<MtgLanguage>(MtgCardFaceTranslation::language, AvailableInDescriptor(propertyKeys.CARD), "card_language", display = { value, i18n, locale ->
-            i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
-        })
+        enum<MtgLanguage>(
+            MtgCardFaceTranslation::language,
+            AvailableInDescriptor(propertyKeys.CARD),
+            "card_language",
+            display = { value, i18n, locale ->
+                i18n.translate(locale, "${Strings.Query.Dlc.Language.KEY}.${value.getSerialName()}")
+            })
     }
 
     filter("eur") { numeric(MtgPrintPrice::priceEur, propertyKeys.PRICE_EUR) }
@@ -442,7 +530,14 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     }
 
     filter("blockid", "eraid") { uuid(MtgBlock::id, mtgPropertyKeys.BLOCK_ID) }
-    filter("blockname", "eraname") { string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) { autoValues(MtgBlock::name, "block_name") } }
+    filter("blockname", "eraname") {
+        string(MtgBlock::name, mtgPropertyKeys.BLOCK_NAME) {
+            autoValues(
+                MtgBlock::name,
+                "block_name"
+            )
+        }
+    }
 
     filter("print", "printid") { uuid(MtgPrint::id, propertyKeys.PRINT_ID) }
     filter("card", "cardid", "oracleid") { uuid(MtgCard::id, propertyKeys.CARD_ID) }
@@ -532,7 +627,12 @@ private val tableDependencies = mapOf(
         }
     },
     CardImage::class to TableDependency(MtgPrintFaceTranslation::class) { builder ->
-        builder.leftJoin(CardImage::class) { it.whereColumn(CardImage::printTranslationId, MtgPrintFaceTranslation::id) }
+        builder.leftJoin(CardImage::class) {
+            it.whereColumn(
+                CardImage::printTranslationId,
+                MtgPrintFaceTranslation::id
+            )
+        }
     },
     CardImageColor::class to TableDependency(MtgPrintFaceTranslation::class) { builder ->
         builder.leftJoin(CardImageColor::class) {
