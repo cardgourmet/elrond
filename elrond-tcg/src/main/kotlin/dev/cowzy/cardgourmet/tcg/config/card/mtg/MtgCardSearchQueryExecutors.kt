@@ -12,6 +12,7 @@ import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
+import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
 private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
@@ -25,6 +26,10 @@ private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQue
         builder.whereInRaw(MtgCardFaceTranslation::language, "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
         }
+    }
+
+    if (query.flags.contains(MtgCardSearchQueryFlag.REQUIRE_IMAGE)) {
+        builder.whereNotNull(CardImage::imageId)
     }
 
     // No need to apply sort for count/random queries.

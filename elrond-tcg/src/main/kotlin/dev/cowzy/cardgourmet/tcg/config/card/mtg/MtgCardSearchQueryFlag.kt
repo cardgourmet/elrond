@@ -9,6 +9,7 @@ enum class MtgCardSearchQueryFlag {
 
     @SerialName("include:extras") INCLUDE_EXTRAS,
     @SerialName("lang:any") ANY_LANGUAGE,
+    @SerialName("require:image") REQUIRE_IMAGE,
     @SerialName("prefer:basic") PREFER_BASIC,
     @SerialName("prefer:special") PREFER_SPECIAL,
     @SerialName("prefer:oldest") PREFER_OLDEST,

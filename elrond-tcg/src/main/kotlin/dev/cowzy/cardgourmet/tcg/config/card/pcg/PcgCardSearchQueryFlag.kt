@@ -6,7 +6,8 @@ import kotlinx.serialization.SerialName
 enum class PcgCardSearchQueryFlag {
 
 //    @SerialName("include:extras") INCLUDE_EXTRAS,
-    @SerialName("lang:any") ANY_LANGUAGE;
+    @SerialName("lang:any") ANY_LANGUAGE,
+    @SerialName("require:image") REQUIRE_IMAGE;
 //    @SerialName("prefer:oldest") PREFER_OLDEST,
 //    @SerialName("prefer:newest") PREFER_NEWEST,
 //    @SerialName("prefer:promo") PREFER_PROMO,
