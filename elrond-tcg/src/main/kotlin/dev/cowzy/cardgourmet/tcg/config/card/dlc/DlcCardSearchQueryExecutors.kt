@@ -80,10 +80,13 @@ fun createDlcCardBaseBuilder(
                 else -> DlcCardSortMode.NAME
             }
         }
-        .customTables { _, mode ->
+        .customTables { query, mode ->
             when (mode) {
                 SearchQueryMode.SEARCH -> setOf(CardImage::class, DlcSet::class, DlcCardTranslation::class)
-                else -> setOf(DlcCardTranslation::class)
+                else -> when {
+                    query.flags.contains(DlcCardSearchQueryFlag.REQUIRE_IMAGE) -> setOf(DlcCardTranslation::class, CardImage::class)
+                    else -> setOf(DlcCardTranslation::class)
+                }
             }
         }
         .customBuilder(builder)

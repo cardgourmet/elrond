@@ -80,10 +80,13 @@ fun createPcgCardBaseBuilder(
                 else -> PcgCardSortMode.NAME
             }
         }
-        .customTables { _, mode ->
+        .customTables { query, mode ->
             when (mode) {
                 SearchQueryMode.SEARCH -> setOf(CardImage::class, PcgSet::class, PcgCardTranslation::class)
-                else -> setOf(PcgCardTranslation::class)
+                else -> when {
+                    query.flags.contains(PcgCardSearchQueryFlag.REQUIRE_IMAGE) -> setOf(PcgCardTranslation::class, CardImage::class)
+                    else -> setOf(PcgCardTranslation::class)
+                }
             }
         }
         .customBuilder(builder)

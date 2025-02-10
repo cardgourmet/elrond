@@ -136,7 +136,10 @@ fun createMtgCardBaseBuilder(
                     }
                 }
 
-                else -> setOf(MtgCardFaceTranslation::class)
+                else -> when {
+                    query.flags.contains(MtgCardSearchQueryFlag.REQUIRE_IMAGE) -> setOf(MtgCardFaceTranslation::class, CardImage::class)
+                    else -> setOf(MtgCardFaceTranslation::class)
+                }
             }
         }
         .customBuilder(builder)
