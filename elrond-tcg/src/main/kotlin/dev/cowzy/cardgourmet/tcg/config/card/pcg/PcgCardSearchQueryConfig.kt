@@ -15,6 +15,7 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
+import dev.cowzy.cardgourmet.elrond.property.StaticNullColumnProperty
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
 import dev.cowzy.cardgourmet.elrond.values.autoValues
@@ -335,6 +336,15 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
 
     filter("tag", "tags") {
         enumArrayAndCardinality(PcgPrint::tags, propertyKeys.TAG_COUNT, propertyKeys.TAG) { it.keys }
+    }
+
+    filter("has:image") {
+        property(StaticNullColumnProperty(CardImage::imageId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.HasImage.TRUE, Strings.Query.Comparison.HasImage.FALSE), key = "has_image"))
+    }
+
+    filter("not:image") {
+        inverted(true)
+        property(StaticNullColumnProperty(CardImage::imageId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.HasImage.TRUE, Strings.Query.Comparison.HasImage.FALSE), key = "has_image"))
     }
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {

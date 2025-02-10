@@ -16,6 +16,7 @@ import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.StaticColumnProperty
+import dev.cowzy.cardgourmet.elrond.property.StaticNullColumnProperty
 import dev.cowzy.cardgourmet.elrond.property.StringRegexProperty
 import dev.cowzy.cardgourmet.elrond.values.autoValues
 import dev.cowzy.cardgourmet.tcg.property.dlc.DlcRarityProperty
@@ -242,6 +243,15 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
     filter("not:inkwell") {
         inverted(true)
         property(StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell"))
+    }
+
+    filter("has:image") {
+        property(StaticNullColumnProperty(CardImage::imageId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.HasImage.TRUE, Strings.Query.Comparison.HasImage.FALSE), key = "has_image"))
+    }
+
+    filter("not:image") {
+        inverted(true)
+        property(StaticNullColumnProperty(CardImage::imageId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.HasImage.TRUE, Strings.Query.Comparison.HasImage.FALSE), key = "has_image"))
     }
 
     filter("print", "printid") {
