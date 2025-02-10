@@ -10,8 +10,7 @@ class StaticNullColumnProperty(
     private val column: KProperty1<*, *>,
     private val inverted: Boolean = false,
     descriptor: SimplePropertyDescriptor,
-    key: String? = null
-) : StaticSearchQueryProperty(arrayOf(column.table()), descriptor, key) {
+) : StaticSearchQueryProperty(arrayOf(column.table()), descriptor) {
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T) {
         if (inverted) {

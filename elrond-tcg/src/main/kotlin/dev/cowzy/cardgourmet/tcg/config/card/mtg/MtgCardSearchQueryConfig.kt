@@ -16,8 +16,6 @@ import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.descriptor.AvailableInDescriptor
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
-import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.property.StaticNullColumnProperty
 import dev.cowzy.cardgourmet.elrond.values.ValueProviderBuilder
 import dev.cowzy.cardgourmet.elrond.values.autoArrayValues
 import dev.cowzy.cardgourmet.elrond.values.autoValues
@@ -284,15 +282,6 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
 
     filter("art") {
         stringArrayAndCardinality(MtgPrintFace::artTags, propertyKeys.ART_TAGS_COUNT, propertyKeys.ART_TAGS)
-    }
-
-    filter("has:image") {
-        property(StaticNullColumnProperty(CardImage::imageId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.HasImage.TRUE, Strings.Query.Comparison.HasImage.FALSE), key = "has_image"))
-    }
-
-    filter("not:image") {
-        inverted(true)
-        property(StaticNullColumnProperty(CardImage::imageId, descriptor = SimplePropertyDescriptor(Strings.Query.Comparison.HasImage.TRUE, Strings.Query.Comparison.HasImage.FALSE), key = "has_image"))
     }
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
