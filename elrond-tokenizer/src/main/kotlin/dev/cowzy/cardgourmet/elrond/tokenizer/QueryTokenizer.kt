@@ -11,7 +11,7 @@ import kotlin.reflect.full.isSuperclassOf
 
 private val andRegex = Regex("(and|&+)", RegexOption.IGNORE_CASE)
 private val orRegex = Regex("(or|\\|+)", RegexOption.IGNORE_CASE)
-private val notRegex = Regex("(not|-)", RegexOption.IGNORE_CASE)
+private val notRegex = Regex("(not(?!\\s*:)|-)", RegexOption.IGNORE_CASE)
 
 @Serializable
 data class IgnoredQueryValue(
