@@ -2,13 +2,11 @@ package dev.cowzy.cardgourmet.tcg.config.card.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
-import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcInkType
-import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcRarity
-import dev.cowzy.cardgourmet.commons.database.card.CardPrice
-import dev.cowzy.cardgourmet.commons.database.card.dlc.*
+import dev.cowzy.cardgourmet.chef.commons.model.card.CardPrice
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.*
 import dev.cowzy.cardgourmet.commons.database.game.GameType
-import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcFranchise
-import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
+import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcFranchise
+import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator

@@ -1,8 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.user.config.pcg
 
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgLanguage
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgLanguage
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings

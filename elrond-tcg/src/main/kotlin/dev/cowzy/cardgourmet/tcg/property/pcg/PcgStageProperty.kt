@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.tcg.property.pcg
 
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCard
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgEvolutionStage
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCard
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgEvolutionStage
 import dev.cowzy.cardgourmet.commons.i18n.Strings.Query.Pcg.Property.EVOLUTION_STAGE
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator

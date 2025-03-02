@@ -2,7 +2,7 @@ package dev.cowzy.cardgourmet.tcg.property.mtg
 
 import dev.cowzy.kuery.query.*
 import dev.cowzy.kuery.reflection.columnName
-import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*

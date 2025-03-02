@@ -1,9 +1,9 @@
 package dev.cowzy.cardgourmet.tcg.config.card.dlc
 
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCard
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
-import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCard
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
+import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.SortMode
 import dev.cowzy.kuery.Order
 import kotlinx.serialization.SerialName

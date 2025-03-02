@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.tcg.property.dlc
 
-import dev.cowzy.cardgourmet.commons.catalogue.dlc.DlcRarity
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcRarity
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*

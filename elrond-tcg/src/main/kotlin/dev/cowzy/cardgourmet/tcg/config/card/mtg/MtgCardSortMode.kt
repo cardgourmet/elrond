@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.tcg.config.card.mtg
 
-import dev.cowzy.cardgourmet.commons.database.card.mtg.*
-import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
+import dev.cowzy.cardgourmet.chef.commons.model.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.elrond.SortMode
 import dev.cowzy.kuery.Order
 import kotlinx.serialization.SerialName

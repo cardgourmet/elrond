@@ -1,10 +1,10 @@
 package dev.cowzy.cardgourmet.tcg.config.card.pcg
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCard
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
-import dev.cowzy.cardgourmet.commons.database.set.pcg.PcgSet
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCard
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgPrint
+import dev.cowzy.cardgourmet.chef.commons.model.set.pcg.PcgSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression

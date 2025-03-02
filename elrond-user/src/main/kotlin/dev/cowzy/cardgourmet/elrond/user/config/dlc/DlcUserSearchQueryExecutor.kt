@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.user.config.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor

@@ -1,8 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.user.config.dlc
 
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcLanguage
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcLanguage
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings

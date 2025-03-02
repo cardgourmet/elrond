@@ -1,11 +1,11 @@
 package dev.cowzy.cardgourmet.tcg.config.card.dlc
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCard
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcCardTranslation
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrint
-import dev.cowzy.cardgourmet.commons.database.card.dlc.DlcPrintTranslation
-import dev.cowzy.cardgourmet.commons.database.set.dlc.DlcSet
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCard
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrintTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcSet
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression

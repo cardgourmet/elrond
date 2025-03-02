@@ -2,7 +2,7 @@ package dev.cowzy.cardgourmet.tcg.config.card.mtg
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
-import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression

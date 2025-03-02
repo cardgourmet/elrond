@@ -1,10 +1,10 @@
 package dev.cowzy.cardgourmet.elrond.user.config.mtg
 
-import dev.cowzy.cardgourmet.commons.catalogue.MtgFinish
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgCardFaceTranslation
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgLanguage
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgMedium
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCardFaceTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgFinish
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgLanguage
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgMedium
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.database.game.GameType
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings

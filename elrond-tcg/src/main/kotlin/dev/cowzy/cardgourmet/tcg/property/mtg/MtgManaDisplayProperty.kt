@@ -6,8 +6,8 @@ import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.orWhere
 import dev.cowzy.kuery.reflection.columnName
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgCard
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgCardFace
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCard
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCardFace
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.toManaDisplays
 import dev.cowzy.cardgourmet.elrond.*

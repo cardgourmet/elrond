@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.tcg.property.pcg
 
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgPrint
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgRarity
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgRarity
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator

@@ -3,13 +3,12 @@ package dev.cowzy.cardgourmet.tcg.config.card.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImageColor
 import dev.cowzy.cardgourmet.commons.*
-import dev.cowzy.cardgourmet.commons.catalogue.MtgRarity
-import dev.cowzy.cardgourmet.commons.database.card.CardPrice
-import dev.cowzy.cardgourmet.commons.database.card.mtg.*
+import dev.cowzy.cardgourmet.chef.commons.model.card.CardPrice
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
 import dev.cowzy.cardgourmet.commons.database.deck.MtgFormat
 import dev.cowzy.cardgourmet.commons.database.game.GameType
-import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgBlock
-import dev.cowzy.cardgourmet.commons.database.set.mtg.MtgSet
+import dev.cowzy.cardgourmet.chef.commons.model.set.mtg.MtgBlock
+import dev.cowzy.cardgourmet.chef.commons.model.set.mtg.MtgSet
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue

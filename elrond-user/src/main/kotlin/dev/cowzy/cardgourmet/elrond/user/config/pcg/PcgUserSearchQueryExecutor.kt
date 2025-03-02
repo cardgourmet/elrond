@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.user.config.pcg
 
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
-import dev.cowzy.cardgourmet.commons.database.card.pcg.PcgCardTranslation
+import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor

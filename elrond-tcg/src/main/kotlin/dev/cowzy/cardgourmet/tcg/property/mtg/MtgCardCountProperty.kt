@@ -5,8 +5,8 @@ import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.leftJoin
 import dev.cowzy.kuery.query.selectBuilder
 import dev.cowzy.kuery.reflection.columnName
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgMedium
-import dev.cowzy.cardgourmet.commons.database.card.mtg.MtgPrint
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgMedium
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.NumberValue

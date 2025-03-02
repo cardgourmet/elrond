@@ -1,6 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.user.property.mtg
 
-import dev.cowzy.cardgourmet.commons.catalogue.MtgFinish
+import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgFinish
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.orWhereRaw
 import dev.cowzy.cardgourmet.commons.user.UserCard
