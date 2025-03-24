@@ -77,7 +77,7 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
 
     filter("ink", "inktype", "i", "color", "c", "id", "identity") {
         numeric(DlcCard::cost, dlcPropertyKeys.COST)
-        enum<DlcInkType>(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
+        enumArray<DlcInkType>(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE)
     }
 
     filter("strength", "power", "pow", "str") {
@@ -256,7 +256,7 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
         enum<DlcRarity>(DlcPrint::rarity, propertyKeys.RARITY) { it.keys }
-        enum<DlcInkType>(DlcCard::inkType, dlcPropertyKeys.INK_TYPE)
+        enumArray<DlcInkType>(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE)
         string(DlcCard::type, dlcPropertyKeys.TYPE) {
             strict(true)
             autoValues(DlcCard::type, autoAlias = true)

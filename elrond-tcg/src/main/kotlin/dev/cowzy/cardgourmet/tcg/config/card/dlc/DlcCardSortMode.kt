@@ -17,7 +17,7 @@ enum class DlcCardSortMode(
 
     @SerialName("name") NAME(arrayOf("name"), DlcCardTranslation::simpleName),
     @SerialName("set") SET_CODE(arrayOf("set"), arrayOf(DlcSet::code, DlcPrint::collectorNumberValue, DlcPrint::collectorNumber)),
-    @SerialName("ink") INK_TYPE(arrayOf("ink", "color"), arrayOf(DlcCard::inkType)),
+    @SerialName("ink") INK_TYPE(arrayOf("ink", "color"), arrayOf(DlcCard::inkTypes)),
     @SerialName("strength") STRENGTH(arrayOf("strength", "power"), arrayOf(DlcCard::strength)),
     @SerialName("willpower") WILLPOWER(arrayOf("willpower", "toughness"), arrayOf(DlcCard::willpower)),
     @SerialName("movement") MOVEMENT_COST(arrayOf("movement"), DlcCard::moveCost),
