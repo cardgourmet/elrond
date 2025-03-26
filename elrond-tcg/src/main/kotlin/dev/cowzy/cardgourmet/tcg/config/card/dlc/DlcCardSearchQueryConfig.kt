@@ -77,7 +77,9 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
 
     filter("ink", "inktype", "i", "color", "c", "id", "identity") {
         numeric(DlcCard::cost, dlcPropertyKeys.COST)
-        enumArray<DlcInkType>(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE)
+        enumArrayAndCardinality(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE_COUNT, dlcPropertyKeys.INK_TYPE) {
+            listOf(it.getSerialName())
+        }
     }
 
     filter("strength", "power", "pow", "str") {
@@ -196,17 +198,19 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
     }
 
     filter("ability", "action", "actionname", "abilityname") {
-        property(StringRegexProperty(
-            DlcCardTranslation::text,
-            { value, operator ->
-                when (operator) {
-                    SearchQueryOperator.CONTAINS -> "\\[\"[^\"]*$value[^\"]*\"]"
-                    SearchQueryOperator.EQUALS -> "\\[\"$value\"]"
-                    else -> value
-                }
-            },
-            propertyKey = dlcPropertyKeys.ABILITY_NAME
-        ))
+        property(
+            StringRegexProperty(
+                DlcCardTranslation::text,
+                { value, operator ->
+                    when (operator) {
+                        SearchQueryOperator.CONTAINS -> "\\[\"[^\"]*$value[^\"]*\"]"
+                        SearchQueryOperator.EQUALS -> "\\[\"$value\"]"
+                        else -> value
+                    }
+                },
+                propertyKey = dlcPropertyKeys.ABILITY_NAME
+            )
+        )
     }
 
     filter("fulltext", "fulldescription", "fulloracle", "fulloracletext", "fo") {
@@ -234,12 +238,24 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
     }
 
     filter("is:inkwell") {
-        property(StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell"))
+        property(
+            StaticColumnProperty(
+                DlcCard::inkwell,
+                descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT),
+                key = "is_inkwell"
+            )
+        )
     }
 
     filter("not:inkwell") {
         inverted(true)
-        property(StaticColumnProperty(DlcCard::inkwell, descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT), key = "is_inkwell"))
+        property(
+            StaticColumnProperty(
+                DlcCard::inkwell,
+                descriptor = SimplePropertyDescriptor(Strings.Query.Dlc.Comparison.IsInkwell.KEY, propertyKeys.PRINT),
+                key = "is_inkwell"
+            )
+        )
     }
 
     filter("print", "printid") {
@@ -256,7 +272,7 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
 
     val applyTagProperties: QueryFilterBuilder.() -> Unit = {
         enum<DlcRarity>(DlcPrint::rarity, propertyKeys.RARITY) { it.keys }
-        enumArray<DlcInkType>(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE)
+        enumArray(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE) { listOf(it.getSerialName()) }
         string(DlcCard::type, dlcPropertyKeys.TYPE) {
             strict(true)
             autoValues(DlcCard::type, autoAlias = true)
