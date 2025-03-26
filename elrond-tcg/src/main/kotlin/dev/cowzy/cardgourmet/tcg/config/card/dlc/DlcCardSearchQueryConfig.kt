@@ -76,7 +76,6 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
     }
 
     filter("ink", "inktype", "i", "color", "c", "id", "identity") {
-        numeric(DlcCard::cost, dlcPropertyKeys.COST)
         enumArrayAndCardinality(DlcCard::inkTypes, dlcPropertyKeys.INK_TYPE_COUNT, dlcPropertyKeys.INK_TYPE) {
             listOf(it.getSerialName())
         }
