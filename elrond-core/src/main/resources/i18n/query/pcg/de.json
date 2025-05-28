@@ -1,0 +1,49 @@
+{
+  "property": {
+    "ability_count": "_die Anzahl der Fähigkeiten_|_der Anzahl der Fähigkeiten_",
+    "ability_type": "_der Fähigkeitentyp_",
+    "ability_name": "_der Fähigkeitsname_",
+    "attack_count": "_der Anzahl der Angriffe_",
+    "attack_cost": "_der Angriffskosten_",
+    "attack_damage": "_dem Angriffsschaden_",
+    "total_print_count": "_die Gesamtzahl der Prints im Set_|_der Gesamtanzahl der Prints im Set_",
+    "public_print_count": "_die Anzahl der öffentlichen Prints im Set_|_der Anzahl der öffentlichen Prints im Set_",
+    "era_id": "_der Ära-ID_",
+    "era_name": "_der Äraname_",
+    "start_release_date": "_das Startveröffentlichungsdatum_|_dem Startveröffentlichungsdatum_",
+    "end_release_date": "_das Endveröffentlichungsdatum_|_dem Endveröffentlichungsdatum_",
+    "effect_type": "_der Effekttyp_",
+    "effect_count": "_die Anzahl der Effekte_|_der Anzahl der Effekte_",
+    "start_release_year": "_das Startveröffentlichungsjahr_|_des Startveröffentlichungsjahrs_",
+    "end_release_year": "_das Endveröffentlichungsjahr_|_des Endveröffentlichungsjahrs_",
+    "energy_type": "_der Typ_",
+    "energy_type_count": "_die Anzahl der Typen_|_der Anzahl der Typen_",
+    "evolution_stage": "_die Entwicklungsstufe_",
+    "evolves_from": "_das vorherigen Stufennamen_",
+    "hit_points": "_die Trefferpunkte_",
+    "regulation_mark": "_das Regelzeichen_",
+    "region": "_die Set-Region_",
+    "rule": "_die gedruckte Regel_",
+    "rule_type": "_der gedruckte Regeltyp_",
+    "rule_count": "_die Anzahl der gedruckten Regeln_|_der Anzahl der gedruckten Regeln_",
+    "resistance_count": "_die Anzahl der Resistenzen_|_der Anzahl der Resistenzen_",
+    "resistance_modifier": "_der Resistenzen-Modifikator_",
+    "weakness_count": "_die Anzahl der Schwächen_|_der Anzahl der Schwächen_",
+    "weakness_modifier": "_der Schwäche-Modifikator_",
+    "retreat_cost": "_die Rückzugskosten_|_der Rückzugskosten_",
+    "subtype": "_der Subtyp_",
+    "subtype_count": "_die Anzahl der Subtypen_|_der Anzahl der Subtypen_",
+    "supertype": "_der Supertyp_",
+    "sort_value": "_der Sortierwert_"
+  },
+  "comparison": {
+    "weak_against": {
+      "true": "{1} ist schwach gegen {2}",
+      "false": "{1} ist nicht schwach gegen {2}"
+    },
+    "resistant_against": {
+      "true": "{1} ist resistent gegen {2}",
+      "false": "{1} ist nicht resistent gegen {2}"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "property": {
+    "acquired_at": "_das Erwerbsdatum_|_des Erwerbdatums_",
+    "acquired_price": "_der gezahlte Preis_|_des gezahlten Preises_",
+    "acquired_currency": "_die Währung des gezahlten Preises_",
+    "binder": "_der Binder-Name_",
+    "binder_id": "_die Binder-ID_",
+    "acquisition": "_die Akquisitions-Name_",
+    "acquisition_id": "_die Akquisitions-ID_",
+    "language": "_die Sammlungssprache_",
+    "condition": "_der Zustand_",
+    "notes": "_die Notizen_",
+    "quantity": "_die Anzahl_|_der Anzahl_"
+  },
+  "comparison": {
+    "is_altered": {
+      "true": "{1} ein Alternativ-Artwork hat",
+      "false": "{1} kein Alternativ-Artwork hat"
+    },
+    "is_foil": {
+      "true": "{1} ein Foil-Finish hat",
+      "false": "{1} kein Foil-Finish hat"
+    },
+    "is_proxy": {
+      "true": "{1} ein Proxy ist",
+      "false": "{1} kein Proxy ist"
+    },
+    "is_signed": {
+      "true": "{1} signiert ist",
+      "false": "{1} nicht signiert ist"
+    }
+  }
+}

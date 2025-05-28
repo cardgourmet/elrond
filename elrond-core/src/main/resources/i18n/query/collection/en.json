@@ -1,0 +1,33 @@
+{
+  "property": {
+    "acquired_at": "_the date of acquisition_",
+    "acquired_price": "_the price paid_",
+    "acquired_currency": "_the currency of the price paid_",
+    "binder": "_the binder name_",
+    "binder_id": "_the binder ID_",
+    "acquisition": "_the acquisition name_",
+    "acquisition_id": "_the acquisition ID_",
+    "language": "_the collection language_",
+    "condition": "_the condition_",
+    "notes": "_the notes_",
+    "quantity": "_the quantity_"
+  },
+  "comparison": {
+    "is_altered": {
+      "true": "{1} is altered",
+      "false": "{1} is not altered"
+    },
+    "is_foil": {
+      "true": "{1} has a foil finish",
+      "false": "{1} does not have a foil finish"
+    },
+    "is_proxy": {
+      "true": "{1} is a proxy",
+      "false": "{1} is not a proxy"
+    },
+    "is_signed": {
+      "true": "{1} is signed",
+      "false": "{1} is not signed"
+    }
+  }
+}

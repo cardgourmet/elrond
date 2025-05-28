@@ -1,0 +1,147 @@
+{
+  "property": {
+    "border": "_der Rand_",
+    "color_count": "_die Anzahl der Mana-Farben_|_der Anzahl der Mana-Farben_",
+    "color_identity": "_die Farbidentität_",
+    "color_identity_count": "_die Anzahl der Identitäts-Farben_|_der Anzahl der Identitäts-Farben_",
+    "color_indicator": "_der Farbindikator_",
+    "color_indicator_count": "_die Anzahl der Indikator-Farben_|_der Anzahl der Indikator-Farben_",
+    "combined_power_toughness": "_die kombinierte Stärke und Widerstandskraft_|_der kombinierten Stärke und Widerstandskraft_",
+    "defense": "_die Verteidigung_|_der Verteidigung_",
+    "devotion": "_die Hingabe_",
+    "flavor_name": "_der Flavor-Name_",
+    "legal_formats_count": "_die Anzahl legaler Formate_|_der Anzahl legaler Formate_",
+    "restricted_formats_count": "_die Anzahl eingeschränkter Formate_|_der Anzahl eingeschränkter Formate_",
+    "banned_formats_count": "_die Anzahl verbotenen Formate_|_der Anzahl verbotenen Formate_",
+    "frame": "_der Rahmen_",
+    "frame_effect": "_der Rahmen-Effekt_",
+    "frame_effect_count": "_die Anzahl der Rahmen-Effekte_|_der Anzahl der Rahmen-Effekte_",
+    "layout": "_das Layout_",
+    "loyalty": "_die Loyalität_|_der Loyalität_",
+    "mana_colors": "_die Manafarben_",
+    "mana_display": "_das Mana-Display_",
+    "mana_value": "_der Manawert_|_des Manawerts_",
+    "power": "_die Stärke_|_der Stärke_",
+    "produced_mana": "_das produzierte Mana_",
+    "produced_mana_count": "_die Anzahl der produzierten Mana-Farben_|_der Anzahl der produzierten Mana-Farben_",
+    "promo_type": "_den Promo-Typen_",
+    "promo_type_count": "_die Anzahl der Promo-Typen_",
+    "set_type": "_der Set-Typ_",
+    "stamp": "_der Stempel_",
+    "toughness": "_die Widerstandskraft_|_der Widerstandskraft_",
+    "type_line": "_der Typ_",
+    "type": "_der Typ_",
+    "type_count": "_die Anzahl der Typen_|_der Anzahl der Typen_",
+    "super_type": "_der Supertyp_",
+    "super_type_count": "_die Anzahl der Supertypen_|_der Anzahl der Supertypen_",
+    "sub_type": "_der Subtyp_",
+    "sub_type_count": "_die Anzahl der Subtypen_|_der Anzahl der Subtypen_",
+    "watermark": "_das Wasserzeichen_",
+    "watermark_count": "_die Anzahl der Wasserzeichen_|_der Anzahl der Wasserzeichen_",
+    "scryfall_id": "_die Scryfall-ID_",
+    "scryfall_oracle_id": "_die Scryfall-Oracle-ID_",
+    "mtgjson_id": "_die MTGJSON-ID_",
+    "mtgarena_id": "_die MTG-Arena-ID_",
+    "mtgo_id": "_die MTGO-ID_",
+    "tcgplayer_id": "_die TCGPlayer-ID_",
+    "cardmarket_id": "_die Cardmarket-ID_",
+    "cardkingdom_id": "_die Card-Kingdom-ID_",
+    "edhrec_rank": "_der EDHREC-Rang_",
+    "block_name": "_der Block-Name_",
+    "block_id": "_die Block-ID_"
+  },
+  "comparison": {
+    "reprint_in": {
+      "true": "{1} in {2} existiert",
+      "false": "{1} nicht in {2} existiert"
+    },
+    "reprint_new": {
+      "true": "{1} das erste Mal in {2} erschienen ist",
+      "false": "{1} nicht das erste Mal in {2} erschienen ist",
+      "rarity": {
+        "true": "{1} in einer neuen Seltenheit erschienen ist",
+        "false": "{1} nicht in einer neuen Seltenheit erschienen ist"
+      },
+      "set": {
+        "true": "{1} in einem neuen Set erschienen ist",
+        "false": "{1} nicht in einem neuen Set erschienen ist"
+      },
+      "border": {
+        "true": "{1} mit einem neuen Rand erschienen ist",
+        "false": "{1} nicht mit einem neuen Rand erschienen ist"
+      },
+      "frame": {
+        "true": "{1} mit einem neuen Rahmen erschienen ist",
+        "false": "{1} nicht mit einem neuen Rahmen erschienen ist"
+      },
+      "frame_effect": {
+        "true": "{1} mit einem neuen Rahmen-Effekt erschienen ist",
+        "false": "{1} nicht mit einem neuen Rahmen-Effekt erschienen ist"
+      },
+      "language": {
+        "true": "{1} in einer neuen Sprache erschienen ist",
+        "false": "{1} nicht in einer neuen Sprache erschienen ist"
+      },
+      "finish": {
+        "true": "{1} mit einem neuen Finish erschienen ist",
+        "false": "{1} nicht mit einem neuen Finish erschienen ist"
+      },
+      "game": {
+        "true": "{1} in einem neuen Medium erschienen ist",
+        "false": "{1} nicht in einem neuen Medium erschienen ist"
+      },
+      "artist": {
+        "true": "{1} von einem neuen Künstler illustriert wurde",
+        "false": "{1} nicht von einem neuen Künstler illustriert wurde"
+      },
+      "flavor": {
+        "true": "{1} mit einem neuen Flavor-Text erschienen ist",
+        "false": "{1} nicht mit einem neuen Flavor-Text erschienen ist"
+      },
+      "stamp": {
+        "true": "{1} mit einem neuen Stempel erschienen ist",
+        "false": "{1} nicht mit einem neuen Stempel erschienen ist"
+      },
+      "watermark": {
+        "true": "{1} mit einem neuen Wasserzeichen erschienen ist",
+        "false": "{1} nicht mit einem neuen Wasserzeichen erschienen ist"
+      }
+    },
+    "format_legal": {
+      "true": "{1} in {2} legal ist",
+      "false": "{1} in {2} nicht legal ist"
+    },
+    "format_restricted": {
+      "true": "{1} in {2} eingeschränkt ist",
+      "false": "{1} in {2} nicht eingeschränkt ist"
+    },
+    "format_banned": {
+      "true": "{1} in {2} verboten ist",
+      "false": "{1} in {2} nicht verboten ist"
+    },
+    "is_altered": {
+      "true": "{1} ein Alternativ-Artwork hat",
+      "false": "{1} kein Alternativ-Artwork hat"
+    },
+    "is_foil": {
+      "true": "{1} ein Foil-Finish hat",
+      "false": "{1} kein Foil-Finish hat"
+    },
+    "is_proxy": {
+      "true": "{1} ein Proxy ist",
+      "false": "{1} kein Proxy ist"
+    },
+    "is_signed": {
+      "true": "{1} signiert ist",
+      "false": "{1} nicht signiert ist"
+    },
+    "mana_colors": {
+      "equals": "{1} = {2} sind",
+      "not_equals": "{1} ≠ {2} sind",
+      "greater_than": "{1} > {2} sind",
+      "less_than": "{1} < {2} sind",
+      "greater_than_or_equal_to": "{1} >= {2} sind",
+      "less_than_or_equal_to": "{1} <= {2} sind"
+    }
+  }
+}

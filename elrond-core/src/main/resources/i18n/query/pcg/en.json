@@ -1,0 +1,49 @@
+{
+  "property": {
+    "ability_count": "_the number of abilities_",
+    "ability_type": "_the ability type_",
+    "ability_name": "_the ability name_",
+    "attack_count": "_the number of attacks_",
+    "attack_cost": "_the attack cost_",
+    "attack_damage": "_the attack damage_",
+    "total_print_count": "_the total number of prints in the set_",
+    "public_print_count": "_the number of public prints in the set_",
+    "era_id": "_the era id_",
+    "era_name": "_the era name_",
+    "start_release_date": "_the start release date_",
+    "end_release_date": "_the end release date_",
+    "effect_type": "_the effect type_",
+    "effect_count": "_the number of effects_",
+    "start_release_year": "_the start release year_",
+    "end_release_year": "_the end release year_",
+    "energy_type": "_the type_",
+    "energy_type_count": "_the number of types_",
+    "evolution_stage": "_the evolution stage_",
+    "evolves_from": "_the previous stage name_",
+    "hit_points": "_the hit points_",
+    "regulation_mark": "_the regulation mark_",
+    "region": "_the set region_",
+    "rule": "_the printed rule_",
+    "rule_type": "_the printed rule type_",
+    "rule_count": "_the number of printed rules_",
+    "resistance_count": "_the number of resistances_",
+    "resistance_modifier": "_the resistance modifier_",
+    "weakness_count": "_the number of weaknesses_",
+    "weakness_modifier": "_the weakness modifier_",
+    "retreat_cost": "_the retreat cost_",
+    "subtype": "_the subtype_",
+    "subtype_count": "_the number of subtypes_",
+    "supertype": "_the supertype_",
+    "sort_value": "_the sort value_"
+  },
+  "comparison": {
+    "weak_against": {
+      "true": "{1} is weak against {2}",
+      "false": "{1} is not weak against {2}"
+    },
+    "resistant_against": {
+      "true": "{1} resists {2}",
+      "false": "{1} doesn't resist {2}"
+    }
+  }
+}

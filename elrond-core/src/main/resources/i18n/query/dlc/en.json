@@ -1,0 +1,28 @@
+{
+  "property": {
+    "cost": "_the cost_",
+    "ink_type": "_the ink type_",
+    "ink_type_count": "_the number of ink types_",
+    "strength": "_the strength_",
+    "willpower": "_the willpower_",
+    "move_cost": "_the movement cost_",
+    "lore": "_the lore value_",
+    "type": "_the type_",
+    "ability_name": "_the ability name_",
+    "classification": "_the classification_",
+    "classification_count": "_the number of classifications_",
+    "market_release_date": "_the market release date_",
+    "market_release_year": "_the market release year_",
+    "title": "_the title_",
+    "separator": "_the separator type_",
+    "franchise_name": "_the franchise name_",
+    "franchise_id": "_the franchise ID_",
+    "franchise_slug": "_the franchise slug_"
+  },
+  "comparison": {
+    "is_inkwell": {
+      "true": "{1} can produce ink",
+      "false": "{1} can't produce ink"
+    }
+  }
+}

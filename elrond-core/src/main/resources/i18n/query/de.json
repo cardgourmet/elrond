@@ -1,0 +1,150 @@
+{
+  "subject": {
+    "cards": {
+      "singular": "{1} Karte",
+      "plural": "{1} Karten",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1}, bei der {2}.",
+      "with_condition_plural": "{1}, bei denen {2}."
+    },
+    "prints": {
+      "singular": "{1} Print",
+      "plural": "{1} Prints",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1}, bei dem {2}.",
+      "with_condition_plural": "{1}, bei denen {2}."
+    },
+    "faces": {
+      "singular": "{1} Karten-Seite",
+      "plural": "{1} Karten-Seiten",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1}, bei der {2}.",
+      "with_condition_plural": "{1}, bei denen {2}."
+    },
+    "print_faces": {
+      "singular": "{1} Print-Seite",
+      "plural": "{1} Print-Seiten",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1}, bei der {2}.",
+      "with_condition_plural": "{1}, bei denen {2}."
+    },
+    "entries": {
+      "singular": "{1} Eintrag",
+      "plural": "{1} Einträge",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1}, bei dem {2}.",
+      "with_condition_plural": "{1}, bei denen {2}."
+    }
+  },
+  "skeleton": {
+    "without_extras": "{1}",
+    "with_extras": "{1} mit Extras",
+    "with_preferred_language": "{1} in {2}"
+  },
+  "operator": {
+    "and": "{1} und {2}",
+    "or": "{1} oder {2}"
+  },
+  "property": {
+    "artist": "_der Künstername_",
+    "artist_count": "_die Anzahl der Künstler_|_der Anzahl der Künstler_",
+    "card": "_die Karte_",
+    "collector_number": "_die Sammlernummer_|_der Sammlernummer_",
+    "face": "_die Seite_",
+    "face_number": "_die Seitennummer_|_der Seitennummer_",
+    "face_count": "_die Anzahl der Seiten_|_der Anzahl der Seiten_",
+    "finish": "_das Finish_",
+    "finish_count": "_die Anzahl der Finishes_|_der Anzahl der Finishes_",
+    "flavor_text": "_der Flavor-Text_",
+    "keyword": "_das Stichwort_",
+    "keyword_count": "_die Anzahl der Stichwörter_|_der Anzahl der Stichwörter_",
+    "language": "_die Sprache_",
+    "language_count": "_die Anzahl der Sprachen_|_der Anzahl der Sprachen_",
+    "card_language": "_die Karten-Sprache_",
+    "print_language": "_die Print-Sprache_",
+    "mechanic": "_die Mechanik_",
+    "mechanic_count": "_die Anzahl der Mechaniken_|_der Anzahl der Mechaniken_",
+    "medium": "_das Medium_",
+    "medium_count": "_die Anzahl der Medien_|_der Anzahl der Medien_",
+    "name": "_der Name_",
+    "print": "_der Print_",
+    "print_count": "_die Anzahl der Prints_|_der Anzahl der Prints_",
+    "print_count_paper": "_die Anzahl der physischen Prints_|_der Anzahl der physischen Prints_",
+    "property": "_die Eigenschaft_",
+    "property_count": "_die Anzahl der Eigenschaften_|_der Anzahl der Eigenschaften_",
+    "rarity": "_die Seltenheit_",
+    "release_date": "_das Erscheinungsdatum_|_dem Erscheinungsdatum_",
+    "release_year": "_das Erscheinungsjahr_|_des Erscheinungsjahrs_",
+    "set_code": "_der Set-Code_",
+    "set_name": "_der Set-Name_",
+    "set_type": "_der Set-Typ_",
+    "set_count": "_die Anzahl der Sets, in denen die Karte erschienen ist_|_der Anzahl der Sets, in denen die Karte erschienen ist_",
+    "set_count_paper": "_die Anzahl der physischen Sets, in denen die Karte erschienen ist_|_der Anzahl der physischen Sets, in denen die Karte erschienen ist_",
+    "text": "_der Text_",
+    "text_with_reminders": "_der Text mit Erinnerungen_",
+    "price_eur": "_der durschnittliche EUR-Preis_|_des durschnittlichen Euro-Preises_",
+    "price_usd": "_der durschnittliche USD-Preis_|_des durschnittlichen USD-Preises_",
+    "price_tix": "_der durschnittliche TIX-Preis_|_des durschnittlichen Tix-Preises_",
+    "tag": "_der Tag_",
+    "tag_count": "_die Anzahl der Tags_|_der Anzahl der Tags_",
+    "art_tags": "_der Art-Tag_",
+    "art_tags_count": "_die Anzahl der Art-Tags_|_der Anzahl der Art-Tags_",
+    "print_id": "_die Print-ID_",
+    "card_id": "_die Karten-ID_",
+    "created_at": "_das Erstellungs-Datum_|_des Erstellungs-Datums_",
+    "updated_at": "_das Aktualisierungs-Datum_|_des Aktualisierungs-Datums_",
+    "print_face_id": "_die Print-Seiten-ID_",
+    "card_face_id": "_die Karten-Seiten-ID_",
+    "user_card_id": "_die Benutzer-Karten-ID_",
+    "user_id": "_die Benutzer-ID_",
+    "set_id": "_die Set-ID_",
+    "username": "_der Benutzername_",
+    "artwork_color": "_die Artwork-Farbe_"
+  },
+  "comparison": {
+    "numeric": {
+      "equals": "{1} = {2|2} ist",
+      "not_equals": "{1} ≠ {2|2} ist",
+      "greater_than": "{1} > {2} ist",
+      "less_than": "{1} < {2} ist",
+      "greater_than_or_equal_to": "{1} ≥ {2|2} ist",
+      "less_than_or_equal_to": "{1} ≤ {2|2} ist",
+      "even":  "{1} gerade ist",
+      "odd":  "{1} ungerade ist"
+    },
+    "string": {
+      "equals": "{1} {2} entspricht",
+      "not_equals": "{1} nicht {2} entspricht",
+      "contains": "{1} {2} enthält",
+      "not_contains": "{1} nicht {2} enthält"
+    },
+    "matches_regex": {
+      "true": "{1} mit der Regex {2} übereinstimmt",
+      "false": "{1} nicht mit der Regex {2} übereinstimmt"
+    },
+    "is_present": {
+      "true": "{1} {2} vorkommt",
+      "false": "{1} {2} nicht vorkommt"
+    },
+    "available_in": {
+      "true": "{1} in {2} verfügbar ist",
+      "false": "{1} nicht in {2} verfügbar ist"
+    },
+    "is_set": {
+      "true": "{1} gesetzt ist",
+      "false": "{1} nicht gesetzt ist"
+    },
+    "is_similar": {
+      "true": "{1} ähnlich zu {2} ist",
+      "false": "{1} nicht ähnlich zu {2} ist"
+    },
+    "has_image": {
+      "true": "ein Bild verfügbar ist",
+      "false": "kein Bild verfügbar ist"
+    },
+    "has_art_crop": {
+      "true": "ein Art-Crop verfügbar ist",
+      "false": "kein Art-Crop verfügbar ist"
+    }
+  }
+}

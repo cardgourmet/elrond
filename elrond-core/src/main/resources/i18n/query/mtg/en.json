@@ -1,0 +1,147 @@
+{
+  "property": {
+    "border": "_the border_",
+    "color_count": "_the number of mana colors_",
+    "color_identity": "_the color identity_",
+    "color_identity_count": "_the number of identity colors_",
+    "color_indicator": "_the color indicator_",
+    "color_indicator_count": "_the number of indicator colors_",
+    "combined_power_toughness": "_the sum of power and toughness_",
+    "defense": "_the defense_",
+    "devotion": "_the devotion_",
+    "flavor_name": "_the flavor name_",
+    "legal_formats_count": "_the number of legal formats_",
+    "restricted_formats_count": "_the number of restricted formats_",
+    "banned_formats_count": "_the number of banned formats_",
+    "frame": "_the frame_",
+    "frame_effect": "_the frame effect_",
+    "frame_effect_count": "_the number of frame effects_",
+    "layout": "_the layout_",
+    "loyalty": "_the loyalty_",
+    "mana_colors": "_the mana colors_",
+    "mana_display": "_the mana display_",
+    "mana_value": "_the mana value_",
+    "power": "_the power_",
+    "produced_mana": "_the produced mana_",
+    "produced_mana_count": "_the number of produced mana colors_",
+    "promo_type": "_the promo type_",
+    "promo_type_count": "_the number of promo types_",
+    "set_type": "_the set type_",
+    "stamp": "_the stamp_",
+    "toughness": "_the toughness_",
+    "type_line": "_the type line_",
+    "type": "_the type_",
+    "type_count": "_the number of types_",
+    "super_type": "_the super type_",
+    "super_type_count": "_the number of super types_",
+    "sub_type": "_the sub type_",
+    "sub_type_count": "_the number of sub types_",
+    "watermark": "_the watermark_",
+    "watermark_count": "_the number of watermarks_",
+    "scryfall_id": "_the scryfall ID_",
+    "scryfall_oracle_id": "_the scryfall oracle ID_",
+    "mtgjson_id": "_the MTGJSON ID_",
+    "mtgarena_id": "_the MTG Arena ID_",
+    "mtgo_id": "_the MTGO ID_",
+    "tcgplayer_id": "_the TCGPlayer ID_",
+    "cardmarket_id": "_the Cardmarket ID_",
+    "cardkingdom_id": "_the Card Kingdom ID_",
+    "edhrec_rank": "_the EDHREC rank_",
+    "block_name": "_the block name_",
+    "block_id": "_the block ID_"
+  },
+  "comparison": {
+    "reprint_in": {
+      "true": "{1} exists in {2}",
+      "false": "{1} does not exist in {2}"
+    },
+    "reprint_new": {
+      "true": "{1} was released in {2} for the first time",
+      "false": "{1} was not released in {2} for the first time",
+      "rarity": {
+        "true": "{1} was released in a new rarity",
+        "false": "{1} was not released in a new rarity"
+      },
+      "set": {
+        "true": "{1} was released in a new set",
+        "false": "{1} was not released in a new set"
+      },
+      "border": {
+        "true": "{1} was released with a new border",
+        "false": "{1} was not released with a new border"
+      },
+      "frame": {
+        "true": "{1} was released with a new frame",
+        "false": "{1} was not released with a new frame"
+      },
+      "frame_effect": {
+        "true": "{1} was released with a new frame effect",
+        "false": "{1} was not released with a new frame effect"
+      },
+      "language": {
+        "true": "{1} was released in a new language",
+        "false": "{1} was not released in a new language"
+      },
+      "finish": {
+        "true": "{1} was released with a new finish",
+        "false": "{1} was not released with a new finish"
+      },
+      "game": {
+        "true": "{1} was released in a new medium",
+        "false": "{1} was not released in a new medium"
+      },
+      "artist": {
+        "true": "{1} was illustrated by a new artist",
+        "false": "{1} was not illustrated by a new artist"
+      },
+      "flavor": {
+        "true": "{1} was released with a new flavor text",
+        "false": "{1} was not released with a new flavor text"
+      },
+      "stamp": {
+        "true": "{1} was released with a new stamp",
+        "false": "{1} was not released with a new stamp"
+      },
+      "watermark": {
+        "true": "{1} was released with a new watermark",
+        "false": "{1} was not released with a new watermark"
+      }
+    },
+    "format_legal": {
+      "true": "{1} is legal in {2}",
+      "false": "{1} is not legal in {2}"
+    },
+    "format_restricted": {
+      "true": "{1} is restricted in {2}",
+      "false": "{1} is not restricted in {2}"
+    },
+    "format_banned": {
+      "true": "{1} is banned in {2}",
+      "false": "{1} is not banned in {2}"
+    },
+    "is_altered": {
+      "true": "{1} is altered",
+      "false": "{1} is not altered"
+    },
+    "is_foil": {
+      "true": "{1} has a foil finish",
+      "false": "{1} does not have a foil finish"
+    },
+    "is_proxy": {
+      "true": "{1} is a proxy",
+      "false": "{1} is not a proxy"
+    },
+    "is_signed": {
+      "true": "{1} is signed",
+      "false": "{1} is not signed"
+    },
+    "mana_colors": {
+      "equals": "{1} = {2}",
+      "not_equals": "{1} ≠ {2}",
+      "greater_than": "{1} > {2}",
+      "less_than": "{1} < {2}",
+      "greater_than_or_equal_to": "{1} >= {2}",
+      "less_than_or_equal_to": "{1} <= {2}"
+    }
+  }
+}

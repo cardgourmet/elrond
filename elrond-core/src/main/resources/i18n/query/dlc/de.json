@@ -1,0 +1,28 @@
+{
+  "property": {
+    "cost": "_die Kosten_|_der Kosten_",
+    "ink_type": "_der Tinten-Farbe_",
+    "ink_type_count": "_die Anzahl der Tinten-Farben_|_der Anzahl der Tinten-Farben_",
+    "strength": "_die Stärke_|_der Stärke_",
+    "willpower": "_die Willenskraft_|_der Willenskraft_",
+    "move_cost": "_die Bewegungskosten_|_der Bewegungskosten_",
+    "lore": "_der Legendenwert_|_des Legendenwerts_",
+    "type": "_der Typ_",
+    "ability_name": "_der Fähigkeitsname_",
+    "classification": "_die Kartentyp_",
+    "classification_count": "_die Anzahl der Kartentypen_|_der Anzahl der Kartentypen_",
+    "market_release_date": "_das Markt-Erscheinungsdatum_|_des Markt-Erscheinungsdatums_",
+    "market_release_year": "_the Markt-Erscheinungsjahr_|_des Markt-Erscheinungsjahrs_",
+    "title": "_der Titel_",
+    "separator": "_der Trennlinientyp_",
+    "franchise_name": "_der Franchise-Name_",
+    "franchise_id": "_die Franchise-ID_",
+    "franchise_slug": "_der Franchise-Slug_"
+  },
+  "comparison": {
+    "is_inkwell": {
+      "true": "{1} Tinte produzieren kann",
+      "false": "{1} keine Tinte produzieren kann"
+    }
+  }
+}

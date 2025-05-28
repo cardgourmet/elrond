@@ -1,0 +1,150 @@
+{
+  "subject": {
+    "cards": {
+      "singular": "{1} card",
+      "plural": "{1} cards",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1} where {2}.",
+      "with_condition_plural": "{1} where {2}."
+    },
+    "prints": {
+      "singular": "{1} print",
+      "plural": "{1} prints",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1} where {2}.",
+      "with_condition_plural": "{1} where {2}."
+    },
+    "faces": {
+      "singular": "{1} face",
+      "plural": "{1} faces",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1} where {2}.",
+      "with_condition_plural": "{1} where {2}."
+    },
+    "print_faces": {
+      "singular": "{1} print face",
+      "plural": "{1} print faces",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1} where {2}.",
+      "with_condition_plural": "{1} where {2}."
+    },
+    "entries": {
+      "singular": "{1} entry",
+      "plural": "{1} entries",
+      "without_condition": "{1}.",
+      "with_condition_singular": "{1} where {2}.",
+      "with_condition_plural": "{1} where {2}."
+    }
+  },
+  "skeleton": {
+    "without_extras": "{1}",
+    "with_extras": "{1} with extras",
+    "with_preferred_language": "{1} in {2}"
+  },
+  "operator": {
+    "and": "{1} and {2}",
+    "or": "{1} or {2}"
+  },
+  "property": {
+    "artist": "_the artist name_",
+    "artist_count": "_the number of artists_",
+    "card": "_the card_",
+    "collector_number": "_the collector number_",
+    "face": "_the face_",
+    "face_number": "_the face number_",
+    "face_count": "_the number of faces_",
+    "finish": "_the finish_",
+    "finish_count": "_the number of finishes_",
+    "flavor_text": "_the flavor text_",
+    "keyword": "_the keyword_",
+    "keyword_count": "_the number of keywords_",
+    "language": "_the language_",
+    "language_count": "_the number of languages_",
+    "card_language": "_the card language_",
+    "print_language": "_the print language_",
+    "mechanic": "_the mechanic_",
+    "mechanic_count": "_the number of mechanics_",
+    "medium": "_the medium_",
+    "medium_count": "_the number of mediums_",
+    "name": "_the name_",
+    "print": "_the print_",
+    "print_count": "_the number of prints_",
+    "print_count_paper": "_the number of physical prints_",
+    "property": "_the property_",
+    "property_count": "_the number of properties_",
+    "rarity": "_the rarity_",
+    "release_date": "_the release date_",
+    "release_year": "_the release year_",
+    "set_code": "_the set code_",
+    "set_name": "_the set name_",
+    "set_type": "_the set type_",
+    "set_count": "_the number of times the card appeared in a set_",
+    "set_count_paper": "_the number of times the card appeared in a physical set_",
+    "text": "_the text_",
+    "text_with_reminders": "_the text with reminders_",
+    "price_eur": "_the average price in EUR_",
+    "price_usd": "_the average price in USD_",
+    "price_tix": "_the average price in TIX_",
+    "tag": "_the tag_",
+    "tag_count": "_the number of tags_",
+    "art_tags": "_the art tag_",
+    "art_tags_count": "_the number of art tags_",
+    "print_id": "_the print ID_",
+    "card_id": "_the card ID_",
+    "print_face_id": "_the print face ID_",
+    "card_face_id": "_the card face ID_",
+    "user_card_id": "_the user card ID_",
+    "user_id": "_the user ID_",
+    "set_id": "_the set ID_",
+    "username": "_the username_",
+    "created_at": "_the creation date_",
+    "updated_at": "_the last update date_",
+    "artwork_color": "_the artwork color_"
+  },
+  "comparison": {
+    "numeric": {
+      "equals": "{1} = {2}",
+      "not_equals": "{1} ≠ {2}",
+      "greater_than": "{1} > {2}",
+      "less_than": "{1} < {2}",
+      "greater_than_or_equal_to": "{1} ≥ {2}",
+      "less_than_or_equal_to": "{1} ≤ {2}",
+      "even": "{1} is even",
+      "odd": "{1} is odd"
+    },
+    "string": {
+      "equals": "{1} is {2}",
+      "not_equals": "{1} is not {2}",
+      "contains": "{1} contains {2}",
+      "not_contains": "{1} does not contain {2}"
+    },
+    "matches_regex": {
+      "true": "{1} matches the regex {2}",
+      "false": "{1} does not match the regex {2}"
+    },
+    "is_present": {
+      "true": "{1} {2} is present",
+      "false": "{1} {2} is not present"
+    },
+    "available_in": {
+      "true": "{1} is available in {2}",
+      "false": "{1} is not available in {2}"
+    },
+    "is_set": {
+      "true": "{1} is set",
+      "false": "{1} is not set"
+    },
+    "is_similar": {
+      "true": "{1} is similar to {2}",
+      "false": "{1} is not similar to {2}"
+    },
+    "has_image": {
+      "true": "an image is available",
+      "false": "no image is available"
+    },
+    "has_art_crop": {
+      "true": "an art crop is available",
+      "false": "no art crop is available"
+    }
+  }
+}
