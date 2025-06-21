@@ -148,11 +148,11 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
         enumArray(PcgCard::types, pcgPropertyKeys.ENERGY_TYPE) { it.keys }
     }
 
-    filter("supertype") {
+    filter("basetype", "supertype") {
         enum<PcgCardSuperType>(PcgCard::superType, pcgPropertyKeys.SUPERTYPE) { it.keys }
     }
 
-    filter("types", "energy", "energies", "energytypes", "color", "c", "colors") {
+    filter("energytype", "energytypes", "types", "energy", "energies", "color", "c", "colors") {
         enumArrayAndCardinality(PcgCard::types, pcgPropertyKeys.ENERGY_TYPE_COUNT, pcgPropertyKeys.ENERGY_TYPE) { it.keys }
     }
 
@@ -333,7 +333,7 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
     filter("cardid", "card") { uuid(PcgCard::id, propertyKeys.CARD_ID) }
     filter("printid", "print") { uuid(PcgPrint::id, propertyKeys.PRINT_ID) }
 
-    filter("tag", "tags") {
+    filter("property", "properties", "tag", "tags") {
         enumArrayAndCardinality(PcgPrint::tags, propertyKeys.TAG_COUNT, propertyKeys.TAG) { it.keys }
     }
 

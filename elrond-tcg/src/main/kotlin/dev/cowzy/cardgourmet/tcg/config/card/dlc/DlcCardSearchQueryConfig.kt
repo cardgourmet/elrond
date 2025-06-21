@@ -125,7 +125,7 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
         stringArray(DlcCard::classifications, dlcPropertyKeys.CLASSIFICATION)
     }
 
-    filter("supertype") {
+    filter("basetype") {
         string(DlcCard::type, dlcPropertyKeys.TYPE) {
             strict(true)
             autoValues(DlcCard::type, autoAlias = true)
