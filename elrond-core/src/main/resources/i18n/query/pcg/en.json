@@ -1,4 +1,214 @@
 {
+  "filter": {
+    "ability": {
+      "title": "Ability Types",
+      "description": "Ability types of a card"
+    },
+    "allsetprints": {
+      "title": "Total Set Print Count",
+      "description": "Total number of prints in the set of a print"
+    },
+    "artist": {
+      "title": "Artist",
+      "description": "People creating the artwork of a print"
+    },
+    "artworkcolor": {
+      "title": "Dominant Artwork Color",
+      "description": "Most used colors in the artwork of a print"
+    },
+    "attack": {
+      "title": "Ability Names",
+      "description": "Ability names of a card"
+    },
+    "attackcost": {
+      "title": "Attack Cost",
+      "description": ""
+    },
+    "cardid": {
+      "title": "Cardgourmet Card ID",
+      "description": ""
+    },
+    "cardlang": {
+      "title": "Card Language",
+      "description": "Languages available for a card across all prints"
+    },
+    "cn": {
+      "title": "Collector Number",
+      "description": ""
+    },
+    "damage": {
+      "title": "Attack Damage",
+      "description": ""
+    },
+    "date": {
+      "title": "Set Release Start Date",
+      "description": "Date the set of a print started to release (`yyyy-mm-dd`)"
+    },
+    "effect": {
+      "title": "Effect Types",
+      "description": "Effect types of a card"
+    },
+    "enddate": {
+      "title": "Set Release End Date",
+      "description": "Date the set of a print finishing releasing (`yyyy-mm-dd`)"
+    },
+    "endyear": {
+      "title": "Set Release End Year",
+      "description": "Year the set of a print finishing releasing"
+    },
+    "era": {
+      "title": "Era",
+      "description": ""
+    },
+    "eraid": {
+      "title": "Cardgourmet Era ID",
+      "description": ""
+    },
+    "eraname": {
+      "title": "Era Name",
+      "description": ""
+    },
+    "evolves": {
+      "title": "Evolves From",
+      "description": "Name of the Pokémon a card evolves from"
+    },
+    "flavor": {
+      "title": "Flavor Text",
+      "description": ""
+    },
+    "hp": {
+      "title": "Hit Points",
+      "description": ""
+    },
+    "is": {
+      "title": "Power Filter `is`",
+      "description": "Properties that apply to a print or card, including layout, rarity, types, mechanics etc."
+    },
+    "lang": {
+      "title": "Print Language",
+      "description": "Languages a print is available in"
+    },
+    "mark": {
+      "title": "Regulation Mark",
+      "description": ""
+    },
+    "name": {
+      "title": "Card Name",
+      "description": ""
+    },
+    "not": {
+      "title": "Power Filter `not`",
+      "description": "Properties that do not apply to a print. Equivalent to `-is`"
+    },
+    "printid": {
+      "title": "Cardgourmet Print ID",
+      "description": ""
+    },
+    "rarity": {
+      "title": "Print Rarity",
+      "description": ""
+    },
+    "region": {
+      "title": "Set Region",
+      "description": "Region of the set of a print"
+    },
+    "reminder": {
+      "title": "Reminder",
+      "description": "Printed rule reminder text of a print"
+    },
+    "resistance": {
+      "title": "Resistances",
+      "description": ""
+    },
+    "resistancemodifier": {
+      "title": "Resistance Modifier",
+      "description": ""
+    },
+    "resistancetype": {
+      "title": "Resistance Types",
+      "description": "Types a card is resistant to"
+    },
+    "retreat": {
+      "title": "Retreat Cost",
+      "description": ""
+    },
+    "ruletype": {
+      "title": "Reminder Type",
+      "description": "Type of the printed rule reminder of a print"
+    },
+    "set": {
+      "title": "Set",
+      "description": ""
+    },
+    "setcode": {
+      "title": "Set Code",
+      "description": ""
+    },
+    "setid": {
+      "title": "Cardgourmet Set ID",
+      "description": ""
+    },
+    "setname": {
+      "title": "Set Name",
+      "description": ""
+    },
+    "setprints": {
+      "title": "Public Set Print Count",
+      "description": "Number of public prints in the set of a print"
+    },
+    "settype": {
+      "title": "Set Type",
+      "description": ""
+    },
+    "sortorder": {
+      "title": "Sort Value",
+      "description": "Number to identify the order of a print within its set"
+    },
+    "stage": {
+      "title": "Evolution Stage",
+      "description": ""
+    },
+    "subtype": {
+      "title": "Card Subtypes",
+      "description": ""
+    },
+    "basetype": {
+      "title": "Card Type",
+      "description": ""
+    },
+    "property": {
+      "title": "Properties",
+      "description": "Properties of a card or print"
+    },
+    "text": {
+      "title": "Rules Text",
+      "description": ""
+    },
+    "type": {
+      "title": "Card Types",
+      "description": "Combined list of all base types, subtypes and energy types of a card"
+    },
+    "energytype": {
+      "title": "Energy Types",
+      "description": ""
+    },
+    "weakness": {
+      "title": "Weaknesses",
+      "description": ""
+    },
+    "weaknessmodifier": {
+      "title": "Weakness Modifier",
+      "description": ""
+    },
+    "weaknesstype": {
+      "title": "Weakness Types",
+      "description": "Energy types a card is weak against"
+    },
+    "year": {
+      "title": "Set Release Start Year",
+      "description": "Year the set of a print started to release"
+    }
+  },
   "property": {
     "ability_count": "_the number of abilities_",
     "ability_type": "_the ability type_",

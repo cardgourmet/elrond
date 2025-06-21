@@ -1,4 +1,318 @@
 {
+  "filter": {
+    "art": {
+      "title": "Artwork Tags",
+      "description": ""
+    },
+    "artist": {
+      "title": "Artist",
+      "description": "People creating the artwork of a print"
+    },
+    "artworkcolor": {
+      "title": "Dominant Artwork Color",
+      "description": "Most used colors in the artwork of a print"
+    },
+    "banned": {
+      "title": "Banned Formats",
+      "description": "Formats a print is banned in"
+    },
+    "basetype": {
+      "title": "Card Type",
+      "description": ""
+    },
+    "block": {
+      "title": "Block",
+      "description": ""
+    },
+    "blockid": {
+      "title": "Cardgourmet Block ID",
+      "description": ""
+    },
+    "blockname": {
+      "title": "Block Name",
+      "description": ""
+    },
+    "border": {
+      "title": "Print Border Color",
+      "description": "Border color used for a print"
+    },
+    "card": {
+      "title": "Cardgourmet Card ID",
+      "description": ""
+    },
+    "cardkingdom": {
+      "title": "Card Kingdom Card ID",
+      "description": ""
+    },
+    "cardlang": {
+      "title": "Card Language",
+      "description": "Languages available for a card across all prints"
+    },
+    "cardmarket": {
+      "title": "Cardmarket Card ID",
+      "description": ""
+    },
+    "collectornumber": {
+      "title": "Collector Number",
+      "description": ""
+    },
+    "color": {
+      "title": "Mana Colors",
+      "description": "Colors present in the mana cost and color indicator"
+    },
+    "coloridentity": {
+      "title": "Color Identity",
+      "description": "Colors present in the mana cost, color indicator and rules text"
+    },
+    "combinedpt": {
+      "title": "Combined P/T",
+      "description": "Sum of both power and toughness, also called `heft`"
+    },
+    "date": {
+      "title": "Release Date",
+      "description": "Date a print was officially released (`yyyy-mm-dd`)"
+    },
+    "defense": {
+      "title": "Defense",
+      "description": "Defense of a card, specific to battles"
+    },
+    "devotion": {
+      "title": "Devotion",
+      "description": "Devotion of a card to a combination of mana colors"
+    },
+    "edhrec": {
+      "title": "EDHREC Rank",
+      "description": ""
+    },
+    "eur": {
+      "title": "Price In EUR",
+      "description": "Average price for a print in EUR"
+    },
+    "face": {
+      "title": "Card Face Number",
+      "description": "Search restriction to a specific face, starting at `1`"
+    },
+    "faces": {
+      "title": "Card Face Count",
+      "description": ""
+    },
+    "finish": {
+      "title": "Finishes",
+      "description": "Finishes available for a print"
+    },
+    "flavor": {
+      "title": "Flavor Text",
+      "description": ""
+    },
+    "flavorname": {
+      "title": "Flavor Name",
+      "description": ""
+    },
+    "frame": {
+      "title": "Print Frame Version",
+      "description": "Frame style of a print"
+    },
+    "frameeffect": {
+      "title": "Print Frame Effects",
+      "description": "Visual frame effects"
+    },
+    "fulloracle": {
+      "title": "Full Rules Text",
+      "description": "Rules text including reminders"
+    },
+    "in": {
+      "title": "Reprinted In",
+      "description": "Rarities, sets, languages, frames etc. a card was (re)printed in"
+    },
+    "indicator": {
+      "title": "Color Indicator",
+      "description": "Mana colors present in the color indicator of a card"
+    },
+    "is": {
+      "title": "Power Filter `is`",
+      "description": "Properties that apply to a print, card or face, including layout, rarity, types, mechanics etc."
+    },
+    "keyword": {
+      "title": "Keywords",
+      "description": "Keywords present in the rules text of a card"
+    },
+    "lang": {
+      "title": "Print Language",
+      "description": "Languages a print is available in"
+    },
+    "layout": {
+      "title": "Card Layout",
+      "description": ""
+    },
+    "legal": {
+      "title": "Legal Formats",
+      "description": "Formats a print is legal in"
+    },
+    "loyalty": {
+      "title": "Loyalty",
+      "description": "Loyalty of a card, specific to planeswalkers"
+    },
+    "manadisplay": {
+      "title": "Mana Cost",
+      "description": "Printed mana cost of a card, typically in the top right corner"
+    },
+    "manavalue": {
+      "title": "Mana Value",
+      "description": "Numeric value of the mana cost"
+    },
+    "mechanic": {
+      "title": "Mechanics",
+      "description": "Card interactions derived from its rules text"
+    },
+    "medium": {
+      "title": "Mediums",
+      "description": "Mediums a print exists in"
+    },
+    "mtgarena": {
+      "title": "Magic: The Gathering Arena Card ID",
+      "description": ""
+    },
+    "mtgjson": {
+      "title": "MTGJSON Card ID",
+      "description": ""
+    },
+    "mtgo": {
+      "title": "Magic: The Gathering Online Card ID",
+      "description": ""
+    },
+    "name": {
+      "title": "Card Name",
+      "description": ""
+    },
+    "new": {
+      "title": "New Print In",
+      "description": "Rarities, sets, languages, frames etc. a print was printed in for the first time"
+    },
+    "not": {
+      "title": "Power Filter `not`",
+      "description": "Properties that do not apply to a print. Equivalent to `-is`"
+    },
+    "paperprints": {
+      "title": "Number Of Paper Prints",
+      "description": "Number of physical prints of a card"
+    },
+    "papersets": {
+      "title": "Number Of Paper Sets",
+      "description": "Number of physical sets a card was printed in"
+    },
+    "power": {
+      "title": "Power",
+      "description": "Power of a card, specific to creatures"
+    },
+    "print": {
+      "title": "Cardgourmet Print ID",
+      "description": ""
+    },
+    "printface": {
+      "title": "Cardgourmet Print Face ID",
+      "description": ""
+    },
+    "prints": {
+      "title": "Number Of Prints",
+      "description": "Number of unique prints of a card across all mediums"
+    },
+    "produces": {
+      "title": "Produced Mana Colors",
+      "description": ""
+    },
+    "promo": {
+      "title": "Print Promo Types",
+      "description": ""
+    },
+    "property": {
+      "title": "Properties",
+      "description": "Properties of a card, print or face"
+    },
+    "rarity": {
+      "title": "Print Rarity",
+      "description": ""
+    },
+    "restricted": {
+      "title": "Restricted Formats",
+      "description": "Formats a print is restricted in"
+    },
+    "scryfall": {
+      "title": "Scryfall Print ID",
+      "description": ""
+    },
+    "scryfalloracle": {
+      "title": "Scryfall Card ID",
+      "description": ""
+    },
+    "set": {
+      "title": "Set",
+      "description": ""
+    },
+    "setcode": {
+      "title": "Set Code",
+      "description": ""
+    },
+    "setid": {
+      "title": "Cardgourmet Set ID",
+      "description": ""
+    },
+    "setname": {
+      "title": "Set Name",
+      "description": ""
+    },
+    "sets": {
+      "title": "Number Of Sets",
+      "description": "Number of unique sets a card appears in across all mediums"
+    },
+    "settype": {
+      "title": "Set Type",
+      "description": ""
+    },
+    "stamp": {
+      "title": "Security Stamp",
+      "description": "Type of the security/holofoil stamp of a print"
+    },
+    "subtype": {
+      "title": "Card Subtypes",
+      "description": "Subtypes of a card, printed after the dash"
+    },
+    "supertype": {
+      "title": "Card Supertypes",
+      "description": "Supertypes of a card, printed before the card type"
+    },
+    "tcgplayer": {
+      "title": "TCGplayer Card ID",
+      "description": ""
+    },
+    "text": {
+      "title": "Rules Text",
+      "description": "Rules text of a card excluding reminders"
+    },
+    "tix": {
+      "title": "Price In TIX",
+      "description": "Average price for a print in TIX"
+    },
+    "toughness": {
+      "title": "Toughness",
+      "description": "Toughness of a card, specific to creatures"
+    },
+    "type": {
+      "title": "Type Line",
+      "description": "Full type line printed on a card"
+    },
+    "usd": {
+      "title": "Price In USD",
+      "description": "Average price for a print in USD"
+    },
+    "watermark": {
+      "title": "Watermarks",
+      "description": "Watermarks present on a print"
+    },
+    "year": {
+      "title": "Release Year",
+      "description": ""
+    }
+  },
   "property": {
     "border": "_the border_",
     "color_count": "_the number of mana colors_",

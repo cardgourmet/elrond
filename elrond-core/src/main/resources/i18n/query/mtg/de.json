@@ -1,4 +1,318 @@
 {
+  "filter": {
+    "art": {
+      "title": "Artwork-Tags",
+      "description": ""
+    },
+    "artist": {
+      "title": "Künstler",
+      "description": "Personen, die das Artwork eines Prints erstellt haben"
+    },
+    "artworkcolor": {
+      "title": "Dominante Artwork-Farbe",
+      "description": "Meistverwendete Farben im Artwork eines Prints"
+    },
+    "banned": {
+      "title": "Verbotene Formate",
+      "description": "Formate, in denen ein Print verboten ist"
+    },
+    "basetype": {
+      "title": "Kartentyp",
+      "description": ""
+    },
+    "block": {
+      "title": "Block",
+      "description": ""
+    },
+    "blockid": {
+      "title": "Cardgourmet-Block-ID",
+      "description": ""
+    },
+    "blockname": {
+      "title": "Blockname",
+      "description": ""
+    },
+    "border": {
+      "title": "Print-Randfarbe",
+      "description": "Verwendete Randfarbe eines Prints"
+    },
+    "card": {
+      "title": "Cardgourmet-Karten-ID",
+      "description": ""
+    },
+    "cardkingdom": {
+      "title": "Card Kingdom Karten-ID",
+      "description": ""
+    },
+    "cardlang": {
+      "title": "Kartensprache",
+      "description": "Verfügbare Sprachen einer Karte über alle Prints hinweg"
+    },
+    "cardmarket": {
+      "title": "Cardmarket Karten-ID",
+      "description": ""
+    },
+    "collectornumber": {
+      "title": "Sammlernummer",
+      "description": ""
+    },
+    "color": {
+      "title": "Manafarben",
+      "description": "Farben, die in den Manakosten und dem Farbindikator enthalten sind"
+    },
+    "coloridentity": {
+      "title": "Farbidentität",
+      "description": "Farben in den Manakosten, dem Farbindikator und dem Regeltext"
+    },
+    "combinedpt": {
+      "title": "Kombinierte K/T",
+      "description": "Summe aus Stärke und Widerstandskraft, auch als `Wucht` bezeichnet"
+    },
+    "date": {
+      "title": "Veröffentlichungsdatum",
+      "description": "Datum, an dem ein Print offiziell veröffentlicht wurde (`yyyy-mm-dd`)"
+    },
+    "defense": {
+      "title": "Verteidigung",
+      "description": "Verteidigung einer Karte, spezifisch für Schlachten"
+    },
+    "devotion": {
+      "title": "Hingabe",
+      "description": "Hingabe einer Karte an eine Kombination von Manafarben"
+    },
+    "edhrec": {
+      "title": "EDHREC-Rang",
+      "description": ""
+    },
+    "eur": {
+      "title": "Preis in EUR",
+      "description": "Durchschnittspreis eines Prints in EUR"
+    },
+    "face": {
+      "title": "Kartenseite",
+      "description": "Suchbeschränkung auf eine bestimmte Kartenseite, beginnend bei `1`"
+    },
+    "faces": {
+      "title": "Anzahl der Kartenseiten",
+      "description": ""
+    },
+    "finish": {
+      "title": "Veredelungen",
+      "description": "Verfügbare Veredelungen eines Prints"
+    },
+    "flavor": {
+      "title": "Flavour-Text",
+      "description": ""
+    },
+    "flavorname": {
+      "title": "Flavour-Name",
+      "description": ""
+    },
+    "frame": {
+      "title": "Print-Rahmenversion",
+      "description": "Rahmenstil eines Prints"
+    },
+    "frameeffect": {
+      "title": "Print-Rahmeneffekte",
+      "description": "Visuelle Effekte des Rahmens"
+    },
+    "fulloracle": {
+      "title": "Vollständiger Regeltext",
+      "description": "Regeltext inklusive Erinnerungstexte"
+    },
+    "in": {
+      "title": "Neu aufgelegt in",
+      "description": "Seltenheiten, Sets, Sprachen, Rahmen usw., in denen eine Karte (erneut) gedruckt wurde"
+    },
+    "indicator": {
+      "title": "Farbindikator",
+      "description": "Manafarben im Farbindikator einer Karte"
+    },
+    "is": {
+      "title": "Eigenschaften-Filter `is`",
+      "description": "Eigenschaften, die auf einen Print, eine Karte oder eine Kartenseite zutreffen (z. B. Layout, Seltenheit, Typen, Mechaniken)"
+    },
+    "keyword": {
+      "title": "Stichwörter",
+      "description": "Stichwörter im Regeltext einer Karte"
+    },
+    "lang": {
+      "title": "Print-Sprache",
+      "description": "Sprachen, in denen ein Print verfügbar ist"
+    },
+    "layout": {
+      "title": "Kartenlayout",
+      "description": ""
+    },
+    "legal": {
+      "title": "Erlaubte Formate",
+      "description": "Formate, in denen ein Print erlaubt ist"
+    },
+    "loyalty": {
+      "title": "Loyalität",
+      "description": "Loyalitätswert einer Karte, spezifisch für Planeswalker"
+    },
+    "manadisplay": {
+      "title": "Manakosten",
+      "description": "Gedruckte Manakosten einer Karte, meist oben rechts"
+    },
+    "manavalue": {
+      "title": "Manawert",
+      "description": "Numerischer Wert der Manakosten"
+    },
+    "mechanic": {
+      "title": "Mechaniken",
+      "description": "Karteninteraktionen, die sich aus dem Regeltext ergeben"
+    },
+    "medium": {
+      "title": "Medien",
+      "description": "Medien, in denen ein Print existiert"
+    },
+    "mtgarena": {
+      "title": "Magic: The Gathering Arena Karten-ID",
+      "description": ""
+    },
+    "mtgjson": {
+      "title": "MTGJSON Karten-ID",
+      "description": ""
+    },
+    "mtgo": {
+      "title": "Magic: The Gathering Online Karten-ID",
+      "description": ""
+    },
+    "name": {
+      "title": "Kartenname",
+      "description": ""
+    },
+    "new": {
+      "title": "Erstveröffentlichung in",
+      "description": "Seltenheiten, Sets, Sprachen, Rahmen usw., in denen ein Print erstmals erschienen ist"
+    },
+    "not": {
+      "title": "Eigenschaften-Filter `not`",
+      "description": "Eigenschaften, die **nicht** auf einen Print zutreffen. Entspricht `-is`"
+    },
+    "paperprints": {
+      "title": "Anzahl physischer Prints",
+      "description": "Anzahl physischer Prints einer Karte"
+    },
+    "papersets": {
+      "title": "Anzahl physischer Sets",
+      "description": "Anzahl physischer Sets, in denen eine Karte gedruckt wurde"
+    },
+    "power": {
+      "title": "Stärke",
+      "description": "Stärkewert einer Karte, spezifisch für Kreaturen"
+    },
+    "print": {
+      "title": "Cardgourmet Print ID",
+      "description": ""
+    },
+    "printface": {
+      "title": "Cardgourmet Print-Face-ID",
+      "description": ""
+    },
+    "prints": {
+      "title": "Anzahl an Prints",
+      "description": "Anzahl einzigartiger Prints einer Karte über alle Medien hinweg"
+    },
+    "produces": {
+      "title": "Erzeugte Manafarben",
+      "description": ""
+    },
+    "promo": {
+      "title": "Print-Promo-Typen",
+      "description": ""
+    },
+    "property": {
+      "title": "Eigenschaften",
+      "description": "Eigenschaften einer Karte, eines Prints oder einer Kartenseite"
+    },
+    "rarity": {
+      "title": "Print-Seltenheit",
+      "description": ""
+    },
+    "restricted": {
+      "title": "Eingeschränkte Formate",
+      "description": "Formate, in denen ein Print eingeschränkt ist"
+    },
+    "scryfall": {
+      "title": "Scryfall Print ID",
+      "description": ""
+    },
+    "scryfalloracle": {
+      "title": "Scryfall Karten-ID",
+      "description": ""
+    },
+    "set": {
+      "title": "Set",
+      "description": ""
+    },
+    "setcode": {
+      "title": "Set-Code",
+      "description": ""
+    },
+    "setid": {
+      "title": "Cardgourmet Set ID",
+      "description": ""
+    },
+    "setname": {
+      "title": "Set-Name",
+      "description": ""
+    },
+    "sets": {
+      "title": "Anzahl an Sets",
+      "description": "Anzahl einzigartiger Sets, in denen eine Karte erscheint (über alle Medien)"
+    },
+    "settype": {
+      "title": "Set-Typ",
+      "description": ""
+    },
+    "stamp": {
+      "title": "Sicherheitsstempel",
+      "description": "Typ des Sicherheits- bzw. Hologrammstempels eines Prints"
+    },
+    "subtype": {
+      "title": "Kartensubtypen",
+      "description": "Subtypen einer Karte, nach dem Gedankenstrich gedruckt"
+    },
+    "supertype": {
+      "title": "Kartensupertypen",
+      "description": "Supertypen einer Karte, vor dem Kartentyp gedruckt"
+    },
+    "tcgplayer": {
+      "title": "TCGplayer Karten-ID",
+      "description": ""
+    },
+    "text": {
+      "title": "Regeltext",
+      "description": "Regeltext einer Karte ohne Erinnerungstexte"
+    },
+    "tix": {
+      "title": "Preis in TIX",
+      "description": "Durchschnittspreis eines Prints in TIX"
+    },
+    "toughness": {
+      "title": "Widerstandskraft",
+      "description": "Widerstandskraft einer Karte, spezifisch für Kreaturen"
+    },
+    "type": {
+      "title": "Typenzeile",
+      "description": "Vollständige Typenzeile auf der Karte"
+    },
+    "usd": {
+      "title": "Preis in USD",
+      "description": "Durchschnittspreis eines Prints in USD"
+    },
+    "watermark": {
+      "title": "Wasserzeichen",
+      "description": "Wasserzeichen, die auf einem Print vorhanden sind"
+    },
+    "year": {
+      "title": "Veröffentlichungsjahr",
+      "description": ""
+    }
+  },
   "property": {
     "border": "_der Rand_",
     "color_count": "_die Anzahl der Mana-Farben_|_der Anzahl der Mana-Farben_",

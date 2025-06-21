@@ -1,4 +1,150 @@
 {
+  "filter": {
+    "ability": {
+      "title": "Fähigkeitsnamen",
+      "description": "Benannte Fähigkeiten einer Karte"
+    },
+    "artist": {
+      "title": "Künstler",
+      "description": "Personen, die das Artwork eines Prints erstellen"
+    },
+    "artworkcolor": {
+      "title": "Dominante Artwork-Farbe",
+      "description": "Meistverwendete Farben im Artwork eines Prints"
+    },
+    "card": {
+      "title": "Cardgourmet Karten-ID",
+      "description": ""
+    },
+    "cardlang": {
+      "title": "Kartensprache",
+      "description": "Verfügbare Sprachen einer Karte über alle Prints hinweg"
+    },
+    "class": {
+      "title": "Klassifikationen",
+      "description": "Klassifikationen einer Karte"
+    },
+    "collectornumber": {
+      "title": "Sammlernummer",
+      "description": ""
+    },
+    "cost": {
+      "title": "Tintenkosten",
+      "description": ""
+    },
+    "date": {
+      "title": "Veröffentlichungsdatum",
+      "description": "Datum, an dem ein Print in ausgewählten Spieleläden veröffentlicht wurde (`yyyy-mm-dd`)"
+    },
+    "flavor": {
+      "title": "Flavortext",
+      "description": ""
+    },
+    "franchise": {
+      "title": "Franchise-Name",
+      "description": ""
+    },
+    "fulltext": {
+      "title": "Vollständiger Regeltext",
+      "description": "Regeltext einschließlich Erinnerungstexten"
+    },
+    "ink": {
+      "title": "Tintenfarben",
+      "description": ""
+    },
+    "is": {
+      "title": "Power-Filter `is`",
+      "description": "Eigenschaften, die auf einen Print oder eine Karte zutreffen, einschließlich Layout, Seltenheit, Typen, Mechaniken usw."
+    },
+    "keyword": {
+      "title": "Schlüsselwörter",
+      "description": "Schlüsselwörter im Regeltext einer Karte"
+    },
+    "lang": {
+      "title": "Print-Sprache",
+      "description": "Sprachen, in denen ein Print verfügbar ist"
+    },
+    "lore": {
+      "title": "Lore-Wert",
+      "description": "Anzahl der Lore-Marken einer Karte"
+    },
+    "marketdate": {
+      "title": "Marktveröffentlichungsdatum",
+      "description": "Datum, an dem ein Print in allen Spieleläden veröffentlicht wurde (`yyyy-mm-dd`)"
+    },
+    "marketyear": {
+      "title": "Marktveröffentlichungsjahr",
+      "description": "Jahr, in dem ein Print in allen Spieleläden veröffentlicht wurde"
+    },
+    "move": {
+      "title": "Bewegungskosten",
+      "description": "Bewegungskosten einer Karte, spezifisch für Orte"
+    },
+    "name": {
+      "title": "Kartenname",
+      "description": ""
+    },
+    "not": {
+      "title": "Power-Filter `not`",
+      "description": "Eigenschaften, die auf einen Print nicht zutreffen. Entspricht `-is`"
+    },
+    "print": {
+      "title": "Cardgourmet Print-ID",
+      "description": ""
+    },
+    "rarity": {
+      "title": "Print-Seltenheit",
+      "description": ""
+    },
+    "separator": {
+      "title": "Trennzeichen",
+      "description": "Stil des Regeltext-Trenners auf einem Print"
+    },
+    "set": {
+      "title": "Set",
+      "description": ""
+    },
+    "setcode": {
+      "title": "Set-Code",
+      "description": ""
+    },
+    "setid": {
+      "title": "Cardgourmet Set-ID",
+      "description": ""
+    },
+    "setname": {
+      "title": "Set-Name",
+      "description": ""
+    },
+    "strength": {
+      "title": "Stärke",
+      "description": "Stärke einer Karte, spezifisch für Charaktere"
+    },
+    "basetype": {
+      "title": "Kartentyp",
+      "description": ""
+    },
+    "text": {
+      "title": "Regeltext",
+      "description": "Regeltext einer Karte ohne Erinnerungstexte"
+    },
+    "title": {
+      "title": "Kartenversion",
+      "description": "Titel der Karte"
+    },
+    "type": {
+      "title": "Typenzeile",
+      "description": "Volle Typenzeile, wie auf der Karte gedruckt"
+    },
+    "willpower": {
+      "title": "Willenskraft",
+      "description": "Willenskraft einer Karte, spezifisch für Charaktere"
+    },
+    "year": {
+      "title": "Veröffentlichungsjahr",
+      "description": "Jahr, in dem ein Print in ausgewählten Spieleläden veröffentlicht wurde"
+    }
+  },
   "property": {
     "cost": "_die Kosten_|_der Kosten_",
     "ink_type": "_der Tinten-Farbe_",

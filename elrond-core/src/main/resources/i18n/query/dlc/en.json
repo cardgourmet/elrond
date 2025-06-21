@@ -1,4 +1,150 @@
 {
+  "filter": {
+    "ability": {
+      "title": "Ability Names",
+      "description": "Named abilities of a card"
+    },
+    "artist": {
+      "title": "Artist",
+      "description": "People creating the artwork of a print"
+    },
+    "artworkcolor": {
+      "title": "Dominant Artwork Color",
+      "description": "Most used colors in the artwork of a print"
+    },
+    "card": {
+      "title": "Cardgourmet Card ID",
+      "description": ""
+    },
+    "cardlang": {
+      "title": "Card Language",
+      "description": "Languages available for a card across all prints"
+    },
+    "class": {
+      "title": "Classifications",
+      "description": "Classifications of a card"
+    },
+    "collectornumber": {
+      "title": "Collector Number",
+      "description": ""
+    },
+    "cost": {
+      "title": "Ink Cost",
+      "description": ""
+    },
+    "date": {
+      "title": "Release Date",
+      "description": "Date a print was released in selected game stores (`yyyy-mm-dd`)"
+    },
+    "flavor": {
+      "title": "Flavor Text",
+      "description": ""
+    },
+    "franchise": {
+      "title": "Franchise Name",
+      "description": ""
+    },
+    "fulltext": {
+      "title": "Full Rules Text",
+      "description": "Rules text including reminders"
+    },
+    "ink": {
+      "title": "Ink Colors",
+      "description": ""
+    },
+    "is": {
+      "title": "Power Filter `is`",
+      "description": "Properties that apply to a print or card, including layout, rarity, types, mechanics etc."
+    },
+    "keyword": {
+      "title": "Keywords",
+      "description": "Keywords present in the rules text of a card"
+    },
+    "lang": {
+      "title": "Print Language",
+      "description": "Languages a print is available in"
+    },
+    "lore": {
+      "title": "Lore Value",
+      "description": "Number of lore counters of a card"
+    },
+    "marketdate": {
+      "title": "Market Release Date",
+      "description": "Date a print was released in all game stores (`yyyy-mm-dd`)"
+    },
+    "marketyear": {
+      "title": "Release Release Year",
+      "description": "Year a print was released in all game stores"
+    },
+    "move": {
+      "title": "Move Cost",
+      "description": "Move cost of a card, specific to locations"
+    },
+    "name": {
+      "title": "Card Name",
+      "description": ""
+    },
+    "not": {
+      "title": "Power Filter `not`",
+      "description": "Properties that do not apply to a print. Equivalent to `-is`"
+    },
+    "print": {
+      "title": "Cardgourmet Print ID",
+      "description": ""
+    },
+    "rarity": {
+      "title": "Print Rarity",
+      "description": ""
+    },
+    "separator": {
+      "title": "Separator",
+      "description": "Style of the rules text separator on a print"
+    },
+    "set": {
+      "title": "Set",
+      "description": ""
+    },
+    "setcode": {
+      "title": "Set Code",
+      "description": ""
+    },
+    "setid": {
+      "title": "Cardgourmet Set ID",
+      "description": ""
+    },
+    "setname": {
+      "title": "Set Name",
+      "description": ""
+    },
+    "strength": {
+      "title": "Strength",
+      "description": "Strength of a card, specific to characters"
+    },
+    "basetype": {
+      "title": "Card Type",
+      "description": ""
+    },
+    "text": {
+      "title": "Rules Text",
+      "description": "Rules text of a card excluding reminders"
+    },
+    "title": {
+      "title": "Card Version",
+      "description": "Title of the card"
+    },
+    "type": {
+      "title": "Type Line",
+      "description": "Full type line printed on a card"
+    },
+    "willpower": {
+      "title": "Willpower",
+      "description": "Willpower of a card, specific to characters"
+    },
+    "year": {
+      "title": "Release Year",
+      "description": "Year a print was released in selected game stores"
+    }
+  },
   "property": {
     "cost": "_the cost_",
     "ink_type": "_the ink type_",

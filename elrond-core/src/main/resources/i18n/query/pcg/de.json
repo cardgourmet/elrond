@@ -1,4 +1,214 @@
 {
+  "filter": {
+    "ability": {
+      "title": "Fähigkeitstypen",
+      "description": "Fähigkeitstypen einer Karte"
+    },
+    "allsetprints": {
+      "title": "Gesamte Set-Printanzahl",
+      "description": "Gesamtanzahl an Prints im Set eines Prints"
+    },
+    "artist": {
+      "title": "Künstler",
+      "description": "Personen, die das Artwork eines Prints erstellen"
+    },
+    "artworkcolor": {
+      "title": "Dominante Artwork-Farbe",
+      "description": "Meistverwendete Farben im Artwork eines Prints"
+    },
+    "attack": {
+      "title": "Fähigkeitsnamen",
+      "description": "Fähigkeitsnamen einer Karte"
+    },
+    "attackcost": {
+      "title": "Angriffskosten",
+      "description": ""
+    },
+    "cardid": {
+      "title": "Cardgourmet Karten-ID",
+      "description": ""
+    },
+    "cardlang": {
+      "title": "Kartensprache",
+      "description": "Verfügbare Sprachen einer Karte über alle Prints hinweg"
+    },
+    "cn": {
+      "title": "Sammlernummer",
+      "description": ""
+    },
+    "damage": {
+      "title": "Angriffsschaden",
+      "description": ""
+    },
+    "date": {
+      "title": "Set-Veröffentlichungsstartdatum",
+      "description": "Datum, an dem das Set eines Prints veröffentlicht wurde (`yyyy-mm-dd`)"
+    },
+    "effect": {
+      "title": "Effekttypen",
+      "description": "Effekttypen einer Karte"
+    },
+    "enddate": {
+      "title": "Set-Veröffentlichungsendedatum",
+      "description": "Datum, an dem das Set eines Prints fertig veröffentlicht wurde (`yyyy-mm-dd`)"
+    },
+    "endyear": {
+      "title": "Set-Veröffentlichungsendejahr",
+      "description": "Jahr, in dem das Set eines Prints fertig veröffentlicht wurde"
+    },
+    "era": {
+      "title": "Ära",
+      "description": ""
+    },
+    "eraid": {
+      "title": "Cardgourmet Ära-ID",
+      "description": ""
+    },
+    "eraname": {
+      "title": "Äraname",
+      "description": ""
+    },
+    "evolves": {
+      "title": "Entwickelt sich aus",
+      "description": "Name des Pokémon, aus dem sich eine Karte entwickelt"
+    },
+    "flavor": {
+      "title": "Flavortext",
+      "description": ""
+    },
+    "hp": {
+      "title": "Trefferpunkte",
+      "description": ""
+    },
+    "is": {
+      "title": "Power-Filter `is`",
+      "description": "Eigenschaften, die auf einen Print oder eine Karte zutreffen, einschließlich Layout, Seltenheit, Typen, Mechaniken usw."
+    },
+    "lang": {
+      "title": "Print-Sprache",
+      "description": "Sprachen, in denen ein Print verfügbar ist"
+    },
+    "mark": {
+      "title": "Regulationsmarkierung",
+      "description": ""
+    },
+    "name": {
+      "title": "Kartenname",
+      "description": ""
+    },
+    "not": {
+      "title": "Power-Filter `not`",
+      "description": "Eigenschaften, die auf einen Print nicht zutreffen. Entspricht `-is`"
+    },
+    "printid": {
+      "title": "Cardgourmet Print-ID",
+      "description": ""
+    },
+    "rarity": {
+      "title": "Print-Seltenheit",
+      "description": ""
+    },
+    "region": {
+      "title": "Set-Region",
+      "description": "Region des Sets eines Prints"
+    },
+    "reminder": {
+      "title": "Erinnerung",
+      "description": "Gedruckter Erinnerungstext eines Prints"
+    },
+    "resistance": {
+      "title": "Resistenzen",
+      "description": ""
+    },
+    "resistancemodifier": {
+      "title": "Resistenzmodifikator",
+      "description": ""
+    },
+    "resistancetype": {
+      "title": "Resistenztypen",
+      "description": "Typen, gegen die eine Karte resistent ist"
+    },
+    "retreat": {
+      "title": "Rückzugskosten",
+      "description": ""
+    },
+    "ruletype": {
+      "title": "Erinnerungstyp",
+      "description": "Typ des gedruckten Erinnerungstextes eines Prints"
+    },
+    "set": {
+      "title": "Set",
+      "description": ""
+    },
+    "setcode": {
+      "title": "Set-Code",
+      "description": ""
+    },
+    "setid": {
+      "title": "Cardgourmet Set-ID",
+      "description": ""
+    },
+    "setname": {
+      "title": "Set-Name",
+      "description": ""
+    },
+    "setprints": {
+      "title": "Öffentliche Set-Printanzahl",
+      "description": "Anzahl öffentlicher Prints im Set eines Prints"
+    },
+    "settype": {
+      "title": "Set-Typ",
+      "description": ""
+    },
+    "sortorder": {
+      "title": "Sortierwert",
+      "description": "Zahl zur Bestimmung der Reihenfolge eines Prints innerhalb seines Sets"
+    },
+    "stage": {
+      "title": "Entwicklungsstufe",
+      "description": ""
+    },
+    "subtype": {
+      "title": "Kartensubtypen",
+      "description": ""
+    },
+    "basetype": {
+      "title": "Kartentyp",
+      "description": ""
+    },
+    "property": {
+      "title": "Eigenschaften",
+      "description": "Eigenschaften einer Karte oder eines Prints"
+    },
+    "text": {
+      "title": "Regeltext",
+      "description": ""
+    },
+    "type": {
+      "title": "Kartentypen",
+      "description": "Kombinierte Liste aller Basis-, Sub- und Energietypen einer Karte"
+    },
+    "energytype": {
+      "title": "Energietypen",
+      "description": ""
+    },
+    "weakness": {
+      "title": "Schwächen",
+      "description": ""
+    },
+    "weaknessmodifier": {
+      "title": "Schwächenmodifikator",
+      "description": ""
+    },
+    "weaknesstype": {
+      "title": "Schwächentypen",
+      "description": "Energietypen, gegen die eine Karte schwach ist"
+    },
+    "year": {
+      "title": "Set-Veröffentlichungsstartjahr",
+      "description": "Jahr, in dem das Set eines Prints mit der Veröffentlichung begann"
+    }
+  },
   "property": {
     "ability_count": "_die Anzahl der Fähigkeiten_|_der Anzahl der Fähigkeiten_",
     "ability_type": "_der Fähigkeitentyp_",
