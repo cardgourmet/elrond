@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 
 sealed class QueryToken {
     abstract var negate: Boolean
+    abstract val raw: String
 }
 
 data class QueryFilterToken(
@@ -12,7 +13,7 @@ data class QueryFilterToken(
     val operator: SearchQueryOperator,
     val value: ValueToken,
     override var negate: Boolean,
-    val raw: String
+    override val raw: String
 ) : QueryToken() {
     override fun toString(): String {
         return when {
@@ -26,7 +27,11 @@ data class QueryTokenGroup(
     val children: List<QueryToken>,
     val operator: LogicalOperator,
     override var negate: Boolean
-) : QueryToken()
+) : QueryToken() {
+    override val raw: String
+        get() = ("-".takeIf { negate } ?: "") +
+                "(${children.joinToString(" or ".takeIf { operator == LogicalOperator.OR } ?: " ") { it.raw }})"
+}
 
 fun QueryToken.negated(): QueryToken = when (this) {
     is QueryTokenGroup -> this.copy(negate = !this.negate)

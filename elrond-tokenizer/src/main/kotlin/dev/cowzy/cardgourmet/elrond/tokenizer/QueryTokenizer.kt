@@ -362,43 +362,33 @@ class QueryTokenizer(
 
             val tokens = mutableTokens.toList()
             for (token in tokens) {
-                if (token !is QueryFilterToken) continue
-
-                val duplicateToken = tokens
-                    .asSequence()
-                    .filterIsInstance<QueryFilterToken>()
-                    .filter { token != it }
-                    .filter { it.negate == token.negate && it.operator == token.operator }
-                    .filter { it::class == token::class }
-                    .find { it.filter == token.filter && it.operator == token.operator && it.value.isSimilarTo(token.value) }
-
+                val duplicateToken = tokens.findDuplicateToken(token)
                 if (duplicateToken != null) {
                     mutableTokens.remove(duplicateToken)
 
                     ignoreValue(IgnoredQueryValue(
                         duplicateToken.raw,
-                        "duplicate_filter"
+                        when (duplicateToken) {
+                            is QueryTokenGroup -> "duplicate_filter_group"
+                            else -> "duplicate_filter"
+                        }
                     ))
 
                     changed = true
                     break
                 }
 
-                val negatedToken = tokens
-                    .asSequence()
-                    .filterIsInstance<QueryFilterToken>()
-                    .filter { token != it }
-                    .filter { (it.negate != token.negate && it.operator == token.operator) || (it.negate == token.negate && it.operator.negated() == token.operator) }
-                    .filter { it::class == token::class }
-                    .find { it.filter == token.filter && it.operator == token.operator && it.value.isSimilarTo(token.value) }
-
+                val negatedToken = tokens.findNegatedToken(token)
                 if (negatedToken != null) {
                     mutableTokens.remove(token)
                     mutableTokens.remove(negatedToken)
 
                     ignoreValue(IgnoredQueryValue(
                         "${token.raw} ${negatedToken.raw}",
-                        "negated_filters"
+                        when (negatedToken) {
+                            is QueryTokenGroup -> "negated_filter_groups"
+                            else -> "negated_filters"
+                        }
                     ))
 
                     changed = true
@@ -408,6 +398,62 @@ class QueryTokenizer(
         } while (changed)
 
         return mutableTokens
+    }
+
+    private fun List<QueryToken>.findDuplicateToken(token: QueryToken): QueryToken? {
+        if (token is QueryFilterToken) {
+            return this
+                .asSequence()
+                .filterIsInstance<QueryFilterToken>()
+                .filter { token != it }
+                .filter { it.negate == token.negate && it.operator == token.operator }
+                .filter { it::class == token::class }
+                .find { it.filter == token.filter && it.operator == token.operator && it.value.isSimilarTo(token.value) }
+        }
+
+        if (token is QueryTokenGroup) {
+            return this
+                .asSequence()
+                .filterIsInstance<QueryTokenGroup>()
+                .filter { token != it }
+                .filter { it.negate == token.negate && it.operator == token.operator }
+                .filter { it::class == token::class }
+                .filter { it.children.size == token.children.size }
+                .find { it.children.all { child -> token.children.findDuplicateToken(child) != null } }
+        }
+
+        return null
+    }
+
+    private fun List<QueryToken>.findNegatedToken(token: QueryToken): QueryToken? {
+        if (token is QueryFilterToken) {
+            return this
+                .asSequence()
+                .filterIsInstance<QueryFilterToken>()
+                .filter { token != it }
+                .filter { (it.negate != token.negate && it.operator == token.operator) || (it.negate == token.negate && it.operator.negated() == token.operator) }
+                .filter { it::class == token::class }
+                .find { it.filter == token.filter && it.operator == token.operator && it.value.isSimilarTo(token.value) }
+        }
+
+        if (token is QueryTokenGroup) {
+            return this
+                .asSequence()
+                .filterIsInstance<QueryTokenGroup>()
+                .filter { token != it }
+                .filter { it.negate != token.negate && it.operator == token.operator }
+                .filter { it::class == token::class }
+                .find { it.children.all { child -> token.children.findDuplicateToken(child) != null } }
+                ?: this
+                    .asSequence()
+                    .filterIsInstance<QueryTokenGroup>()
+                    .filter { token != it }
+                    .filter { it.negate == token.negate && it.operator.invert() == token.operator }
+                    .filter { it::class == token::class }
+                    .find { it.children.all { child -> token.children.findNegatedToken(child) != null } }
+        }
+
+        return null
     }
 
     private fun QueryToken.flatten(): List<QueryToken> {

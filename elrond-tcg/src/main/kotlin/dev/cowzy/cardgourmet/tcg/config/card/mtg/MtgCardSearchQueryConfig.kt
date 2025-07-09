@@ -538,10 +538,10 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         }
     }
 
-    filter("print", "printid") { uuid(MtgPrint::id, propertyKeys.PRINT_ID) }
-    filter("card", "cardid", "oracleid") { uuid(MtgCard::id, propertyKeys.CARD_ID) }
-    filter("face", "faceid") { uuid(MtgCardFace::id, propertyKeys.CARD_FACE_ID) }
-    filter("printface", "printfaceid") { uuid(MtgPrintFace::id, propertyKeys.PRINT_FACE_ID) }
+    filter("printid") { uuid(MtgPrint::id, propertyKeys.PRINT_ID) }
+    filter("cardid", "oracleid") { uuid(MtgCard::id, propertyKeys.CARD_ID) }
+    filter("faceid", "cardfaceid") { uuid(MtgCardFace::id, propertyKeys.CARD_FACE_ID) }
+    filter("printfaceid") { uuid(MtgPrintFace::id, propertyKeys.PRINT_FACE_ID) }
 
     filter("scryfall", "scryfallid") {
         exactString(MtgPrintIdentifier::scryfallId, mtgPropertyKeys.SCRYFALL_ID)
