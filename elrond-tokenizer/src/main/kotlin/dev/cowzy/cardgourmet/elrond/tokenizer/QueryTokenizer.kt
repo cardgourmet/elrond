@@ -11,7 +11,7 @@ import kotlin.reflect.full.isSuperclassOf
 
 private val andRegex = Regex("(and|&+)", RegexOption.IGNORE_CASE)
 private val orRegex = Regex("(or|\\|+)", RegexOption.IGNORE_CASE)
-private val notRegex = Regex("(not(?!\\s*:)|-)", RegexOption.IGNORE_CASE)
+private val notRegex = Regex("(not|-)", RegexOption.IGNORE_CASE)
 
 @Serializable
 data class IgnoredQueryValue(
@@ -97,6 +97,8 @@ class QueryTokenizer(
                 negateNext = false
                 continue
             } else if (token is StringToken && token !is QuotedStringToken) {
+                val nextToken = tokenQueue.peek()
+
                 when {
                     andRegex.matches(token.value) -> {
                         tokenQueue.poll()
@@ -110,7 +112,7 @@ class QueryTokenizer(
                         return listOf(group)
                     }
 
-                    notRegex.matches(token.value) -> {
+                    notRegex.matches(token.value) && nextToken !is OperatorToken -> {
                         tokenQueue.poll()
                         negateNext = true
                         continue
