@@ -191,7 +191,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
             providedValues.addAll(values.take(amount))
 
             matchCount = values.size
-            totalCount = providers.sumOf { it.getValues().count() }
+            totalCount = providers.flatMap { it.getValues() }.distinctBy { it.input }.size
         }
 
         return FilterValues(
