@@ -56,6 +56,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
     @Serializable
     data class FilterValue(
         val value: String,
+        val displayValue: String,
         val type: String,
         val aliases: List<String>?,
         val resolvesTo: String?,
@@ -199,12 +200,13 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
             matchCount,
             providedValues.map { value ->
                 FilterValue(
-                    value.input,
-                    value.type,
-                    value.aliases.sorted().takeIf { it.isNotEmpty() },
-                    value.resolvesTo.display.takeIf { !value.resolvesTo.display.equals(value.input, ignoreCase = true) },
-                    value.resolvesTo.operator,
-                    value.language
+                    value = value.input,
+                    displayValue = value.input,
+                    type = value.type,
+                    aliases = value.aliases.sorted().takeIf { it.isNotEmpty() },
+                    resolvesTo = value.resolvesTo.display.takeIf { !value.resolvesTo.display.equals(value.input, ignoreCase = true) },
+                    resolvesToOperator = value.resolvesTo.operator,
+                    language = value.language
                 )
             }
         )
