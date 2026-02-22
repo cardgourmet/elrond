@@ -78,7 +78,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, R
     return QueryExecutionResult(transformedQuery, attempt, result)
 }
 
-private suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
     query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
