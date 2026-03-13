@@ -379,11 +379,11 @@ private suspend fun QueryToken.parseQueryExpression(
                         return@map null
                     }
 
-                    val matchingProperty = propertyCandidates.find { (prop, _) ->
+                    val matchingProperties = propertyCandidates.filter { (prop, _) ->
                         prop.supportedOperators.contains(operator)
                     }
 
-                    if (matchingProperty == null) {
+                    if (matchingProperties.isEmpty()) {
                         ignoredValues.add(
                             IgnoredQueryValue(
                                 this.toString(),
@@ -398,20 +398,53 @@ private suspend fun QueryToken.parseQueryExpression(
                         return@map null
                     }
 
-                    if (matchingProperty.second.first.let { it is StringValue && it.value.isBlank() }) {
+                    var validProperties = matchingProperties.filterNot { property ->
+                        property.second.first.let { it is StringValue && it.value.isBlank() }
+                    }
+
+                    if (validProperties.isEmpty()) {
                         ignoredValues.add(IgnoredQueryValue(this.toString(), "empty_value"))
                         return@map null
                     }
 
-                    ValueLeafQueryExpression(
-                        filter,
-                        matchingProperty.first as SearchQueryProperty<Any>,
-                        matchingProperty.second.second ?: operator,
-                        matchingProperty.second.first,
-                        negated,
-                        valueToken = this.value,
-                        rawValue = this.toString()
-                    )
+                    // If the first property matches a strict value, include only strict value matches.
+                    // This is to ensure we skip expensive text searches if they are not required.
+                    if (validProperties.first().first.valueDefinition.provider?.strictValues == true) {
+                        validProperties = validProperties.filter {
+                            it.first.valueDefinition.provider?.strictValues == true
+                        }
+                    }
+
+                    if (validProperties.size == 1) {
+                        val property = validProperties.single()
+
+                        ValueLeafQueryExpression(
+                            filter,
+                            property.first as SearchQueryProperty<Any>,
+                            property.second.second ?: operator,
+                            property.second.first,
+                            negated,
+                            valueToken = this.value,
+                            rawValue = this.toString()
+                        )
+                    } else {
+                        val properties = validProperties.map { (prop, value) ->
+                            MultiValueLeafProperty(
+                                prop as SearchQueryProperty<Any>,
+                                value.second ?: operator,
+                                value.first
+                            )
+                        }
+
+                        MultiValueLeafQueryExpression(
+                            filter,
+                            properties,
+                            operator,
+                            negated,
+                            this.value,
+                            this.toString()
+                        )
+                    }
                 }
             }.filterNotNull()
 
@@ -608,10 +641,16 @@ private fun List<ValueToken>.parseExpressionValues(
 fun QueryExpression.extractFilterExpressions(): List<Pair<String, String>> {
     return when (this) {
         is BooleanQueryExpression -> emptyList()
+
         is ValueLeafQueryExpression -> {
             var expression =
                 "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
             if (value is StringValue && value.exact) expression = "!$expression"
+            listOf(filter.keywords.minBy { it.length } to expression)
+        }
+
+        is MultiValueLeafQueryExpression -> {
+            val expression = "${filter.keywords.minBy { it.length }}${initialOperator.value}${valueToken}"
             listOf(filter.keywords.minBy { it.length } to expression)
         }
 

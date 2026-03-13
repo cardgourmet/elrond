@@ -176,7 +176,6 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                 .map { it.getValues(preferredLanguage) }
                 .flatten()
                 .filter { type == null || it.type == type }
-                .distinctBy { it.input }
                 .sortedBy { it.input }
 
             // If there are no values, search again without the language
@@ -185,14 +184,13 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                     .map { it.getValues(null) }
                     .flatten()
                     .filter { type == null || it.type == type }
-                    .distinctBy { it.input }
                     .sortedBy { it.input }
             }
 
             providedValues.addAll(values.take(amount))
 
             matchCount = values.size
-            totalCount = providers.flatMap { it.getValues() }.distinctBy { it.input }.size
+            totalCount = providers.flatMap { it.getValues() }.size
         }
 
         return FilterValues(

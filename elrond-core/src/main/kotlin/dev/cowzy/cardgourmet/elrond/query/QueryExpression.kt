@@ -35,6 +35,21 @@ class ValueLeafQueryExpression(
     rawValue: String? = null
 ) : PropertyQueryExpression(filter, property, operator, negate, rawValue)
 
+class MultiValueLeafQueryExpression(
+    val filter: QueryFilter,
+    val properties: List<MultiValueLeafProperty>,
+    val initialOperator: SearchQueryOperator,
+    negate: Boolean,
+    val valueToken: ValueToken,
+    rawValue: String? = null
+) : LeafQueryExpression(negate, rawValue)
+
+class MultiValueLeafProperty(
+    val property: SearchQueryProperty<Any>,
+    val operator: SearchQueryOperator,
+    val value: Any
+)
+
 class FilterLeafQueryExpression(
     filter: QueryFilter,
     property: SearchQueryProperty<Any>,
@@ -116,6 +131,26 @@ fun QueryExpression.toStructuredExplanation(): QueryExplanationPart? {
                 else -> QueryExplanationValueType.STRING
             },
         )
+        is MultiValueLeafQueryExpression -> QueryExplanationPart(
+            type = QueryExplanationType.GROUP,
+            negate = this.negate,
+            groupOperator = LogicalOperator.OR,
+            children = this.properties.map {
+                QueryExplanationPart(
+                    type = QueryExplanationType.FILTER,
+                    negate = false,
+                    filter = this.filter.keywords.minBy { it.length },
+                    filterOperator = it.operator,
+                    property = it.property.key,
+                    value = it.property.valueDefinition.formatValue(it.value),
+                    valueType = when (this.valueToken) {
+                        is RegexToken -> QueryExplanationValueType.REGEX
+                        is NumberToken -> QueryExplanationValueType.NUMBER
+                        else -> QueryExplanationValueType.STRING
+                    },
+                )
+            },
+        )
         is FilterLeafQueryExpression -> QueryExplanationPart(
             type = QueryExplanationType.FILTER,
             negate = this.negate,
@@ -146,6 +181,7 @@ fun QueryExpression.toExpressionString(topLevel: Boolean = true): String {
     val string = when (this) {
         is BooleanQueryExpression -> ""
         is ValueLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${property.valueDefinition.formatValue(value)}"
+        is MultiValueLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${initialOperator.value}${valueToken}"
         is FilterLeafQueryExpression -> "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}"
         is QueryExpressionGroup -> {
             when (this.children.size) {

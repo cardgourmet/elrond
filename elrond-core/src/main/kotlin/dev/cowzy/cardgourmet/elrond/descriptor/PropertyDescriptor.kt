@@ -2,12 +2,9 @@ package dev.cowzy.cardgourmet.elrond.descriptor
 
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
-import dev.cowzy.cardgourmet.elrond.NumberValue
-import dev.cowzy.cardgourmet.elrond.RegexValue
 import dev.cowzy.cardgourmet.elrond.query.FilterLeafQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
-import kotlin.math.exp
 
 abstract class PropertyDescriptor(val propertyKey: String) {
 

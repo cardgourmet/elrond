@@ -14,7 +14,6 @@ import dev.cowzy.kuery.reflection.table
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.*
-import kotlin.math.exp
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
@@ -209,6 +208,23 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
             }
 
             else -> expression.property.applyCondition(this, expression.operator, expression.value)
+        }
+
+        is MultiValueLeafQueryExpression -> {
+            applyExpression(QueryExpressionGroup(
+                expression.properties.map {
+                    ValueLeafQueryExpression(
+                        expression.filter,
+                        it.property,
+                        it.operator,
+                        it.value,
+                        false,
+                        expression.valueToken,
+                    )
+                },
+                LogicalOperator.OR,
+                expression.negate
+            ), distinctBy)
         }
 
         is QueryExpressionGroup -> {
