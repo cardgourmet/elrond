@@ -28,6 +28,24 @@ suspend fun QueryExpression.explainCondition(
                 filters = listOf(this.property.descriptor.propertyKey.split(".").last())
             )
         }
+
+        is MultiValueLeafQueryExpression -> {
+            QueryExpressionGroup(
+                this.properties.map {
+                    ValueLeafQueryExpression(
+                        this.filter,
+                        it.property,
+                        it.operator,
+                        it.value,
+                        false,
+                        this.valueToken,
+                    )
+                },
+                LogicalOperator.OR,
+                this.negate
+            ).explainCondition(i18n, locale, false, negate)
+        }
+
         is QueryExpressionGroup -> {
             val negated = if (negate) !this.negate else this.negate
 
