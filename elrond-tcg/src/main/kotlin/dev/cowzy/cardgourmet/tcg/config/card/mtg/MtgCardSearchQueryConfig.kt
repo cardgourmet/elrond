@@ -374,9 +374,11 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("set", "s", "e", "edition", "expansion") {
         uuid(MtgSet::id, propertyKeys.SET_ID)
         string(MtgSet::code, propertyKeys.SET_CODE) {
+            strict(true)
             autoValues(MtgSet::code, "set_code")
             values(mtgSetCodeMappings, "set_code")
         }
+        string(MtgSet::name, propertyKeys.SET_NAME) { autoValues(MtgSet::name, "set_name") }
     }
 
     filter("setcode") {

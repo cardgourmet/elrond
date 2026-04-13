@@ -272,7 +272,11 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
 
     filter("set", "s", "edition", "e", "expansion") {
         uuid(PcgSet::id, propertyKeys.SET_ID)
-        string(PcgSet::setCode, propertyKeys.SET_CODE) { autoValues(PcgSet::setCode) }
+        string(PcgSet::setCode, propertyKeys.SET_CODE) {
+            strict(true)
+            autoValues(PcgSet::setCode)
+        }
+        string(PcgSetTranslation::name, propertyKeys.SET_NAME) { autoValues(PcgSetTranslation::name) }
     }
 
     filter("setid") { uuid(PcgSet::id, propertyKeys.SET_ID) }

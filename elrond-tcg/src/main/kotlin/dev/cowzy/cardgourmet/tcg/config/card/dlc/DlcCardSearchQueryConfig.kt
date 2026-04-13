@@ -167,6 +167,7 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
             autoValues(DlcSet::code)
             values(dlcSetCodeMappings, "set_code")
         }
+        string(DlcSet::name, propertyKeys.SET_NAME) { autoValues(DlcSet::name) }
     }
 
     filter("setid") { uuid(DlcSet::id, propertyKeys.SET_ID) }
