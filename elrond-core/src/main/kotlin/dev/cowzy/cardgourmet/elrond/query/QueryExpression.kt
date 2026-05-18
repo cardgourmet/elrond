@@ -96,20 +96,21 @@ fun QueryExpression.normalize(): QueryExpression {
     val leafs = expressions.filterIsInstance<LeafQueryExpression>() + unpackedChildren.filterIsInstance<LeafQueryExpression>()
 
     val valueLeafs = leafs.filterIsInstance<ValueLeafQueryExpression>()
-        .union(leafs.filterIsInstance<MultiValueLeafQueryExpression>())
-
+    val multiValueLeafs = leafs.filterIsInstance<MultiValueLeafQueryExpression>()
     val filterLeafs = leafs.filterIsInstance<FilterLeafQueryExpression>()
 
     // Sort hierarchy:
     // 1. Value leafs first, then filter leafs, then groups.
     // 2. Value leafs are sorted by the property name, then by the operator, then by the value.
-    // 3. Filter leafs are sorted by the property name, then by the operator, then by the other property name.
-    // 4. Groups are sorted by the number of children, then by the operator.
+    // 3. Multi-value leafs are sorted by the property name, then by the initial operator, then by the value token.
+    // 4. Filter leafs are sorted by the property name, then by the operator, then by the other property name.
+    // 5. Groups are sorted by the number of children, then by the operator.
     val sortedValueLeafs = valueLeafs.sortedWith(compareBy({ it.filter.key }, { it.operator.ordinal }, { it.value.toString() }))
+    val sortedMultiValueLeafs = multiValueLeafs.sortedWith(compareBy({ it.filter.key }, { it.initialOperator.ordinal }, { it.valueToken.raw }))
     val sortedFilterLeafs = filterLeafs.sortedWith(compareBy({ it.filter.key }, { it.operator.ordinal }, { it.otherFilter.key }))
     val sortedGroups = groups.sortedWith(compareBy({ it.children.size }, { it.operator.ordinal }))
 
-    return QueryExpressionGroup(sortedValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
+    return QueryExpressionGroup(sortedValueLeafs + sortedMultiValueLeafs + sortedFilterLeafs + sortedGroups, group.operator, false)
 }
 
 fun QueryExpression.toStructuredExplanation(): QueryExplanationPart? {
