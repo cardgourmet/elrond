@@ -96,6 +96,8 @@ fun QueryExpression.normalize(): QueryExpression {
     val leafs = expressions.filterIsInstance<LeafQueryExpression>() + unpackedChildren.filterIsInstance<LeafQueryExpression>()
 
     val valueLeafs = leafs.filterIsInstance<ValueLeafQueryExpression>()
+        .union(leafs.filterIsInstance<MultiValueLeafQueryExpression>())
+
     val filterLeafs = leafs.filterIsInstance<FilterLeafQueryExpression>()
 
     // Sort hierarchy:
