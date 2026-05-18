@@ -211,20 +211,22 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
         }
 
         is MultiValueLeafQueryExpression -> {
-            applyExpression(QueryExpressionGroup(
-                expression.properties.map {
-                    ValueLeafQueryExpression(
-                        expression.filter,
-                        it.property,
-                        it.operator,
-                        it.value,
-                        false,
-                        expression.valueToken,
-                    )
-                },
-                LogicalOperator.OR,
-                expression.negate
-            ), distinctBy)
+            this.whereSuspend { inner ->
+                inner.applyExpression(QueryExpressionGroup(
+                    expression.properties.map {
+                        ValueLeafQueryExpression(
+                            expression.filter,
+                            it.property,
+                            it.operator,
+                            it.value,
+                            false,
+                            expression.valueToken,
+                        )
+                    },
+                    LogicalOperator.OR,
+                    expression.negate
+                ), distinctBy)
+            }
         }
 
         is QueryExpressionGroup -> {
