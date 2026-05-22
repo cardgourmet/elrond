@@ -323,7 +323,8 @@ private fun QueryExpression.collectTables(): Set<KClass<*>> {
     return when (this) {
         is FilterLeafQueryExpression -> (this.property.affectedTables + this.otherProperty.affectedTables).toSet()
         is ValueLeafQueryExpression -> this.property.affectedTables.toSet()
-        is QueryExpressionGroup -> this.children.map { it.collectTables() }.flatten().toSet()
+        is MultiValueLeafQueryExpression -> this.properties.flatMap { it.property.affectedTables.toSet() }.toSet()
+        is QueryExpressionGroup -> this.children.flatMap { it.collectTables() }.toSet()
         else -> emptySet()
     }
 }
@@ -332,7 +333,8 @@ private fun QueryExpression.collectProperties(): Set<SearchQueryProperty<out Any
     return when (this) {
         is FilterLeafQueryExpression -> setOf(this.property, this.otherProperty)
         is ValueLeafQueryExpression -> setOf(this.property)
-        is QueryExpressionGroup -> this.children.map { it.collectProperties() }.flatten().toSet()
+        is MultiValueLeafQueryExpression -> this.properties.map { it.property }.toSet()
+        is QueryExpressionGroup -> this.children.flatMap { it.collectProperties() }.toSet()
         else -> emptySet()
     }
 }
