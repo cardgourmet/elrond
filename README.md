@@ -1,3 +1,5 @@
+<img width="724" height="140" alt="image" src="https://github.com/user-attachments/assets/7991c1f1-e8ad-4e90-8284-90cc572e25ed" />
+
 # elrond
 
 A powerful and flexible search query engine, inspired by [Scryfall](https://scryfall.com/docs/syntax).
