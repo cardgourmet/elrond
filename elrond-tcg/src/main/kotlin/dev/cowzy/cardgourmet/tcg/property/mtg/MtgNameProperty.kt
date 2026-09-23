@@ -8,7 +8,6 @@ import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.StringDescriptor
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
-import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 
 class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
@@ -47,12 +46,21 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         operator: SearchQueryOperator,
         value: QueryValue<*>
     ) {
-        val innerBuilder = QueryBuilder.selectBuilder("mtg.search_names")
+        val printFaceBuilder = QueryBuilder.selectBuilder("mtg.search_names")
+            .select("print_face_translation_id")
+            .apply(operator, value)
+            .whereNotNull("print_face_translation_id")
+            .orderBy("mtg.search_names.priority")
+
+        val cardFaceBuilder = QueryBuilder.selectBuilder("mtg.search_names")
             .select("id")
             .apply(operator, value)
             .orderBy("mtg.search_names.priority")
 
-        builder.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
+        builder.where {
+            it.whereNotNull(MtgPrintFaceTranslation::id)
+            it.whereIn(MtgPrintFaceTranslation::id.columnName(), printFaceBuilder)
+        }.orWhereIn(MtgCardFaceTranslation::id.columnName(), cardFaceBuilder)
     }
 
     private fun <T : WhereQueryBuilder<T>> T.apply(

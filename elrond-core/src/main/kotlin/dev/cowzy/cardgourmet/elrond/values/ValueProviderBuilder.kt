@@ -24,7 +24,7 @@ class ValueProviderBuilder<T : Any>(private val dbPool: SqlDatabasePool) {
 
     private var cacheTimeToLife = 3600L
 
-    private var applyValues = mutableListOf<(Connection, ValueGroup<T>, (T) -> String) -> Unit>()
+    private val applyValues = mutableListOf<(Connection, ValueGroup<T>, (T) -> String) -> Unit>()
 
     private var displayTransform: (T) -> String = {
         when (it) {
