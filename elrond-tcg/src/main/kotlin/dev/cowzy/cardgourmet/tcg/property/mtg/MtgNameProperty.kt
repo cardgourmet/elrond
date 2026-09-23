@@ -12,7 +12,7 @@ import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 
 class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     supportedOperators = stringQueryOperators,
-    affectedTables = arrayOf(MtgCardFaceTranslation::class),
+    affectedTables = arrayOf(MtgCardFaceTranslation::class, MtgPrintFaceTranslation::class),
     descriptor = StringDescriptor(Strings.Query.Property.NAME)
 ) {
 
