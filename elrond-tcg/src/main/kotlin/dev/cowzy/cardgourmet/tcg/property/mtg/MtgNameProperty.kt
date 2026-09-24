@@ -66,9 +66,9 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         operator: SearchQueryOperator,
         value: QueryValue<*>
     ): T {
-        return this.where {
-            it.where { inner -> applyNameCondition(inner, printFaceTranslationColumn(value), operator, value) }
-            it.orWhere { inner ->
+        return this
+            .where { applyNameCondition(it, printFaceTranslationColumn(value), operator, value) }
+            .orWhere {
                 val existsQuery = QueryBuilder.selectBuilder(
                     "mtg.search_names AS other_search_names",
                     tableAlias = "other_search_names"
@@ -78,23 +78,22 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
                     .whereNotNull("other_search_names.print_face_translation_id")
                     .apply {
                         applyNameCondition(
-                            inner,
+                            this,
                             "other_search_names.${searchNameColumn(value)}",
                             operator,
                             value
                         )
                     }.toSqlExpression()
 
-                inner.whereRaw("NOT EXISTS (${existsQuery.sql})", existsQuery.fill)
+                it.whereRaw("NOT EXISTS (${existsQuery.sql})", existsQuery.fill)
 
                 val innerBuilder = QueryBuilder.selectBuilder("mtg.search_names")
                     .select("id")
                     .whereNull("mtg.search_names.print_face_translation_id")
-                    .apply { applyNameCondition(inner, "mtg.search_names.${searchNameColumn(value)}", operator, value) }
+                    .apply { applyNameCondition(this, "mtg.search_names.${searchNameColumn(value)}", operator, value) }
 
-                inner.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
+                it.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
             }
-        }
     }
 
     private fun searchNameColumn(value: QueryValue<*>): String = when {
