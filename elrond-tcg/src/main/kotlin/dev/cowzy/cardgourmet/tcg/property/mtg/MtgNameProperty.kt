@@ -69,7 +69,10 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         return this.where {
             it.where { applyNameCondition(this, printFaceTranslationColumn(value), operator, value) }
             it.orWhere { inner ->
-                val existsQuery = QueryBuilder.selectBuilder("mtg.search_names", tableAlias = "other_search_names")
+                val existsQuery = QueryBuilder.selectBuilder(
+                    "mtg.search_names AS other_search_names",
+                    tableAlias = "other_search_names"
+                )
                     .selectRaw("1")
                     .whereColumn("other_search_names.card_id", MtgCard::id.columnName())
                     .whereNotNull("other_search_names.print_face_translation_id")
@@ -86,7 +89,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
 
                 val innerBuilder = QueryBuilder.selectBuilder("mtg.search_names")
                     .select("id")
-                    .where("mtg.search_names.print_face_translation_id", "IS NULL")
+                    .whereNull("mtg.search_names.print_face_translation_id")
                     .apply { applyNameCondition(this, "mtg.search_names.${searchNameColumn(value)}", operator, value) }
 
                 inner.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
