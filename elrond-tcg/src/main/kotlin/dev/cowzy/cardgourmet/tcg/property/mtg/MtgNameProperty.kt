@@ -71,7 +71,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
             it.orWhere { inner ->
                 val existsQuery = QueryBuilder.selectBuilder("mtg.search_names", tableAlias = "other_search_names")
                     .selectRaw("1")
-                    .where("other_search_names.card_id", MtgCard::id)
+                    .whereColumn("other_search_names.card_id", MtgCard::id.columnName())
                     .whereNotNull("other_search_names.print_face_translation_id")
                     .apply {
                         applyNameCondition(
