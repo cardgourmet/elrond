@@ -583,63 +583,63 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
 }
 
 private val tableDependencies = mapOf(
-    MtgCard::class to TableDependency(MtgPrint::class) { builder ->
-        builder.innerJoin(MtgCard::class) { it.whereColumn(MtgCard::id, MtgPrint::cardId) }
+    MtgCard::class to TableDependency(MtgPrint::class) { builder, ctx ->
+        builder.innerJoin(MtgCard::class) { it.whereColumn(ctx.resolve(MtgCard::id), ctx.resolve(MtgPrint::cardId)) }
     },
-    MtgCardFace::class to TableDependency(MtgCard::class) { builder ->
-        builder.innerJoin(MtgCardFace::class) { it.whereColumn(MtgCardFace::cardId, MtgCard::id) }
+    MtgCardFace::class to TableDependency(MtgCard::class) { builder, ctx ->
+        builder.innerJoin(MtgCardFace::class) { it.whereColumn(ctx.resolve(MtgCardFace::cardId), ctx.resolve(MtgCard::id)) }
     },
-    MtgCardFaceTranslation::class to TableDependency(MtgCardFace::class) { builder ->
+    MtgCardFaceTranslation::class to TableDependency(MtgCardFace::class) { builder, ctx ->
         builder.innerJoin(MtgCardFaceTranslation::class) {
-            it.whereColumn(MtgCardFaceTranslation::cardFaceId, MtgCardFace::id)
+            it.whereColumn(ctx.resolve(MtgCardFaceTranslation::cardFaceId), ctx.resolve(MtgCardFace::id))
         }
     },
-    MtgPrintFace::class to TableDependency(MtgCardFace::class) { builder ->
+    MtgPrintFace::class to TableDependency(MtgCardFace::class) { builder, ctx ->
         builder.innerJoin(MtgPrintFace::class) {
             it
-                .whereColumn(MtgPrintFace::cardFaceId, MtgCardFace::id)
-                .whereColumn(MtgPrintFace::printId, MtgPrint::id)
+                .whereColumn(ctx.resolve(MtgPrintFace::cardFaceId), ctx.resolve(MtgCardFace::id))
+                .whereColumn(ctx.resolve(MtgPrintFace::printId), ctx.resolve(MtgPrint::id))
         }
     },
-    MtgPrintFaceTranslation::class to TableDependency(MtgPrintFace::class, MtgCardFaceTranslation::class) { builder ->
+    MtgPrintFaceTranslation::class to TableDependency(MtgPrintFace::class, MtgCardFaceTranslation::class) { builder, ctx ->
         builder.leftJoin(MtgPrintFaceTranslation::class) {
             it
-                .whereColumn(MtgPrintFaceTranslation::printFaceId, MtgPrintFace::id)
-//                .whereColumn(MtgPrintFaceTranslation::language, MtgCardFaceTranslation::language)
+                .whereColumn(ctx.resolve(MtgPrintFaceTranslation::printFaceId), ctx.resolve(MtgPrintFace::id))
+                .whereColumn(ctx.resolve(MtgPrintFaceTranslation::language), ctx.resolve(MtgCardFaceTranslation::language))
         }
     },
-    MtgPrintIdentifier::class to TableDependency(MtgPrint::class) { builder ->
-        builder.leftJoin(MtgPrintIdentifier::class) { it.whereColumn(MtgPrintIdentifier::printId, MtgPrint::id) }
+    MtgPrintIdentifier::class to TableDependency(MtgPrint::class) { builder, ctx ->
+        builder.leftJoin(MtgPrintIdentifier::class) { it.whereColumn(ctx.resolve(MtgPrintIdentifier::printId), ctx.resolve(MtgPrint::id)) }
     },
-    MtgPrintPrice::class to TableDependency(MtgPrint::class) { builder ->
-        builder.leftJoin(MtgPrintPrice::class) { it.whereColumn(MtgPrintPrice::printId, MtgPrint::id) }
+    MtgPrintPrice::class to TableDependency(MtgPrint::class) { builder, ctx ->
+        builder.leftJoin(MtgPrintPrice::class) { it.whereColumn(ctx.resolve(MtgPrintPrice::printId), ctx.resolve(MtgPrint::id)) }
     },
-    MtgSet::class to TableDependency(MtgPrint::class) { builder ->
-        builder.innerJoin(MtgSet::class) { it.whereColumn(MtgSet::id, MtgPrint::setId) }
+    MtgSet::class to TableDependency(MtgPrint::class) { builder, ctx ->
+        builder.innerJoin(MtgSet::class) { it.whereColumn(ctx.resolve(MtgSet::id), ctx.resolve(MtgPrint::setId)) }
     },
-    MtgBlock::class to TableDependency(MtgSet::class) { builder ->
-        builder.leftJoin(MtgBlock::class) { it.whereColumn(MtgBlock::id, MtgSet::blockId) }
+    MtgBlock::class to TableDependency(MtgSet::class) { builder, ctx ->
+        builder.leftJoin(MtgBlock::class) { it.whereColumn(ctx.resolve(MtgBlock::id), ctx.resolve(MtgSet::blockId)) }
     },
-    CardPrice::class to TableDependency(MtgPrint::class) { builder ->
+    CardPrice::class to TableDependency(MtgPrint::class) { builder, ctx ->
         builder.leftJoin(CardPrice::class) {
             it
-                .whereColumn(MtgPrint::id, CardPrice::cardId)
-                .where(CardPrice::game, GameType.MAGIC_THE_GATHERING)
+                .whereColumn(ctx.resolve(MtgPrint::id), ctx.resolve(CardPrice::cardId))
+                .where(ctx.resolve(CardPrice::game), GameType.MAGIC_THE_GATHERING)
         }
     },
-    CardImage::class to TableDependency(MtgPrintFaceTranslation::class) { builder ->
+    CardImage::class to TableDependency(MtgPrintFaceTranslation::class) { builder, ctx ->
         builder.leftJoin(CardImage::class) {
             it.whereColumn(
-                CardImage::printTranslationId,
-                MtgPrintFaceTranslation::id
+                ctx.resolve(CardImage::printTranslationId),
+                ctx.resolve(MtgPrintFaceTranslation::id)
             )
         }
     },
-    CardImageColor::class to TableDependency(MtgPrintFaceTranslation::class) { builder ->
+    CardImageColor::class to TableDependency(MtgPrintFaceTranslation::class) { builder, ctx ->
         builder.leftJoin(CardImageColor::class) {
             it
-                .where(CardImageColor::game, GameType.DISNEY_LORCANA)
-                .whereColumn(CardImageColor::printTranslationId, MtgPrintFaceTranslation::id)
+                .where(ctx.resolve(CardImageColor::game), GameType.DISNEY_LORCANA)
+                .whereColumn(ctx.resolve(CardImageColor::printTranslationId), ctx.resolve(MtgPrintFaceTranslation::id))
         }
     }
 )

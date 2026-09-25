@@ -7,9 +7,7 @@ import dev.cowzy.cardgourmet.elrond.config.SearchQuerySqlConfig
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import dev.cowzy.kuery.ColumnIndex
-import dev.cowzy.kuery.column.Column
 import dev.cowzy.kuery.query.*
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.parse
 import dev.cowzy.kuery.reflection.simpleColumnName
 import dev.cowzy.kuery.reflection.table
@@ -84,6 +82,8 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
     mode: SearchQueryMode,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
 ): SelectQueryBuilder {
+    val ctx = ColumnContext(config.materializedView)
+
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
 
@@ -91,10 +91,10 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 
     this.customTables?.invoke(query, mode)?.let { affectedTables.addAll(it) }
 
-    val builder = config.baseTable.selectBuilder()
-        .distinctOn(distinctBy)
-        .selectAs(distinctBy, "id")
-        .orderBy(distinctBy)
+    val builder = QueryBuilder.selectBuilder(ctx.resolveTable(config.baseTable))
+        .distinctOn(ctx.resolve(distinctBy))
+        .selectAs(ctx.resolve(distinctBy), "id")
+        .orderBy(ctx.resolve(distinctBy))
 
     if (mode == SearchQueryMode.SEARCH || mode == SearchQueryMode.RANDOM) {
         val sortColumns = query.sorting.mode.properties
@@ -107,9 +107,9 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
                 val sortName = "sort_${column.simpleColumnName()}"
                 if (type.isSubclassOf(Number::class)) {
                     // TODO: This is a hack to make sure that null values are sorted last.
-                    builder.selectAs("COALESCE(${column.columnName()}, 2147483647)", sortName)
+                    builder.selectAs("COALESCE(${ctx.resolve(column)}, 2147483647)", sortName)
                 } else {
-                    builder.selectAs(column.columnName(), sortName)
+                    builder.selectAs(ctx.resolve(column), sortName)
                 }
             }
         }
@@ -117,13 +117,12 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
         config.customFields.entries.sortedBy { it.key }.forEach { (key, field) ->
             val property = field.properties.firstOrNull { affectedTables.contains(it.table()) } ?: field.properties.firstOrNull()
             property?.let { affectedTables.add(it.table()) }
-            builder.selectRaw("${property?.columnName()} as $key")
+            builder.selectRaw("${property?.let { ctx.resolve(it) }} as $key")
         }
     }
 
-    builder.applyJoins(affectedTables, config)
+    builder.applyJoins(affectedTables, config, ctx)
 
-    val ctx = ColumnContext(config.materializedView)
     val properties = expression.collectProperties()
     properties.forEach { it.applyProperty(builder, ctx) }
     builder.whereSuspend {
@@ -131,7 +130,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
     }
 
     applyCustomConditions?.invoke(builder)
-    this.customBuilder?.invoke(query, mode, builder)
+    this.customBuilder?.invoke(query, mode, builder, ctx)
 
     return when (mode) {
         SearchQueryMode.RANDOM -> QueryBuilder.selectBuilder(builder.toSqlExpression(), "innerQuery")
@@ -319,14 +318,19 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 
 fun SelectQueryBuilder.applyJoins(
     tables: Set<KClass<*>>,
-    config: SearchQuerySqlConfig
+    config: SearchQuerySqlConfig,
+    ctx: ColumnContext,
 ): SelectQueryBuilder {
     val joinedTables = mutableSetOf(config.baseTable)
+
+    config.materializedView?.let { view ->
+        joinedTables.addAll(view.coveredTables)
+    }
 
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach
 
-        val localJoins = mutableListOf<(SelectQueryBuilder) -> Unit>()
+        val localJoins = mutableListOf<(SelectQueryBuilder, ColumnContext) -> Unit>()
         var current = arrayOf(it)
         do {
             current = current.mapNotNull { table ->
@@ -338,7 +342,7 @@ fun SelectQueryBuilder.applyJoins(
             }.flatten().toTypedArray()
         } while (current.isNotEmpty())
 
-        localJoins.reversed().forEach { it(this) }
+        localJoins.reversed().forEach { join -> join(this, ctx) }
     }
 
     return this

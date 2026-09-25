@@ -372,39 +372,39 @@ fun SearchQueryFilterBuilder.configureBasicPcgCardFilters() {
 }
 
 private val tableDependencies = mapOf(
-    PcgCard::class to TableDependency(PcgPrint::class) { builder ->
-        builder.innerJoin(PcgCard::class) { it.whereColumn(PcgCard::id, PcgPrint::cardId) }
+    PcgCard::class to TableDependency(PcgPrint::class) { builder, ctx ->
+        builder.innerJoin(PcgCard::class) { it.whereColumn(ctx.resolve(PcgCard::id), ctx.resolve(PcgPrint::cardId)) }
     },
-    PcgCardTranslation::class to TableDependency(PcgCard::class) { builder ->
-        builder.innerJoin(PcgCardTranslation::class) { it.whereColumn(PcgCard::id, PcgCardTranslation::cardId) }
+    PcgCardTranslation::class to TableDependency(PcgCard::class) { builder, ctx ->
+        builder.innerJoin(PcgCardTranslation::class) { it.whereColumn(ctx.resolve(PcgCard::id), ctx.resolve(PcgCardTranslation::cardId)) }
     },
-    PcgPrintTranslation::class to TableDependency(PcgPrint::class) { builder ->
-        builder.leftJoin(PcgPrintTranslation::class) { it.whereColumn(PcgPrint::id, PcgPrintTranslation::printId) }
+    PcgPrintTranslation::class to TableDependency(PcgPrint::class) { builder, ctx ->
+        builder.leftJoin(PcgPrintTranslation::class) { it.whereColumn(ctx.resolve(PcgPrint::id), ctx.resolve(PcgPrintTranslation::printId)) }
     },
-    PcgSet::class to TableDependency(PcgPrint::class) { builder ->
-        builder.innerJoin(PcgSet::class) { it.whereColumn(PcgPrint::setId, PcgSet::id) }
+    PcgSet::class to TableDependency(PcgPrint::class) { builder, ctx ->
+        builder.innerJoin(PcgSet::class) { it.whereColumn(ctx.resolve(PcgPrint::setId), ctx.resolve(PcgSet::id)) }
     },
-    PcgSetTranslation::class to TableDependency(PcgSet::class) { builder ->
-        builder.leftJoin(PcgSetTranslation::class) { it.whereColumn(PcgSet::id, PcgSetTranslation::setId) }
+    PcgSetTranslation::class to TableDependency(PcgSet::class) { builder, ctx ->
+        builder.leftJoin(PcgSetTranslation::class) { it.whereColumn(ctx.resolve(PcgSet::id), ctx.resolve(PcgSetTranslation::setId)) }
     },
-    PcgEra::class to TableDependency(PcgSet::class) { builder ->
-        builder.innerJoin(PcgEra::class) { it.whereColumn(PcgEra::id, PcgSet::eraId) }
+    PcgEra::class to TableDependency(PcgSet::class) { builder, ctx ->
+        builder.innerJoin(PcgEra::class) { it.whereColumn(ctx.resolve(PcgEra::id), ctx.resolve(PcgSet::eraId)) }
     },
-    CardPrice::class to TableDependency(PcgPrint::class) { builder ->
+    CardPrice::class to TableDependency(PcgPrint::class) { builder, ctx ->
         builder.leftJoin(CardPrice::class) {
             it
-                .whereColumn(PcgPrint::id, CardPrice::cardId)
-                .where(CardPrice::game, GameType.POKEMON_CARD_GAME)
+                .whereColumn(ctx.resolve(PcgPrint::id), ctx.resolve(CardPrice::cardId))
+                .where(ctx.resolve(CardPrice::game), GameType.POKEMON_CARD_GAME)
         }
     },
-    CardImage::class to TableDependency(PcgPrintTranslation::class) { builder ->
-        builder.leftJoin(CardImage::class) { it.whereColumn(CardImage::printTranslationId, PcgPrintTranslation::id) }
+    CardImage::class to TableDependency(PcgPrintTranslation::class) { builder, ctx ->
+        builder.leftJoin(CardImage::class) { it.whereColumn(ctx.resolve(CardImage::printTranslationId), ctx.resolve(PcgPrintTranslation::id)) }
     },
-    CardImageColor::class to TableDependency(PcgPrintTranslation::class) { builder ->
+    CardImageColor::class to TableDependency(PcgPrintTranslation::class) { builder, ctx ->
         builder.leftJoin(CardImageColor::class) {
             it
-                .where(CardImageColor::game, GameType.POKEMON_CARD_GAME)
-                .whereColumn(CardImageColor::printTranslationId, PcgPrintTranslation::id)
+                .where(ctx.resolve(CardImageColor::game), GameType.POKEMON_CARD_GAME)
+                .whereColumn(ctx.resolve(CardImageColor::printTranslationId), ctx.resolve(PcgPrintTranslation::id))
         }
     }
 )

@@ -300,39 +300,39 @@ fun SearchQueryFilterBuilder.configureBasicDlcCardFilters() {
 }
 
 private val tableDependencies = mapOf(
-    DlcCard::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcCard::class) { it.whereColumn(DlcCard::id, DlcPrint::cardId) }
+    DlcCard::class to TableDependency(DlcPrint::class) { builder, ctx ->
+        builder.innerJoin(DlcCard::class) { it.whereColumn(ctx.resolve(DlcCard::id), ctx.resolve(DlcPrint::cardId)) }
     },
-    DlcCardTranslation::class to TableDependency(DlcCard::class) { builder ->
-        builder.innerJoin(DlcCardTranslation::class) { it.whereColumn(DlcCard::id, DlcCardTranslation::cardId) }
+    DlcCardTranslation::class to TableDependency(DlcCard::class) { builder, ctx ->
+        builder.innerJoin(DlcCardTranslation::class) { it.whereColumn(ctx.resolve(DlcCard::id), ctx.resolve(DlcCardTranslation::cardId)) }
     },
-    DlcPrintTranslation::class to TableDependency(DlcPrint::class) { builder ->
-        builder.leftJoin(DlcPrintTranslation::class) { it.whereColumn(DlcPrint::id, DlcPrintTranslation::printId) }
+    DlcPrintTranslation::class to TableDependency(DlcPrint::class) { builder, ctx ->
+        builder.leftJoin(DlcPrintTranslation::class) { it.whereColumn(ctx.resolve(DlcPrint::id), ctx.resolve(DlcPrintTranslation::printId)) }
     },
-    DlcPrintIdentifier::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcPrintIdentifier::class) { it.whereColumn(DlcPrint::id, DlcPrintIdentifier::printId) }
+    DlcPrintIdentifier::class to TableDependency(DlcPrint::class) { builder, ctx ->
+        builder.innerJoin(DlcPrintIdentifier::class) { it.whereColumn(ctx.resolve(DlcPrint::id), ctx.resolve(DlcPrintIdentifier::printId)) }
     },
-    DlcSet::class to TableDependency(DlcPrint::class) { builder ->
-        builder.innerJoin(DlcSet::class) { it.whereColumn(DlcPrint::setId, DlcSet::id) }
+    DlcSet::class to TableDependency(DlcPrint::class) { builder, ctx ->
+        builder.innerJoin(DlcSet::class) { it.whereColumn(ctx.resolve(DlcPrint::setId), ctx.resolve(DlcSet::id)) }
     },
-    DlcFranchise::class to TableDependency(DlcCard::class) { builder ->
-        builder.leftJoin(DlcFranchise::class) { it.whereColumn(DlcCard::franchiseId, DlcFranchise::id) }
+    DlcFranchise::class to TableDependency(DlcCard::class) { builder, ctx ->
+        builder.leftJoin(DlcFranchise::class) { it.whereColumn(ctx.resolve(DlcCard::franchiseId), ctx.resolve(DlcFranchise::id)) }
     },
-    CardPrice::class to TableDependency(DlcPrint::class) { builder ->
+    CardPrice::class to TableDependency(DlcPrint::class) { builder, ctx ->
         builder.leftJoin(CardPrice::class) {
             it
-                .whereColumn(DlcPrint::id, CardPrice::cardId)
-                .where(CardPrice::game, GameType.DISNEY_LORCANA)
+                .whereColumn(ctx.resolve(DlcPrint::id), ctx.resolve(CardPrice::cardId))
+                .where(ctx.resolve(CardPrice::game), GameType.DISNEY_LORCANA)
         }
     },
-    CardImage::class to TableDependency(DlcPrintTranslation::class) { builder ->
-        builder.leftJoin(CardImage::class) { it.whereColumn(CardImage::printTranslationId, DlcPrintTranslation::id) }
+    CardImage::class to TableDependency(DlcPrintTranslation::class) { builder, ctx ->
+        builder.leftJoin(CardImage::class) { it.whereColumn(ctx.resolve(CardImage::printTranslationId), ctx.resolve(DlcPrintTranslation::id)) }
     },
-    CardImageColor::class to TableDependency(DlcPrintTranslation::class) { builder ->
+    CardImageColor::class to TableDependency(DlcPrintTranslation::class) { builder, ctx ->
         builder.leftJoin(CardImageColor::class) {
             it
-                .where(CardImageColor::game, GameType.DISNEY_LORCANA)
-                .whereColumn(CardImageColor::printTranslationId, DlcPrintTranslation::id)
+                .where(ctx.resolve(CardImageColor::game), GameType.DISNEY_LORCANA)
+                .whereColumn(ctx.resolve(CardImageColor::printTranslationId), ctx.resolve(DlcPrintTranslation::id))
         }
     }
 )

@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.tcg.config.card.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
@@ -15,31 +16,34 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((
+    SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>,
+    SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit
+) = queryBuilder@{ query, mode, builder, ctx ->
     val preferMode = query.flags.firstOfOrNull(MtgCardSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgCardSearchQueryFlag.INCLUDE_EXTRAS)) {
-        builder.whereInRaw(MtgPrint::id, "(SELECT id FROM ${Schemata.MAGIC_THE_GATHERING}.primary_print_ids)")
+        builder.whereInRaw(ctx.resolve(MtgPrint::id), "(SELECT id FROM ${Schemata.MAGIC_THE_GATHERING}.primary_print_ids)")
     }
 
     if (!query.flags.contains(MtgCardSearchQueryFlag.ANY_LANGUAGE)) {
-        builder.whereInRaw(MtgCardFaceTranslation::language, "(?, 'en')") { stmt, index ->
+        builder.whereInRaw(ctx.resolve(MtgCardFaceTranslation::language), "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
         }
     }
 
     if (query.flags.contains(MtgCardSearchQueryFlag.REQUIRE_IMAGE)) {
-        builder.whereNotNull(CardImage::imageId)
+        builder.whereNotNull(ctx.resolve(CardImage::imageId))
     }
 
     // No need to apply sort for count/random queries.
     if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
-    applyMtgSortPreLanguage(builder, preferMode)
+    applyMtgSortPreLanguage(builder, preferMode, ctx)
 
     val languageSort = "CASE " +
-            "WHEN(${MtgCardFaceTranslation::language.columnName()} = ?) THEN 1 " +
-            "WHEN(${MtgCardFaceTranslation::language.columnName()} = 'en') THEN 2 " +
+            "WHEN(${ctx.resolve(MtgCardFaceTranslation::language)} = ?) THEN 1 " +
+            "WHEN(${ctx.resolve(MtgCardFaceTranslation::language)} = 'en') THEN 2 " +
             "ELSE 3 " +
             "END"
 
@@ -47,68 +51,68 @@ private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQue
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
-    applyMtgSortPostLanguage(query, builder, preferMode)
+    applyMtgSortPostLanguage(query, builder, preferMode, ctx)
 }
 
-fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?) {
+fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?, ctx: ColumnContext) {
     // Always prefer cards with images.
-    builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
+    builder.orderByRaw("CASE WHEN(${ctx.resolve(CardImage::imageId)} IS NOT NULL) THEN 1 ELSE 2 END")
 
     // Next, sort by release date or price (if required).
     when (preferMode) {
-        MtgCardSearchQueryFlag.PREFER_OLDEST -> builder.orderBy(MtgPrint::releaseDate)
-        MtgCardSearchQueryFlag.PREFER_NEWEST -> builder.orderBy(MtgPrint::releaseDate, Order.DESCENDING)
-        MtgCardSearchQueryFlag.PREFER_EUR_LOW -> builder.orderByRaw("COALESCE(${MtgPrintPrice::priceEur.columnName()}, 0)")
-        MtgCardSearchQueryFlag.PREFER_EUR_HIGH -> builder.orderBy("COALESCE(${MtgPrintPrice::priceEur.columnName()}, 0)", Order.DESCENDING)
-        MtgCardSearchQueryFlag.PREFER_USD_LOW -> builder.orderBy("COALESCE(${MtgPrintPrice::priceUsd.columnName()}, 0)")
-        MtgCardSearchQueryFlag.PREFER_USD_HIGH -> builder.orderBy("COALESCE(${MtgPrintPrice::priceUsd.columnName()}, 0)", Order.DESCENDING)
-        MtgCardSearchQueryFlag.PREFER_TIX_LOW -> builder.orderBy("COALESCE(${MtgPrintPrice::priceTix.columnName()}, 0)")
-        MtgCardSearchQueryFlag.PREFER_TIX_HIGH -> builder.orderBy("COALESCE(${MtgPrintPrice::priceTix.columnName()}, 0)", Order.DESCENDING)
+        MtgCardSearchQueryFlag.PREFER_OLDEST -> builder.orderBy(ctx.resolve(MtgPrint::releaseDate))
+        MtgCardSearchQueryFlag.PREFER_NEWEST -> builder.orderBy(ctx.resolve(MtgPrint::releaseDate), Order.DESCENDING)
+        MtgCardSearchQueryFlag.PREFER_EUR_LOW -> builder.orderByRaw("COALESCE(${ctx.resolve(MtgPrintPrice::priceEur)}, 0)")
+        MtgCardSearchQueryFlag.PREFER_EUR_HIGH -> builder.orderBy("COALESCE(${ctx.resolve(MtgPrintPrice::priceEur)}, 0)", Order.DESCENDING)
+        MtgCardSearchQueryFlag.PREFER_USD_LOW -> builder.orderBy("COALESCE(${ctx.resolve(MtgPrintPrice::priceUsd)}, 0)")
+        MtgCardSearchQueryFlag.PREFER_USD_HIGH -> builder.orderBy("COALESCE(${ctx.resolve(MtgPrintPrice::priceUsd)}, 0)", Order.DESCENDING)
+        MtgCardSearchQueryFlag.PREFER_TIX_LOW -> builder.orderBy("COALESCE(${ctx.resolve(MtgPrintPrice::priceTix)}, 0)")
+        MtgCardSearchQueryFlag.PREFER_TIX_HIGH -> builder.orderBy("COALESCE(${ctx.resolve(MtgPrintPrice::priceTix)}, 0)", Order.DESCENDING)
         else -> Unit
     }
 
     // Next, sort by custom properties.
     if (preferMode == MtgCardSearchQueryFlag.PREFER_PROMO) {
-        builder.orderByRaw("CASE WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 1 ELSE 2 END")
+        builder.orderByRaw("CASE WHEN(CARDINALITY(${ctx.resolve(MtgPrint::promoTypes)}) > 0) THEN 1 ELSE 2 END")
     } else if (preferMode == MtgCardSearchQueryFlag.PREFER_ARENA) {
-        builder.orderByRaw("CASE WHEN(${MtgPrint::mediums.columnName()} = ARRAY['arena']::text[]) THEN 1 ELSE 2 END")
+        builder.orderByRaw("CASE WHEN(${ctx.resolve(MtgPrint::mediums)} = ARRAY['arena']::text[]) THEN 1 ELSE 2 END")
     } else if (preferMode == MtgCardSearchQueryFlag.PREFER_SPECIAL) {
         builder.orderByRaw("CASE " +
-                "WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 1" +
-                "WHEN(${MtgPrint::setCode.columnName()} = 'SLD') THEN 2 " +
-                "WHEN(${MtgPrintFaceTranslation::flavorName.columnName()} IS NOT NULL) THEN 3 " +
+                "WHEN(CARDINALITY(${ctx.resolve(MtgPrint::promoTypes)}) > 0) THEN 1" +
+                "WHEN(${ctx.resolve(MtgPrint::setCode)} = 'SLD') THEN 2 " +
+                "WHEN(${ctx.resolve(MtgPrintFaceTranslation::flavorName)} IS NOT NULL) THEN 3 " +
                 "ELSE 4 END")
     } else if (preferMode == MtgCardSearchQueryFlag.PREFER_BASIC) {
         builder.orderByRaw("CASE " +
-                "WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 4" +
-                "WHEN(${MtgPrint::setCode.columnName()} = 'SLD') THEN 3 " +
-                "WHEN(${MtgPrintFaceTranslation::flavorName.columnName()} IS NOT NULL) THEN 2 " +
+                "WHEN(CARDINALITY(${ctx.resolve(MtgPrint::promoTypes)}) > 0) THEN 4" +
+                "WHEN(${ctx.resolve(MtgPrint::setCode)} = 'SLD') THEN 3 " +
+                "WHEN(${ctx.resolve(MtgPrintFaceTranslation::flavorName)} IS NOT NULL) THEN 2 " +
                 "ELSE 1 END")
     }
 }
 
-fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?) {
-    builder.orderByRaw("array_position(ARRAY[?, 'en'], ${MtgPrintFaceTranslation::language.columnName()})") { stmt, index ->
+fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?, ctx: ColumnContext) {
+    builder.orderByRaw("array_position(ARRAY[?, 'en'], ${ctx.resolve(MtgPrintFaceTranslation::language)})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
     // Apply default sort.
     if (preferMode == null) {
-        builder.orderByRaw("CASE WHEN(${MtgPrint::mediums.columnName()} = ARRAY['arena']::text[]) THEN 3 WHEN(CARDINALITY(${MtgPrint::promoTypes.columnName()}) > 0) THEN 2 ELSE 1 END")
-        builder.orderBy(MtgPrint::releaseDate, Order.DESCENDING)
+        builder.orderByRaw("CASE WHEN(${ctx.resolve(MtgPrint::mediums)} = ARRAY['arena']::text[]) THEN 3 WHEN(CARDINALITY(${ctx.resolve(MtgPrint::promoTypes)}) > 0) THEN 2 ELSE 1 END")
+        builder.orderBy(ctx.resolve(MtgPrint::releaseDate), Order.DESCENDING)
     }
 
     // Lastly, sort by collector number.
-    builder.orderBy(MtgPrint::collectorNumberValue) // rough sorting
-    builder.orderBy(MtgPrint::collectorNumber) // exact sorting for subset
+    builder.orderBy(ctx.resolve(MtgPrint::collectorNumberValue)) // rough sorting
+    builder.orderBy(ctx.resolve(MtgPrint::collectorNumber)) // exact sorting for subset
 
     // Make sure to always return the same face.
-    builder.orderBy(MtgCardFace::index)
+    builder.orderBy(ctx.resolve(MtgCardFace::index))
 }
 
 fun createMtgCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)

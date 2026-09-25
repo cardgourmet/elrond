@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcSet
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
@@ -18,26 +19,26 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     if (!query.flags.contains(DlcCardSearchQueryFlag.ANY_LANGUAGE)) {
-        builder.whereInRaw(DlcCardTranslation::language, "(?, 'en')") { stmt, index ->
+        builder.whereInRaw(ctx.resolve(DlcCardTranslation::language), "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
         }
     }
 
     if (query.flags.contains(DlcCardSearchQueryFlag.REQUIRE_IMAGE)) {
-        builder.whereNotNull(CardImage::imageId)
+        builder.whereNotNull(ctx.resolve(CardImage::imageId))
     }
 
     // No need to apply sort for count/random queries.
     if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     // Always prefer cards with images.
-    builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
+    builder.orderByRaw("CASE WHEN(${ctx.resolve(CardImage::imageId)} IS NOT NULL) THEN 1 ELSE 2 END")
 
     val languageSort = "CASE " +
-            "WHEN(${DlcCardTranslation::language.columnName()} = ?) THEN 1 " +
-            "WHEN(${DlcCardTranslation::language.columnName()} = 'en') THEN 2 " +
+            "WHEN(${ctx.resolve(DlcCardTranslation::language)} = ?) THEN 1 " +
+            "WHEN(${ctx.resolve(DlcCardTranslation::language)} = 'en') THEN 2 " +
             "ELSE 3 " +
             "END"
 
@@ -45,25 +46,25 @@ private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQue
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
-    applyDlcSort(query, builder)
+    applyDlcSort(query, builder, ctx)
 }
 
-fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder) {
-    builder.orderByRaw("array_position(ARRAY[?, 'en'], ${DlcPrintTranslation::language.columnName()})") { stmt, index ->
+fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, ctx: ColumnContext) {
+    builder.orderByRaw("array_position(ARRAY[?, 'en'], ${ctx.resolve(DlcPrintTranslation::language)})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
     // Apply default sort.
-    builder.orderBy(DlcSet::releaseDate, Order.DESCENDING)
+    builder.orderBy(ctx.resolve(DlcSet::releaseDate), Order.DESCENDING)
 
     // Lastly, sort by collector number.
-    builder.orderBy(DlcPrint::collectorNumberValue) // rough sorting
-    builder.orderBy(DlcPrint::collectorNumber) // exact sorting for subset
+    builder.orderBy(ctx.resolve(DlcPrint::collectorNumberValue)) // rough sorting
+    builder.orderBy(ctx.resolve(DlcPrint::collectorNumber)) // exact sorting for subset
 }
 
 fun createDlcCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     return SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)

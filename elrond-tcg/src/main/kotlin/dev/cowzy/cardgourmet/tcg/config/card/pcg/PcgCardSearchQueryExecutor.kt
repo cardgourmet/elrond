@@ -5,6 +5,7 @@ import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCard
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.chef.commons.model.set.pcg.PcgSet
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
@@ -17,26 +18,26 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     if (!query.flags.contains(PcgCardSearchQueryFlag.ANY_LANGUAGE)) {
-        builder.whereInRaw(PcgCardTranslation::language, "(?, 'en')") { stmt, index ->
+        builder.whereInRaw(ctx.resolve(PcgCardTranslation::language), "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
         }
     }
 
     if (query.flags.contains(PcgCardSearchQueryFlag.REQUIRE_IMAGE)) {
-        builder.whereNotNull(CardImage::imageId)
+        builder.whereNotNull(ctx.resolve(CardImage::imageId))
     }
 
     // No need to apply sort for count/random queries.
     if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     // Always prefer cards with images.
-    builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
+    builder.orderByRaw("CASE WHEN(${ctx.resolve(CardImage::imageId)} IS NOT NULL) THEN 1 ELSE 2 END")
 
     val languageSort = "CASE " +
-            "WHEN(${PcgCardTranslation::language.columnName()} = ?) THEN 1 " +
-            "WHEN(${PcgCardTranslation::language.columnName()} = 'en') THEN 2 " +
+            "WHEN(${ctx.resolve(PcgCardTranslation::language)} = ?) THEN 1 " +
+            "WHEN(${ctx.resolve(PcgCardTranslation::language)} = 'en') THEN 2 " +
             "ELSE 3 " +
             "END"
 
@@ -44,26 +45,26 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQue
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
-    applyPcgSort(query, builder)
+    applyPcgSort(query, builder, ctx)
 }
 
-fun applyPcgSort(query: SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder) {
-    builder.orderByRaw("array_position(ARRAY[?, 'en'], ${PcgCardTranslation::language.columnName()})") { stmt, index ->
+fun applyPcgSort(query: SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, ctx: ColumnContext) {
+    builder.orderByRaw("array_position(ARRAY[?, 'en'], ${ctx.resolve(PcgCardTranslation::language)})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
     // Apply default sort.
-    builder.orderBy(PcgSet::releaseStartDate, Order.DESCENDING)
-    builder.orderBy(PcgSet::releaseEndDate, Order.DESCENDING)
+    builder.orderBy(ctx.resolve(PcgSet::releaseStartDate), Order.DESCENDING)
+    builder.orderBy(ctx.resolve(PcgSet::releaseEndDate), Order.DESCENDING)
 
     // Lastly, sort by collector number.
-    builder.orderBy(PcgPrint::collectorNumberValue) // rough sorting
-    builder.orderBy(PcgPrint::collectorNumber) // exact sorting for subset
+    builder.orderBy(ctx.resolve(PcgPrint::collectorNumberValue)) // rough sorting
+    builder.orderBy(ctx.resolve(PcgPrint::collectorNumber)) // exact sorting for subset
 }
 
 fun createPcgCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit = queryBuilder,
+    builder: (SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     return SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
@@ -89,7 +90,7 @@ fun createPcgCardBaseBuilder(
                 }
             }
         }
-        .customBuilder(builder)
+        .customBuilder(builder,)
         .transformAttempt {
             val anyLang = it.flags.contains(PcgCardSearchQueryFlag.ANY_LANGUAGE)
             when {
