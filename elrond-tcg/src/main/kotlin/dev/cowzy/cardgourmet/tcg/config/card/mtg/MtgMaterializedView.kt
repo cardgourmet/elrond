@@ -16,7 +16,7 @@ private val tables = setOf(
 )
 
 val MtgMaterializedView = MaterializedView(
-    table = "mtg.mv_absolute_unit",
+    table = "mtg.mv_combined",
     coveredTables = tables,
     columnMappings = generateColumnMappings()
 )
