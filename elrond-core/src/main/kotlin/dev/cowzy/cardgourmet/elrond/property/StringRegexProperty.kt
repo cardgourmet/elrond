@@ -27,13 +27,14 @@ class StringRegexProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: String
+        value: String,
+        ctx: ColumnContext
     ) {
         val escapedValue = value.replace(Regex("[^\\p{L}\\p{N}]"), ".")
         val pattern = this.mapPattern(escapedValue, operator)
 
-        builder.whereNotNull(column)
-        builder.where(column, "~*", value = pattern)
+        builder.whereNotNull(ctx.resolve(column))
+        builder.where(ctx.resolve(column), "~*", value = pattern)
     }
 
 }

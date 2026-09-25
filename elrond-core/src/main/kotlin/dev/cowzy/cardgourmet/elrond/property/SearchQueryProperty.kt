@@ -1,11 +1,11 @@
 package dev.cowzy.cardgourmet.elrond.property
 
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
-import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import kotlin.reflect.KClass
 
@@ -28,7 +28,7 @@ abstract class SearchQueryProperty<OutputType : Any>(
      * Apply the property to the query builder.
      * Executed only once per query, even if the property is used multiple times.
      */
-    open fun applyProperty(builder: SelectQueryBuilder) = Unit
+    open fun applyProperty(builder: SelectQueryBuilder, ctx: ColumnContext) = Unit
 
     /**
      * Apply the condition to the query builder for the given operator and value.
@@ -36,19 +36,22 @@ abstract class SearchQueryProperty<OutputType : Any>(
     abstract suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: OutputType
+        value: OutputType,
+        ctx: ColumnContext
     )
 
     open suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        other: SearchQueryProperty<*>
+        other: SearchQueryProperty<*>,
+        ctx: ColumnContext
     ): Unit = throw NotImplementedError()
 
     open suspend fun <T : WhereQueryBuilder<T>> applyMultipleConditions(
         builder: T,
         operator: LogicalOperator,
         conditions: List<Pair<SearchQueryOperator, OutputType>>,
+        ctx: ColumnContext,
     ): Unit = throw NotImplementedError()
 
 }

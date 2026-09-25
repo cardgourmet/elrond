@@ -26,8 +26,13 @@ class UuidColumnProperty(
         }
     }
 
-    override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T, operator: SearchQueryOperator, value: UUID) {
-        builder.whereNotNull(column)
-        builder.where(column, value)
+    override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
+        builder: T,
+        operator: SearchQueryOperator,
+        value: UUID,
+        ctx: ColumnContext
+    ) {
+        builder.whereNotNull(ctx.resolve(column))
+        builder.where(ctx.resolve(column), value)
     }
 }

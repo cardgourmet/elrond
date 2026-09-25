@@ -36,14 +36,15 @@ abstract class StringSearchQueryProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: QueryValue<*>
+        value: QueryValue<*>,
+        ctx: ColumnContext
     ) {
         val mappedOperator = when {
             mapContainsToEquals && operator == SearchQueryOperator.CONTAINS -> SearchQueryOperator.EQUALS
             else -> operator
         }
 
-        val rawSql = getRawSql(value)
+        val rawSql = getRawSql(value, ctx)
         builder.whereNotNull(rawSql)
 
         when (value) {
@@ -68,6 +69,6 @@ abstract class StringSearchQueryProperty(
         }
     }
 
-    abstract fun getRawSql(value: QueryValue<*>): String
+    abstract fun getRawSql(value: QueryValue<*>, ctx: ColumnContext): String
 
 }

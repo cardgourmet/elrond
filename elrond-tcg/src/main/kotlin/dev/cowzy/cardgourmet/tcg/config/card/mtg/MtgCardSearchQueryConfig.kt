@@ -651,5 +651,6 @@ val mtgBasicSearchQueryConfig = SearchQuerySqlConfig(
         "printId" to CustomField(MtgPrint::id),
         "faceIndex" to CustomField(MtgCardFace::index),
         "language" to CustomField(MtgPrintFaceTranslation::language, MtgCardFaceTranslation::language)
-    )
+    ),
+    materializedView = MtgMaterializedView
 )

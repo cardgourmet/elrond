@@ -30,14 +30,15 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: ValueType
+        value: ValueType,
+        ctx: ColumnContext
     ) {
-        builder.whereNotNull(column)
+        builder.whereNotNull(ctx.resolve(column))
 
         if (column.javaField!!.type.isEnum) {
-            builder.where(column, value)
+            builder.where(ctx.resolve(column), value)
         } else {
-            builder.where(column, value.getSerialName())
+            builder.where(ctx.resolve(column), value.getSerialName())
         }
     }
 

@@ -6,6 +6,7 @@ import dev.cowzy.kuery.query.orWhereRaw
 import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
 
@@ -14,13 +15,13 @@ class MtgUserCardFoilProperty(private val inverted: Boolean = false) : StaticSea
     SimplePropertyDescriptor(Strings.Query.Mtg.Comparison.IsFoil.KEY, Strings.Query.Property.PRINT),
     key = "is_foil"
 ) {
-    override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T) {
+    override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T, ctx: ColumnContext) {
         val foilTypes = MtgFinish.values().filter { it.isFoil() }
 
         if (inverted) {
             builder.whereNot { inner ->
                 foilTypes.forEach {
-                    inner.orWhereRaw(UserCard::finishes, "@>", "ARRAY[?]::text[]") { stmt, index ->
+                    inner.orWhereRaw(ctx.resolve(UserCard::finishes), "@>", "ARRAY[?]::text[]") { stmt, index ->
                         stmt.setString(index.getAndIncrement(), it.getSerialName())
                     }
                 }
@@ -28,7 +29,7 @@ class MtgUserCardFoilProperty(private val inverted: Boolean = false) : StaticSea
         } else {
             builder.where { inner ->
                 foilTypes.forEach {
-                    inner.orWhereRaw(UserCard::finishes, "@>", "ARRAY[?]::text[]") { stmt, index ->
+                    inner.orWhereRaw(ctx.resolve(UserCard::finishes), "@>", "ARRAY[?]::text[]") { stmt, index ->
                         stmt.setString(index.getAndIncrement(), it.getSerialName())
                     }
                 }

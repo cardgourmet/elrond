@@ -8,7 +8,7 @@ import dev.cowzy.cardgourmet.elrond.descriptor.*
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.cardgourmet.elrond.tokenizer.*
 import dev.cowzy.kuery.query.*
-import dev.cowzy.kuery.reflection.*
+import kotlin.reflect.KProperty1
 
 class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     supportedOperators = stringQueryOperators,
@@ -44,86 +44,66 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: QueryValue<*>
+        value: QueryValue<*>,
+        ctx: ColumnContext
     ) {
-        builder.applyNameSearchTerm(operator, value)
+        builder.applyNameSearchTerm(operator, value, ctx)
     }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyMultipleConditions(
         builder: T,
         operator: LogicalOperator,
-        conditions: List<Pair<SearchQueryOperator, QueryValue<*>>>
+        conditions: List<Pair<SearchQueryOperator, QueryValue<*>>>,
+        ctx: ColumnContext
     ) {
         conditions.forEach { (op, value) ->
             when (operator) {
-                LogicalOperator.AND -> builder.where { it.applyNameSearchTerm(op, value) }
-                else -> builder.orWhere { it.applyNameSearchTerm(op, value) }
+                LogicalOperator.AND -> builder.where { it.applyNameSearchTerm(op, value, ctx) }
+                else -> builder.orWhere { it.applyNameSearchTerm(op, value, ctx) }
             }
         }
     }
 
     private fun <T : WhereQueryBuilder<T>> T.applyNameSearchTerm(
         operator: SearchQueryOperator,
-        value: QueryValue<*>
+        value: QueryValue<*>,
+        ctx: ColumnContext
     ): T {
         return this
-            .where { applyNameCondition(it, printFaceTranslationColumn(value), operator, value) }
-            .orWhere {
-                val existsQuery = QueryBuilder.selectBuilder(
-                    "mtg.search_names AS other_search_names",
-                    tableAlias = "other_search_names"
-                )
-                    .selectRaw("1")
-                    .whereColumn("other_search_names.card_id", MtgCard::id.columnName())
-                    .whereNotNull("other_search_names.print_face_translation_id")
-                    .apply {
-                        applyNameCondition(
-                            this,
-                            "other_search_names.${searchNameColumn(value)}",
-                            operator,
-                            value
-                        )
-                    }.toSqlExpression()
-
-                it.whereRaw("NOT EXISTS (${existsQuery.sql})", existsQuery.fill)
-
-                val innerBuilder = QueryBuilder.selectBuilder("mtg.search_names")
-                    .select("id")
-                    .whereNull("mtg.search_names.print_face_translation_id")
-                    .apply { applyNameCondition(this, "mtg.search_names.${searchNameColumn(value)}", operator, value) }
-
-                it.whereIn(MtgCardFaceTranslation::id.columnName(), innerBuilder)
-            }
-    }
-
-    private fun searchNameColumn(value: QueryValue<*>): String = when {
-        value is StringValue && value.exact -> "name"
-        value is RegexValue -> "name"
-        else -> "simple_name"
-    }
-
-    private fun printFaceTranslationColumn(value: QueryValue<*>): String = when {
-        value is StringValue && value.exact -> MtgPrintFaceTranslation::flavorName.columnName()
-        value is RegexValue -> MtgPrintFaceTranslation::flavorName.columnName()
-        else -> MtgPrintFaceTranslation::simpleFlavorName.columnName()
+            .where { applyNameCondition(it, printFaceTranslationColumn(value), operator, value, ctx) }
+            .orWhere { applyNameCondition(it, cardFaceTranslationColumn(value), operator, value, ctx) }
+            .orWhere { applyNameCondition(it, MtgCard::name, operator, value, ctx) }
     }
 
     private fun <T : WhereQueryBuilder<T>> applyNameCondition(
         builder: T,
-        column: String,
+        column: KProperty1<*, *>,
         operator: SearchQueryOperator,
-        value: QueryValue<*>
+        value: QueryValue<*>,
+        ctx: ColumnContext
     ) {
         when (value) {
             is StringValue -> when (operator) {
-                SearchQueryOperator.EQUALS -> builder.where(column, "ILIKE", value = value.value)
-                SearchQueryOperator.CONTAINS -> builder.where(column, "ILIKE", value = "%${value.value}%")
+                SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(column), "ILIKE", value = value.value)
+                SearchQueryOperator.CONTAINS -> builder.where(ctx.resolve(column), "ILIKE", value = "%${value.value}%")
                 else -> throw IllegalStateException("Unsupported operator: $operator")
             }
 
-            is RegexValue -> builder.where(column, "~*", value = value.value.pattern)
+            is RegexValue -> builder.where(ctx.resolve(column), "~*", value = value.value.pattern)
 
             else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")
         }
+    }
+
+    private fun cardFaceTranslationColumn(value: QueryValue<*>): KProperty1<*, *> = when {
+        value is StringValue && value.exact -> MtgCardFaceTranslation::name
+        value is RegexValue -> MtgCardFaceTranslation::name
+        else -> MtgCardFaceTranslation::simpleName
+    }
+
+    private fun printFaceTranslationColumn(value: QueryValue<*>): KProperty1<*, *> = when {
+        value is StringValue && value.exact -> MtgPrintFaceTranslation::flavorName
+        value is RegexValue -> MtgPrintFaceTranslation::flavorName
+        else -> MtgPrintFaceTranslation::simpleFlavorName
     }
 }

@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.property
 
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
@@ -32,11 +33,12 @@ class ParityProperty(val property: NumericSearchQueryProperty) : SearchQueryProp
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: Parity
+        value: Parity,
+        ctx: ColumnContext
     ) {
         when (value) {
-            Parity.EVEN -> builder.where("abs(${property.getRawSql()})::integer % 2", 0)
-            Parity.ODD -> builder.where("abs(${property.getRawSql()})::integer % 2", 1)
+            Parity.EVEN -> builder.where("abs(${property.getRawSql(ctx)})::integer % 2", 0)
+            Parity.ODD -> builder.where("abs(${property.getRawSql(ctx)})::integer % 2", 1)
         }
     }
 

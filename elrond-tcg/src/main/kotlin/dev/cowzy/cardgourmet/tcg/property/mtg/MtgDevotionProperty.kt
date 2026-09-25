@@ -36,7 +36,7 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
         StringValue::class {
             format = "mtg_mana"
 
-            transform { value -> value.value.toManaDisplays()?.map { display -> display.values.map { it.type } }?.flatten()?.groupBy { it }?.mapValues { it.value.size } }
+            transform { value -> value.value.toManaDisplays()?.flatMap { display -> display.values.map { it.type } }?.groupBy { it }?.mapValues { it.value.size } }
 
             match { it.values.distinct().size == 1 && it.values.sum() % it.entries.size == 0 }
         }
@@ -45,34 +45,35 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: Map<MtgManaType, Int>
+        value: Map<MtgManaType, Int>,
+        ctx: ColumnContext
     ) {
         val targetDevotion = value.values.sum() / value.entries.size
 
-        val sqlSum = value.entries.joinToString(" + ") { "cardinality(array_positions(${MtgCardFace::colorDevotion.columnName()}, ?))" }
+        val sqlSum = value.entries.joinToString(" + ") { "cardinality(array_positions(${ctx.resolve(MtgCardFace::colorDevotion)}, ?))" }
         val fillSum: (PreparedStatement, ColumnIndex) -> Unit = { stmt, index ->
             value.forEach { stmt.setNumber(index.getAndIncrement(), it.key.ordinal) }
             stmt.setNumber(index.getAndIncrement(), targetDevotion)
         }
 
         builder.where { it
-            .where(MtgCard::layout, "!=", "transform")
-            .orWhere(MtgCardFace::index, 0)
+            .where(ctx.resolve(MtgCard::layout), operator = "!=", "transform")
+            .orWhere(ctx.resolve(MtgCardFace::index), 0)
         }
 
         builder.where { inner ->
             when (operator) {
                 SearchQueryOperator.CONTAINS, SearchQueryOperator.GREATER_THAN_OR_EQUALS -> inner
                     .whereRaw("$sqlSum >= ?", fillSum)
-                    .where(MtgCardFace::totalDevotion, ">=", targetDevotion)
+                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">=", targetDevotion)
                 SearchQueryOperator.GREATER_THAN -> inner
                     .whereRaw("$sqlSum > ?", fillSum)
-                    .where(MtgCardFace::totalDevotion, ">", targetDevotion)
+                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">", targetDevotion)
                 SearchQueryOperator.LESS_THAN_OR_EQUALS -> inner.whereRaw("$sqlSum <= ?", fillSum)
                 SearchQueryOperator.LESS_THAN -> inner.whereRaw("$sqlSum < ?", fillSum)
                 SearchQueryOperator.EQUALS -> inner
                     .whereRaw("$sqlSum = ?", fillSum)
-                    .where(MtgCardFace::totalDevotion, ">=", targetDevotion)
+                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">=", targetDevotion)
             }
         }
     }

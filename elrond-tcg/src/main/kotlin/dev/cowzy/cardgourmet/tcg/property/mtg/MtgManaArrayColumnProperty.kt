@@ -35,7 +35,8 @@ class MtgManaArrayColumnProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: List<ManaValue>
+        value: List<ManaValue>,
+        ctx: ColumnContext
     ) {
         val manaValues = value.map { it.type }.distinct().toManaColorIndices()
 
@@ -47,26 +48,26 @@ class MtgManaArrayColumnProperty(
 
         when (operator) {
             SearchQueryOperator.CONTAINS -> when {
-                mapContainsToLessThanOrEquals -> builder.whereRaw(column, "<@", sqlArray, fill = fillArray)
-                !mapContainsToLessThanOrEquals -> builder.whereRaw(column, "@>", sqlArray, fill = fillArray)
+                mapContainsToLessThanOrEquals -> builder.whereRaw(ctx.resolve(column), "<@", sqlArray, fill = fillArray)
+                !mapContainsToLessThanOrEquals -> builder.whereRaw(ctx.resolve(column), "@>", sqlArray, fill = fillArray)
             }
 
             SearchQueryOperator.GREATER_THAN_OR_EQUALS -> builder
-                .whereRaw(column, "@>", sqlArray, fill = fillArray)
+                .whereRaw(ctx.resolve(column), "@>", sqlArray, fill = fillArray)
 
             SearchQueryOperator.GREATER_THAN -> builder
-                .whereRaw(column, "@>", sqlArray, fill = fillArray)
-                .where("cardinality(${column.columnName()})", ">", manaValues.size)
+                .whereRaw(ctx.resolve(column), "@>", sqlArray, fill = fillArray)
+                .where("cardinality(${ctx.resolve(column)})", ">", manaValues.size)
 
             SearchQueryOperator.LESS_THAN_OR_EQUALS -> builder
-                .whereRaw(column, "<@", sqlArray, fill = fillArray)
+                .whereRaw(ctx.resolve(column), "<@", sqlArray, fill = fillArray)
 
             SearchQueryOperator.LESS_THAN -> builder
-                .whereRaw(column, "<@", sqlArray, fill = fillArray)
-                .where("cardinality(${column.columnName()})", "<", manaValues.size)
+                .whereRaw(ctx.resolve(column), "<@", sqlArray, fill = fillArray)
+                .where("cardinality(${ctx.resolve(column)})", "<", manaValues.size)
 
             SearchQueryOperator.EQUALS -> builder
-                .whereRaw(column, "=", sqlArray, fill = fillArray)
+                .whereRaw(ctx.resolve(column), "=", sqlArray, fill = fillArray)
         }
     }
 

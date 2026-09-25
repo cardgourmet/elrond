@@ -31,7 +31,8 @@ class DateProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: String
+        value: String,
+        ctx: ColumnContext
     ) {
         val match = dateRegex.find(value) ?: throw IllegalStateException("Invalid date")
         val day = match.groupValues[3].ifEmpty { null }?.toInt()
@@ -40,25 +41,25 @@ class DateProperty(
         val condition: (WhereQueryBuilder<*>) -> Unit = { inner ->
             when (operator) {
                 SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> when {
-                    date != null -> inner.where(column, date)
+                    date != null -> inner.where(ctx.resolve(column), date)
                     else -> inner
-                        .where(column, ">=", getLowerBound(operator, value))
-                        .whereRaw(column, "<", "'${getUpperBound(operator, value)}'")
+                        .where(ctx.resolve(column), operator = ">=", getLowerBound(operator, value))
+                        .whereRaw(ctx.resolve(column), "<", "'${getUpperBound(operator, value)}'")
                 }
 
-                SearchQueryOperator.GREATER_THAN_OR_EQUALS -> inner.whereRaw(column, ">=", "'${getLowerBound(operator, value)}'")
+                SearchQueryOperator.GREATER_THAN_OR_EQUALS -> inner.whereRaw(ctx.resolve(column), ">=", "'${getLowerBound(operator, value)}'")
 
                 SearchQueryOperator.GREATER_THAN -> when {
-                    date != null -> inner.where(column, ">", date)
-                    else -> inner.whereRaw(column, ">=", "'${getLowerBound(operator, value)}'")
+                    date != null -> inner.where(ctx.resolve(column), ">", date)
+                    else -> inner.whereRaw(ctx.resolve(column), ">=", "'${getLowerBound(operator, value)}'")
                 }
 
                 SearchQueryOperator.LESS_THAN_OR_EQUALS -> when {
-                    date != null -> inner.where(column, "<=", date)
-                    else -> inner.whereRaw(column, "<", "'${getUpperBound(operator, value)}'")
+                    date != null -> inner.where(ctx.resolve(column), "<=", date)
+                    else -> inner.whereRaw(ctx.resolve(column), "<", "'${getUpperBound(operator, value)}'")
                 }
 
-                SearchQueryOperator.LESS_THAN -> inner.whereRaw(column, "<", "'${getUpperBound(operator, value)}'")
+                SearchQueryOperator.LESS_THAN -> inner.whereRaw(ctx.resolve(column), "<", "'${getUpperBound(operator, value)}'")
             }
         }
 

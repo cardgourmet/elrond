@@ -9,6 +9,7 @@ import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgMedium
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.NumberValue
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.createSqlAlias
@@ -32,10 +33,10 @@ abstract class MtgCardCountProperty(
         }
     }
 
-    override fun applyProperty(builder: SelectQueryBuilder) {
+    override fun applyProperty(builder: SelectQueryBuilder, ctx: ColumnContext) {
         val innerBuilder = MtgPrint::class.selectBuilder()
             .selectAs(MtgPrint::cardId, "id")
-            .selectRaw("COUNT(DISTINCT ${distinctBy.columnName()}) count")
+            .selectRaw("COUNT(DISTINCT ${ctx.resolve(distinctBy)}) count")
             .apply { applyCondition?.invoke(this) }
             .groupBy(MtgPrint::cardId)
 
@@ -44,7 +45,7 @@ abstract class MtgCardCountProperty(
         }
     }
 
-    override fun getRawSql() = "$innerBuilderAlias.count"
+    override fun getRawSql(ctx: ColumnContext) = "$innerBuilderAlias.count"
 
 }
 

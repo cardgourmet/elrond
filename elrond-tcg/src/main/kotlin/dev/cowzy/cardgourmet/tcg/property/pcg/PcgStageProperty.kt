@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.tcg.property.pcg
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCard
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgEvolutionStage
 import dev.cowzy.cardgourmet.commons.i18n.Strings.Query.Pcg.Property.EVOLUTION_STAGE
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
@@ -32,11 +33,12 @@ class PcgStageProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: PcgEvolutionStage
+        value: PcgEvolutionStage,
+        ctx: ColumnContext
     ) {
         when (operator) {
-            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(PcgCard::evolutionStage, value)
-            else -> builder.where(PcgCard::evolutionStageValue, operator.toNumericSqlOperator(), value.value)
+            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgCard::evolutionStage), value)
+            else -> builder.where(ctx.resolve(PcgCard::evolutionStageValue), operator.toNumericSqlOperator(), value.value)
         }
     }
 

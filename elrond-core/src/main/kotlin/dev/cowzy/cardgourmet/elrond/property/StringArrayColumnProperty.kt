@@ -2,7 +2,6 @@ package dev.cowzy.cardgourmet.elrond.property
 
 import dev.cowzy.kuery.query.ConcreteWhereQueryBuilder
 import dev.cowzy.kuery.query.WhereQueryBuilder
-import dev.cowzy.kuery.query.orWhereRaw
 import dev.cowzy.kuery.reflection.placeholder
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
@@ -29,13 +28,14 @@ class StringArrayColumnProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: String
+        value: String,
+        ctx: ColumnContext
     ) {
         val apply: (ConcreteWhereQueryBuilder) -> Unit = {
             columns.forEach { column ->
                 it.orWhere { inner ->
-                    inner.whereNotNull(column)
-                    inner.whereRaw(column, "@>", "ARRAY[${column.placeholder()}]::text[]") { stmt, index ->
+                    inner.whereNotNull(ctx.resolve(column))
+                    inner.whereRaw(ctx.resolve(column), "@>", "ARRAY[${column.placeholder()}]::text[]") { stmt, index ->
                         stmt.setString(index.getAndIncrement(), value)
                     }
                 }

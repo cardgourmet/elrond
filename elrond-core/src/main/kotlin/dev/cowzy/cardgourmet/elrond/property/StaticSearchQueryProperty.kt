@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.property
 
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
@@ -17,9 +18,10 @@ abstract class StaticSearchQueryProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: Any
-    ) = applyCondition(builder)
+        value: Any,
+        ctx: ColumnContext
+    ) = applyCondition(builder, ctx)
 
-    protected abstract suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T)
+    protected abstract suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T, ctx: ColumnContext)
 
 }

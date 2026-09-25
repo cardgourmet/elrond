@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.tcg.property.mtg
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgRarity
-import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
@@ -30,9 +29,10 @@ class MtgRarityProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: MtgRarity
+        value: MtgRarity,
+        ctx: ColumnContext
     ) {
-        builder.where(MtgPrint::rarity, operator.toNumericSqlOperator(), value.index)
+        builder.where(ctx.resolve(MtgPrint::rarity), operator.toNumericSqlOperator(), value.index)
     }
 
 }

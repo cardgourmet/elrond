@@ -35,11 +35,11 @@ open class StringColumnProperty(
         }
     }
 
-    override fun applyProperty(builder: SelectQueryBuilder) = Unit
+    override fun applyProperty(builder: SelectQueryBuilder, ctx: ColumnContext) = Unit
 
-    override fun getRawSql(value: QueryValue<*>) = when {
-        simpleColumn != null && value is StringValue && !value.exact -> simpleColumn.columnName()
-        else -> column.columnName()
+    override fun getRawSql(value: QueryValue<*>, ctx: ColumnContext) = when {
+        simpleColumn != null && value is StringValue && !value.exact -> ctx.resolve(simpleColumn)
+        else -> ctx.resolve(column)
     }
 
 }

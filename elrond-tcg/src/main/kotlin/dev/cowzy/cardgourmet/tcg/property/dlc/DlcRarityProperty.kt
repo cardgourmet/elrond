@@ -29,10 +29,11 @@ class DlcRarityProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: DlcRarity
+        value: DlcRarity,
+        ctx: ColumnContext
     ) {
         when (operator) {
-            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(DlcPrint::rarity, value)
+            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(DlcPrint::rarity), value)
             else -> {
                 val rarities = when (operator) {
                     SearchQueryOperator.GREATER_THAN_OR_EQUALS -> DlcRarity.values().filter { it.index >= value.index }
@@ -42,7 +43,7 @@ class DlcRarityProperty(
                     else -> throw IllegalArgumentException("Unsupported operator $operator")
                 }
 
-                builder.whereIn(DlcPrint::rarity, rarities)
+                builder.whereIn(ctx.resolve(DlcPrint::rarity), rarities)
             }
         }
     }

@@ -7,7 +7,8 @@ import kotlin.reflect.KProperty1
 data class SearchQuerySqlConfig(
     val baseTable: KClass<*>,
     val tableDependencies: Map<KClass<*>, TableDependency>,
-    val customFields: Map<String, CustomField<out Any>>
+    val customFields: Map<String, CustomField<out Any>>,
+    val materializedView: MaterializedView? = null
 )
 
 data class TableDependency(

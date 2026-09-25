@@ -35,7 +35,8 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: List<ManaDisplay>
+        value: List<ManaDisplay>,
+        ctx: ColumnContext
     ) {
         var generic = 0
         val specific = mutableMapOf<ManaDisplay, Int>()
@@ -53,8 +54,8 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
         }
 
         builder.where { it
-            .where(MtgCard::layout, "!=", "transform")
-            .orWhere(MtgCardFace::index, 0)
+            .where(ctx.resolve(MtgCard::layout), operator = "!=", "transform")
+            .orWhere(ctx.resolve(MtgCardFace::index), 0)
         }
 
         val specificEntries = specific.entries.sortedBy { it.key.simpleString }
@@ -67,72 +68,60 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
         }
 
         builder.where { inner ->
+            fun applyMinimumManaDisplayPartCounts() {
+                inner
+                    .whereRaw(ctx.resolve(MtgCardFace::manaDisplayParts), "@>", sqlArray, fill = fillArray)
+                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), ">=", generic)
+
+                specificEntries.forEach {
+                    inner.whereRaw("cardinality(array_positions(${ctx.resolve(MtgCardFace::manaDisplayParts)}, ?)) >= ?") { stmt, index ->
+                        stmt.setString(index.getAndIncrement(), it.key.simpleString)
+                        stmt.setNumber(index.getAndIncrement(), it.value)
+                    }
+                }
+            }
+
+            fun applyMaximumManaDisplayPartCounts() {
+                inner
+                    .whereRaw(ctx.resolve(MtgCardFace::manaDisplayParts), "<@", sqlArray, fill = fillArray)
+                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), "<=", generic)
+
+                specificEntries.forEach {
+                    inner.whereRaw("cardinality(array_positions(${ctx.resolve(MtgCardFace::manaDisplayParts)}, ?)) <= ?") { stmt, index ->
+                        stmt.setString(index.getAndIncrement(), it.key.simpleString)
+                        stmt.setNumber(index.getAndIncrement(), it.value)
+                    }
+                }
+            }
+
             when (operator) {
                 SearchQueryOperator.CONTAINS, SearchQueryOperator.GREATER_THAN_OR_EQUALS -> {
-                    inner
-                        .whereRaw(MtgCardFace::manaDisplayParts, "@>", sqlArray, fill = fillArray)
-                        .where(MtgCardFace::manaDisplayGeneric, ">=", generic)
-
-                    specificEntries.forEach {
-                        inner.whereRaw("cardinality(array_positions(${MtgCardFace::manaDisplayParts.columnName()}, ?)) >= ?") { stmt, index ->
-                            stmt.setString(index.getAndIncrement(), it.key.simpleString)
-                            stmt.setNumber(index.getAndIncrement(), it.value)
-                        }
-                    }
+                    applyMinimumManaDisplayPartCounts()
                 }
 
                 SearchQueryOperator.GREATER_THAN -> {
-                    inner
-                        .whereRaw(MtgCardFace::manaDisplayParts, "@>", sqlArray, fill = fillArray)
-                        .where(MtgCardFace::manaDisplayGeneric, ">=", generic)
-
-                    specificEntries.forEach {
-                        inner.whereRaw("cardinality(array_positions(${MtgCardFace::manaDisplayParts.columnName()}, ?)) >= ?") { stmt, index ->
-                            stmt.setString(index.getAndIncrement(), it.key.simpleString)
-                            stmt.setNumber(index.getAndIncrement(), it.value)
-                        }
-                    }
-
+                    applyMinimumManaDisplayPartCounts()
                     inner.where { it
-                        .where("cardinality(${MtgCardFace::manaDisplayParts.columnName()})", ">", specific.size)
-                        .orWhere(MtgCardFace::manaDisplayGeneric, ">", generic)
+                        .where("cardinality(${ctx.resolve(MtgCardFace::manaDisplayParts)})", ">", specific.size)
+                        .orWhere(ctx.resolve(MtgCardFace::manaDisplayGeneric), ">", generic)
                     }
                 }
 
                 SearchQueryOperator.LESS_THAN_OR_EQUALS -> {
-                    inner
-                        .whereRaw(MtgCardFace::manaDisplayParts, "<@", sqlArray, fill = fillArray)
-                        .where(MtgCardFace::manaDisplayGeneric, "<=", generic)
-
-                    specificEntries.forEach {
-                        inner.whereRaw("cardinality(array_positions(${MtgCardFace::manaDisplayParts.columnName()}, ?)) <= ?") { stmt, index ->
-                            stmt.setString(index.getAndIncrement(), it.key.simpleString)
-                            stmt.setNumber(index.getAndIncrement(), it.value)
-                        }
-                    }
+                    applyMaximumManaDisplayPartCounts()
                 }
 
                 SearchQueryOperator.LESS_THAN -> {
-                    inner
-                        .whereRaw(MtgCardFace::manaDisplayParts, "<@", sqlArray, fill = fillArray)
-                        .where(MtgCardFace::manaDisplayGeneric, "<=", generic)
-
-                    specificEntries.forEach {
-                        inner.whereRaw("cardinality(array_positions(${MtgCardFace::manaDisplayParts.columnName()}, ?)) <= ?") { stmt, index ->
-                            stmt.setString(index.getAndIncrement(), it.key.simpleString)
-                            stmt.setNumber(index.getAndIncrement(), it.value)
-                        }
-                    }
-
+                    applyMaximumManaDisplayPartCounts()
                     inner.where { it
-                        .where("cardinality(${MtgCardFace::manaDisplayParts.columnName()})", "<", specific.size)
-                        .orWhere(MtgCardFace::manaDisplayGeneric, "<", generic)
+                        .where("cardinality(${ctx.resolve(MtgCardFace::manaDisplayParts)})", "<", specific.size)
+                        .orWhere(ctx.resolve(MtgCardFace::manaDisplayGeneric), "<", generic)
                     }
                 }
 
                 SearchQueryOperator.EQUALS -> inner
-                    .whereRaw(MtgCardFace::manaDisplayParts, "=", sqlArray, fill = fillArray)
-                    .where(MtgCardFace::manaDisplayGeneric, generic)
+                    .whereRaw(ctx.resolve(MtgCardFace::manaDisplayParts), "=", sqlArray, fill = fillArray)
+                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), generic)
             }
         }
     }

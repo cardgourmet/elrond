@@ -1,11 +1,13 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQuerySqlConfig
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.LogicalOperator
 import dev.cowzy.kuery.ColumnIndex
+import dev.cowzy.kuery.column.Column
 import dev.cowzy.kuery.query.*
 import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.parse
@@ -80,7 +82,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, R
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
     query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
-    applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
+    applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
 ): SelectQueryBuilder {
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
@@ -121,11 +123,11 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 
     builder.applyJoins(affectedTables, config)
 
+    val ctx = ColumnContext(config.materializedView)
     val properties = expression.collectProperties()
-    properties.forEach { it.applyProperty(builder) }
-
+    properties.forEach { it.applyProperty(builder, ctx) }
     builder.whereSuspend {
-        it.applyExpression(expression, distinctBy)
+        it.applyExpression(expression, distinctBy, ctx)
     }
 
     applyCustomConditions?.invoke(builder)
@@ -182,7 +184,8 @@ private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 
 private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
     expression: QueryExpression,
-    distinctBy: KProperty1<*, *>
+    distinctBy: KProperty1<*, *>,
+    ctx: ColumnContext
 ) {
     when (expression) {
         is BooleanQueryExpression -> this.whereRaw(if (expression.negate) "FALSE" else "TRUE")
@@ -191,11 +194,12 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
                 expression.property.applyCondition(
                     it,
                     expression.operator,
-                    expression.otherProperty
+                    expression.otherProperty,
+                    ctx
                 )
             }
 
-            else -> expression.property.applyCondition(this, expression.operator, expression.otherProperty)
+            else -> expression.property.applyCondition(this, expression.operator, expression.otherProperty, ctx)
         }
 
         is ValueLeafQueryExpression -> when {
@@ -203,11 +207,12 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
                 expression.property.applyCondition(
                     it,
                     expression.operator,
-                    expression.value
+                    expression.value,
+                    ctx
                 )
             }
 
-            else -> expression.property.applyCondition(this, expression.operator, expression.value)
+            else -> expression.property.applyCondition(this, expression.operator, expression.value, ctx)
         }
 
         is MultiValueLeafQueryExpression -> {
@@ -224,7 +229,7 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
                 },
                 LogicalOperator.OR,
                 expression.negate
-            ), distinctBy)
+            ), distinctBy, ctx)
         }
 
         is QueryExpressionGroup -> {
@@ -242,22 +247,42 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 
                         when {
                             expression.operator == LogicalOperator.AND && negate && property.handleJoinedOr -> {
-                                builder.whereNotSuspend { property.applyMultipleConditions(it, LogicalOperator.OR, conditions) }
+                                builder.whereNotSuspend { property.applyMultipleConditions(
+                                    it,
+                                    LogicalOperator.OR,
+                                    conditions,
+                                    ctx
+                                ) }
                                 return@forEach
                             }
 
                             expression.operator == LogicalOperator.AND && !negate && property.handleJoinedAnd -> {
-                                builder.whereSuspend { property.applyMultipleConditions(it, LogicalOperator.AND, conditions) }
+                                builder.whereSuspend { property.applyMultipleConditions(
+                                    it,
+                                    LogicalOperator.AND,
+                                    conditions,
+                                    ctx
+                                ) }
                                 return@forEach
                             }
 
                             expression.operator == LogicalOperator.OR && negate && property.handleJoinedAnd -> {
-                                builder.orWhereNotSuspend { property.applyMultipleConditions(it, LogicalOperator.AND, conditions) }
+                                builder.orWhereNotSuspend { property.applyMultipleConditions(
+                                    it,
+                                    LogicalOperator.AND,
+                                    conditions,
+                                    ctx
+                                ) }
                                 return@forEach
                             }
 
                             expression.operator == LogicalOperator.OR && !negate && property.handleJoinedOr -> {
-                                builder.orWhereSuspend { property.applyMultipleConditions(it, LogicalOperator.OR, conditions) }
+                                builder.orWhereSuspend { property.applyMultipleConditions(
+                                    it,
+                                    LogicalOperator.OR,
+                                    conditions,
+                                    ctx
+                                ) }
                                 return@forEach
                             }
                         }
@@ -265,9 +290,9 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 
                     children.forEach { child ->
                         if (expression.operator == LogicalOperator.AND) {
-                            builder.whereSuspend { it.applyExpression(child, distinctBy) }
+                            builder.whereSuspend { it.applyExpression(child, distinctBy, ctx) }
                         } else {
-                            builder.orWhereSuspend { it.applyExpression(child, distinctBy) }
+                            builder.orWhereSuspend { it.applyExpression(child, distinctBy, ctx) }
                         }
                     }
                 }
@@ -276,9 +301,9 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 
                 otherExpressions.forEach { filter ->
                     if (expression.operator == LogicalOperator.AND) {
-                        builder.whereSuspend { it.applyExpression(filter, distinctBy) }
+                        builder.whereSuspend { it.applyExpression(filter, distinctBy, ctx) }
                     } else {
-                        builder.orWhereSuspend { it.applyExpression(filter, distinctBy) }
+                        builder.orWhereSuspend { it.applyExpression(filter, distinctBy, ctx) }
                     }
                 }
             }

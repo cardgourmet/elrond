@@ -21,10 +21,10 @@ class ArrayCardinalityProperty(
         }
     }
 
-    override fun getRawSql() = columns.joinToString(" + ") {
+    override fun getRawSql(ctx: ColumnContext) = columns.joinToString(" + ") {
         when {
-            distinctValues -> "cardinality(array(select distinct unnest(${it.columnName()})))"
-            else -> "cardinality(${it.columnName()})"
+            distinctValues -> "cardinality(array(select distinct unnest(${ctx.resolve(it)})))"
+            else -> "cardinality(${ctx.resolve(it)})"
         }
     }
 

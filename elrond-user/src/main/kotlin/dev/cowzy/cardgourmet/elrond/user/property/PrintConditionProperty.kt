@@ -32,7 +32,8 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: CardCondition
+        value: CardCondition,
+        ctx: ColumnContext
     ) {
         val matchConditions = when (operator) {
             SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> listOf(value)
@@ -44,7 +45,7 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
 
         builder.where { inner ->
             matchConditions.forEach {
-                inner.orWhere(UserCard::condition, it)
+                inner.orWhere(ctx.resolve(UserCard::condition), it)
             }
         }
     }

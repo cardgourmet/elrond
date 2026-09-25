@@ -9,10 +9,12 @@ class NumericColumnProperty(
     offset: Double = 0.0,
     propertyKey: String
 ) : NumericExpressionProperty(
-    columns.joinToString(" + ") { it.columnName() }.let {
-        when (offset) {
-            0.0 -> "COALESCE($it, 0)"
-            else -> "(COALESCE($it, 0) + $offset)"
+    getExpression = { ctx ->
+        columns.joinToString(" + ") { ctx.resolve(it) }.let {
+            when (offset) {
+                0.0 -> "COALESCE($it, 0)"
+                else -> "(COALESCE($it, 0) + $offset)"
+            }
         }
     },
     columns.map { it.table() }.distinct().toTypedArray(),

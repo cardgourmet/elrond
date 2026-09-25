@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.tcg.property.pcg
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgRarity
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
@@ -32,11 +33,12 @@ class PcgRarityProperty(
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: PcgRarity
+        value: PcgRarity,
+        ctx: ColumnContext
     ) {
         when (operator) {
-            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(PcgPrint::rarity, value)
-            else -> builder.where(PcgPrint::rarityValue, operator.toNumericSqlOperator(), value.value)
+            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgPrint::rarity), value)
+            else -> builder.where(ctx.resolve(PcgPrint::rarityValue), operator.toNumericSqlOperator(), value.value)
         }
     }
 
