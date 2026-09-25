@@ -55,18 +55,18 @@ fun SearchQueryFilterBuilder.configureMtgCollectionFilters() {
 }
 
 private val tableDependencies = mapOf(
-    UserCard::class to TableDependency(MtgPrint::class, MtgCardFaceTranslation::class) { builder ->
+    UserCard::class to TableDependency(MtgPrint::class, MtgCardFaceTranslation::class) { builder, ctx ->
         builder.leftJoin(UserCard::class) {
             it
-                .whereColumn(UserCard::printId, MtgPrint::id)
-                .where(UserCard::game, GameType.MAGIC_THE_GATHERING)
+                .whereColumn(ctx.resolve(UserCard::printId), ctx.resolve(MtgPrint::id))
+                .where(ctx.resolve(UserCard::game), GameType.MAGIC_THE_GATHERING)
         }
     },
-    UserCardBinder::class to TableDependency(UserCard::class) { builder ->
-        builder.leftJoin(UserCardBinder::class) { it.whereColumn(UserCardBinder::id, UserCard::binderId) }
+    UserCardBinder::class to TableDependency(UserCard::class) { builder, ctx ->
+        builder.leftJoin(UserCardBinder::class) { it.whereColumn(ctx.resolve(UserCardBinder::id), ctx.resolve(UserCard::binderId)) }
     },
-    User::class to TableDependency(UserCard::class) { builder ->
-        builder.innerJoin(User::class) { it.whereColumn(User::id, UserCard::userId) }
+    User::class to TableDependency(UserCard::class) { builder, ctx ->
+        builder.innerJoin(User::class) { it.whereColumn(ctx.resolve(User::id), ctx.resolve(UserCard::userId)) }
     },
 )
 

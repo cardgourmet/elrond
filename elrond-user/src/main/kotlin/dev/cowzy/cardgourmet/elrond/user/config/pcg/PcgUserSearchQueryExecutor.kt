@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.user.config.pcg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
+import dev.cowzy.cardgourmet.elrond.ColumnContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
@@ -18,23 +19,23 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
 import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder) -> Unit) = queryBuilder@{ query, mode, builder ->
+private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     if (!query.flags.contains(PcgCardSearchQueryFlag.ANY_LANGUAGE)) {
-        builder.whereColumn(UserCard::language, PcgCardTranslation::language)
+        builder.whereColumn(ctx.resolve(UserCard::language), ctx.resolve(PcgCardTranslation::language))
     }
 
-    builder.whereNotNull(UserCard::id)
+    builder.whereNotNull(ctx.resolve(UserCard::id))
 
     // No need to apply sort for count/random queries.
     if (mode != SearchQueryMode.SEARCH) return@queryBuilder
 
     // Always prefer cards with images.
-    builder.orderByRaw("CASE WHEN(${CardImage::imageId.columnName()} IS NOT NULL) THEN 1 ELSE 2 END")
+    builder.orderByRaw("CASE WHEN(${ctx.resolve(CardImage::imageId)} IS NOT NULL) THEN 1 ELSE 2 END")
 
     val languageSort = "CASE " +
-            "WHEN(${PcgCardTranslation::language.columnName()} = ${UserCard::language.columnName()}) THEN 1 " +
-            "WHEN(${PcgCardTranslation::language.columnName()} = ?) THEN 2 " +
-            "WHEN(${PcgCardTranslation::language.columnName()} = 'en') THEN 3 " +
+            "WHEN(${ctx.resolve(PcgCardTranslation::language)} = ${ctx.resolve(UserCard::language)}) THEN 1 " +
+            "WHEN(${ctx.resolve(PcgCardTranslation::language)} = ?) THEN 2 " +
+            "WHEN(${ctx.resolve(PcgCardTranslation::language)} = 'en') THEN 3 " +
             "ELSE 4 " +
             "END"
 
@@ -42,7 +43,7 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQue
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
 
-    applyPcgSort(query, builder)
+    applyPcgSort(query, builder, ctx)
 }
 
 fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
