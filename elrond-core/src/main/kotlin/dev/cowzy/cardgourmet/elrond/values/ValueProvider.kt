@@ -31,7 +31,7 @@ class ValueProvider<T : Any>(
 
     suspend fun getValues(filter: String, language: String?): Iterable<ProvidedValue<T>> {
         return getValues()
-            .filter { language == null || it.language == language }
+            .filter { language == null || it.language == null || it.language == language }
             .filter { it.input.contains(filter, ignoreCase = true) || it.aliases.any { alias -> alias.contains(filter, ignoreCase = true) } }
     }
 

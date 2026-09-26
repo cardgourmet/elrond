@@ -142,20 +142,20 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
             val exactMatches = providers
                 .mapNotNull { it.findValue(query) }
                 .filter { type == null || it.type == type }
-                .filter { usedInputs.add(it.input) }
+                .filter { usedInputs.add(it.input.lowercase()) }
                 .sortedBy { it.input }
 
             // Next, find any values that contain the keyword.
             var fuzzyMatches = providers.flatMap { it.getValues(query, preferredLanguage) }
                 .filter { type == null || it.type == type }
-                .filter { usedInputs.add(it.input) }
+                .filter { usedInputs.add(it.input.lowercase()) }
                 .sortedBy { it.input }
 
             // If there are no fuzzy matches, search again without the language
             if (fuzzyMatches.isEmpty() && preferredLanguage != null) {
                 fuzzyMatches = providers.flatMap { it.getValues(query, null) }
                     .filter { type == null || it.type == type }
-                    .filter { usedInputs.add(it.input) }
+                    .filter { usedInputs.add(it.input.lowercase()) }
                     .sortedBy { it.input }
             }
 
@@ -165,17 +165,13 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
             matchCount = matches.size
             totalCount = providers.sumOf { it.getValues().count() }
         } else {
-            var values = providers
-                .map { it.getValues(preferredLanguage) }
-                .flatten()
+            var values = providers.flatMap { it.getValues(preferredLanguage) }
                 .filter { type == null || it.type == type }
                 .sortedBy { it.input }
 
             // If there are no values, search again without the language
             if (values.isEmpty() && preferredLanguage != null) {
-                values = providers
-                    .map { it.getValues(null) }
-                    .flatten()
+                values = providers.flatMap { it.getValues(null) }
                     .filter { type == null || it.type == type }
                     .sortedBy { it.input }
             }

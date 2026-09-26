@@ -1,5 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.values
 
+import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import java.util.*
 
