@@ -34,7 +34,19 @@ fun String.nextToken(): Pair<Token, String>? {
 
             OperatorToken(operator, isNotEquals, groups[3])
         }
-        groups[4].isNotEmpty() -> RegexToken(Regex(groups[4].removeSurrounding("/")), groups[4])
+        groups[4].isNotEmpty() -> {
+            val pattern = groups[4].removeSurrounding("/")
+                // Replace "{T}" with "\{T}" to differentiate from quantifiers
+                .replace(Regex("""(\{[\D,]\})"""), "\\$1")
+                // Replace "\b" with "\y" as postgres uses other word boundaries
+                .replace("\\b", "\\y")
+
+            try {
+                RegexToken(Regex(pattern), groups[4])
+            } catch (e: Exception) {
+                throw TokenizerException(groups[4], "invalid_regex", null, e)
+            }
+        }
         groups[5].isNotEmpty() -> QuotedStringToken(groups[5].removeExactAndNegateAndQuotes(), groups[5])
         groups[6].isNotEmpty() -> QuotedStringToken(groups[6].removeExactAndNegateAndQuotes(), groups[6])
         groups[7].isNotEmpty() -> NumberToken(groups[7].toDouble(), groups[7])

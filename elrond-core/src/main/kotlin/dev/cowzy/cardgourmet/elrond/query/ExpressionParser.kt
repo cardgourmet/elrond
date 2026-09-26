@@ -8,6 +8,7 @@ import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.*
 import dev.cowzy.kuery.Order
 import kotlin.reflect.KClass
+import kotlin.text.replace
 
 interface SearchQueryDistinctMode {
     val keywords: Array<String>
