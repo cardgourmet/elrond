@@ -46,7 +46,7 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQue
     applyPcgSort(query, builder, ctx)
 }
 
-fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+fun <PrincipalType : Any> createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
     }
@@ -54,12 +54,12 @@ fun createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecu
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder(pcgSearchQueryConfig, fallbackFilter = defaultFilter)
+    return createPcgCardBaseBuilder<PrincipalType>(pcgSearchQueryConfig, fallbackFilter = defaultFilter)
         .filters(filters)
         .build()
 }
 
-fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+fun <PrincipalType : Any> createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
         configureCollectionFilters()
@@ -69,7 +69,7 @@ fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): Search
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder(pcgSearchQueryConfig, queryBuilder, defaultFilter)
+    return createPcgCardBaseBuilder<PrincipalType>(pcgSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(filters)
         .build()
 }

@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.search(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.search(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int, offset: Int,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
@@ -31,7 +31,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.random(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.random(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
@@ -43,7 +43,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.count(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.count(
     query: SearchQuery<SearchFlag, DistinctMode>,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
@@ -55,7 +55,7 @@ data class QueryExecutionResult<SearchFlag : Enum<SearchFlag>, DistinctMode : En
     val result: Result?,
 )
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, Result> SearchQueryExecutor<SearchFlag, DistinctMode>.execute(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any, Result> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.execute(
     query: SearchQuery<SearchFlag, DistinctMode>,
     retry: Boolean = true,
     execute: suspend (SearchQuery<SearchFlag, DistinctMode>) -> Pair<Result, Boolean>
@@ -77,7 +77,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, R
     return QueryExecutionResult(transformedQuery, attempt, result)
 }
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.build(
     query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
@@ -157,7 +157,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
     }
 }
 
-private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.parseResult(
+private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.parseResult(
     distinctBy: KProperty1<*, UUID>,
     row: ResultSet,
     index: ColumnIndex

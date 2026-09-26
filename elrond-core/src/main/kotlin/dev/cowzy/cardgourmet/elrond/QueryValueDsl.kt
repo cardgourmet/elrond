@@ -13,7 +13,7 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
 
     private val mappings = mutableMapOf<KClass<out QueryValue<*>>, QueryValueMapping<*, out QueryValue<*>, Output>>()
 
-    var provider: ValueProvider<Output>? = null
+    var provider: ValueProvider<Output, *>? = null
 
     var formatValue: (Output) -> String = { it ->
         when (it) {
@@ -39,7 +39,7 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
         init.invoke(this)
     }
 
-    fun provider(provider: ValueProvider<Output>?) {
+    fun provider(provider: ValueProvider<Output, *>?) {
         this.provider = provider
     }
 
@@ -73,6 +73,10 @@ class QueryValueDefinition<Output : Any>(init: QueryValueDefinition<Output>.() -
     @Suppress("UNCHECKED_CAST")
     fun <Input : QueryValue<*>> getDefinition(type: KClass<Input>): QueryValueMapping<*, Input, Output> {
         return mappings[type]!! as QueryValueMapping<*, Input, Output>
+    }
+
+    fun <PrincipalType : Any> getProviderWithPrincipal(): ValueProvider<Output, PrincipalType>? {
+        return provider as ValueProvider<Output, PrincipalType>?
     }
 
 }

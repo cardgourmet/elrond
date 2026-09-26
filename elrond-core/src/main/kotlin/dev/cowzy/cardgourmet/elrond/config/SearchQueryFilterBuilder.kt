@@ -52,7 +52,7 @@ class QueryFilterBuilder(
 
     fun <T : Any> property(
         property: SearchQueryProperty<T>,
-        provider: ValueProvider<T>?
+        provider: ValueProvider<T, *>?
     ) {
         if (properties.contains(property)) throw IllegalArgumentException("Filter already contains property: ${property.key}")
 

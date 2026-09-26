@@ -62,12 +62,12 @@ fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDi
     builder.orderBy(ctx.resolve(DlcPrint::collectorNumber)) // exact sorting for subset
 }
 
-fun createDlcCardBaseBuilder(
+fun <PrincipalType : Any> createDlcCardBaseBuilder(
     config: SearchQuerySqlConfig,
     builder: (SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
-    return SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
+): SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+    return SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*DlcCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
@@ -100,7 +100,7 @@ fun createDlcCardBaseBuilder(
         }
 }
 
-fun createDlcCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+fun <PrincipalType : Any> createDlcCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
     }
@@ -108,7 +108,7 @@ fun createDlcCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryE
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcCardBaseBuilder(dlcBasicCardSearchQueryConfig, queryBuilder, defaultFilter)
+    return createDlcCardBaseBuilder<PrincipalType>(dlcBasicCardSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(filters)
         .build()
 }

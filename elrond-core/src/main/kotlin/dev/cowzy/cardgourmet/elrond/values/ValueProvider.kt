@@ -1,63 +1,15 @@
 package dev.cowzy.cardgourmet.elrond.values
 
-import dev.cowzy.cardgourmet.commons.database.SqlDatabasePool
-import java.sql.Connection
+abstract class ValueProvider<T : Any, PrincipalType : Any>(val strictValues: Boolean) {
 
-class ValueProvider<T : Any>(
-    val strictValues: Boolean,
-    ttl: Long = 3600,
-    applyValues: suspend (ValueGroup<T>) -> Unit
-) {
+    abstract suspend fun getValues(principal: PrincipalType?, language: String? = null): Iterable<ProvidedValue<T>>
 
-    private val cache = ValueCache(ttl) {
-        val valueGroup = ValueGroup<T>()
-        applyValues(valueGroup)
-        valueGroup.getValues()
-    }
-
-    constructor(
-        dbPool: SqlDatabasePool,
-        applyValues: List<(Connection, ValueGroup<T>, (T) -> String) -> Unit>,
-        displayTransform: (T) -> String,
-        strictValues: Boolean,
-        ttl: Long = 3600
-    ) : this(
-        strictValues,
-        ttl,
-        { valueGroup -> dbPool.use { connection -> applyValues.forEach { it(connection, valueGroup, displayTransform) } } }
-    )
-
-    suspend fun getValues(language: String? = null): Iterable<ProvidedValue<T>> {
-        return cache.getAll().filter { language == null || it.languages.isEmpty() || it.languages.contains(language) }
-    }
-
-    suspend fun getValues(filter: String, language: String?): Iterable<ProvidedValue<T>> {
-        return getValues()
+    open suspend fun getValues(principal: PrincipalType?, filter: String, language: String?): Iterable<ProvidedValue<T>> {
+        return getValues(principal)
             .filter { language == null || it.languages.isEmpty() || it.languages.contains(language) }
             .filter { it.input.contains(filter, ignoreCase = true) || it.aliases.any { alias -> alias.contains(filter, ignoreCase = true) } }
     }
 
-    suspend fun findValue(value: String) = cache.find(value.trim())
+    abstract suspend fun findValue(principal: PrincipalType?, value: String): ProvidedValue<T>?
 
-}
-
-fun <Input : Any, Output : Any> ValueProvider<Input>.withTransform(transform: (Input) -> Output): ValueProvider<Output> {
-    return ValueProvider(
-        this.strictValues,
-        -1L,
-    ) { valueGroup ->
-        this.getValues().map {
-            ProvidedValue(
-                input = it.input,
-                aliases = it.aliases,
-                type = it.type,
-                resolvesTo = ResolvedValue(
-                    value = transform(it.resolvesTo.value),
-                    display = it.resolvesTo.display,
-                    operator = it.resolvesTo.operator
-                ),
-                languages = it.languages
-            )
-        }.forEach(valueGroup::add)
-    }
 }

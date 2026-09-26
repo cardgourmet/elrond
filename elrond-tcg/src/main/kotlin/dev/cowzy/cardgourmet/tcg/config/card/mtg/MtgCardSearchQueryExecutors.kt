@@ -110,12 +110,12 @@ fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardS
     builder.orderBy(ctx.resolve(MtgCardFace::index))
 }
 
-fun createMtgCardBaseBuilder(
+fun <PrincipalType : Any> createMtgCardBaseBuilder(
     config: SearchQuerySqlConfig,
     builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
-    return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
+): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+    return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*MtgCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
@@ -175,7 +175,7 @@ fun createMtgCardBaseBuilder(
         }
 }
 
-fun createMtgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+fun <PrincipalType : Any> createMtgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
     }
@@ -183,7 +183,7 @@ fun createMtgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryE
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgCardBaseBuilder(mtgBasicSearchQueryConfig, queryBuilder, defaultFilter)
+    return createMtgCardBaseBuilder<PrincipalType>(mtgBasicSearchQueryConfig, queryBuilder, defaultFilter)
         .filters(filters)
         .build()
 }
