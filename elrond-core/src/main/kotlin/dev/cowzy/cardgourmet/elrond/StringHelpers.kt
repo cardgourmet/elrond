@@ -9,5 +9,5 @@ fun String.toFullMatchRegex(): String {
 fun String.toPostgresRegex(): String {
     return this
         // Replace "\b" with "\y" as postgres uses other word boundaries
-        .replace(Regex("\\\\b"), "\\y")
+        .replace(Regex("\\\\b"), "\\\\y")
 }
