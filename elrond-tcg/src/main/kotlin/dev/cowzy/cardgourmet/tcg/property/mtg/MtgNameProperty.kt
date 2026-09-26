@@ -89,7 +89,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
                 else -> throw IllegalStateException("Unsupported operator: $operator")
             }
 
-            is RegexValue -> builder.where(ctx.resolve(column), "~*", value = value.value.pattern)
+            is RegexValue -> builder.where(ctx.resolve(column), "~*", value = value.value.pattern.toPostgresRegex())
 
             else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")
         }

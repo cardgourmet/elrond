@@ -57,8 +57,8 @@ abstract class StringSearchQueryProperty(
 
             is RegexValue -> {
                 val pattern = when (operator) {
-                    SearchQueryOperator.EQUALS -> value.value.pattern.toFullMatchRegex()
-                    SearchQueryOperator.CONTAINS -> value.value.pattern
+                    SearchQueryOperator.EQUALS -> value.value.pattern.toFullMatchRegex().toPostgresRegex()
+                    SearchQueryOperator.CONTAINS -> value.value.pattern.toPostgresRegex()
                     else -> throw IllegalStateException("Unsupported operator: $operator")
                 }
 

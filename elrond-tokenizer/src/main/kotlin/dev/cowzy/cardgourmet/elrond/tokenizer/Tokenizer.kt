@@ -38,8 +38,6 @@ fun String.nextToken(): Pair<Token, String>? {
             val pattern = groups[4].removeSurrounding("/")
                 // Replace "{T}" with "\{T}" to differentiate from quantifiers
                 .replace(Regex("""(\{[\D,]\})"""), "\\$1")
-                // Replace "\b" with "\y" as postgres uses other word boundaries
-                .replace("\\b", "\\y")
 
             try {
                 RegexToken(Regex(pattern), groups[4])
