@@ -37,7 +37,7 @@ fun String.nextToken(): Pair<Token, String>? {
         groups[4].isNotEmpty() -> {
             val pattern = groups[4].removeSurrounding("/")
                 // Replace "{T}" with "\{T}" to differentiate from quantifiers
-                .replace(Regex("""(\{[\D,]\})"""), "\\$1")
+                .replace(Regex("""(\{[\D,]\})""")) { "\\${it.groupValues[1]}" }
 
             try {
                 RegexToken(Regex(pattern), groups[4])
