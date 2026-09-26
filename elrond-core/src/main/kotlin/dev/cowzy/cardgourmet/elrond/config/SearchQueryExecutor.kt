@@ -138,38 +138,31 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         if (query != null) {
             val usedInputs = mutableSetOf<String>()
 
-            // First find any exact matches
+            // First, find any exact matches
             val exactMatches = providers
                 .mapNotNull { it.findValue(query) }
                 .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input) }
                 .sortedBy { it.input }
 
-            providedValues.addAll(exactMatches.take(amount))
-
-            // Next find any values that contain the keyword
-            val fuzzyMatches = providers
-                .map { it.getValues(query, preferredLanguage) }
-                .flatten()
+            // Next, find any values that contain the keyword.
+            var fuzzyMatches = providers.flatMap { it.getValues(query, preferredLanguage) }
                 .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input) }
-                .sortedBy { it.input } - exactMatches.toSet()
-
-            providedValues.addAll(fuzzyMatches.take(amount - providedValues.size))
+                .sortedBy { it.input }
 
             // If there are no fuzzy matches, search again without the language
             if (fuzzyMatches.isEmpty() && preferredLanguage != null) {
-                val languageMatches = providers
-                    .map { it.getValues(query, null) }
-                    .flatten()
+                fuzzyMatches = providers.flatMap { it.getValues(query, null) }
                     .filter { type == null || it.type == type }
                     .filter { usedInputs.add(it.input) }
-                    .sortedBy { it.input } - exactMatches.toSet()
-
-                providedValues.addAll(languageMatches.take(amount - providedValues.size))
+                    .sortedBy { it.input }
             }
 
-            matchCount = providedValues.size + fuzzyMatches.size
+            val matches = exactMatches + fuzzyMatches
+            providedValues.addAll(matches.take(amount))
+
+            matchCount = matches.size
             totalCount = providers.sumOf { it.getValues().count() }
         } else {
             var values = providers

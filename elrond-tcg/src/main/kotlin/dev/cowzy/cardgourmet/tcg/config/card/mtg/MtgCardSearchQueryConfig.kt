@@ -115,7 +115,7 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
     filter("name", "n") {
         property(MtgNameProperty()) {
             valuesWithLanguage(getNames, { StringValue(it, true) }, "name")
-            valuesWithLanguage(getNameWordBank, { StringValue(it, false) }, "name_part")
+            valuesWithLanguage(getNameWordBank, { StringValue(it.toSimpleString(), false) }, "name_part")
         }
     }
 

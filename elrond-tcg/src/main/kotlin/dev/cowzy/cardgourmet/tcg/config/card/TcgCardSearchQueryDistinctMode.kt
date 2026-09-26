@@ -1,6 +1,7 @@
 package dev.cowzy.cardgourmet.tcg.config.card
 
 import dev.cowzy.cardgourmet.commons.i18n.Strings
+import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

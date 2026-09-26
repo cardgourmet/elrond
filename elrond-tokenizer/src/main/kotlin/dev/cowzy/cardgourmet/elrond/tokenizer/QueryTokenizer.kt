@@ -234,7 +234,7 @@ class QueryTokenizer(
                     is StringToken -> {
                         when {
                             second !is QuotedStringToken -> {
-                                second.value.split(",")
+                                (second.value.takeIf { it.isNotBlank() } ?: second.raw).split(",")
                                     .mapNotNull {
                                         val matchingFilters = filters
                                             .filter { filter -> filter.values.map { value -> value.type }.any(::isSupported) }
