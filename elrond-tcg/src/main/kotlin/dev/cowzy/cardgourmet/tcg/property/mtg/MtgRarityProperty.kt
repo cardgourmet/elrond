@@ -30,7 +30,7 @@ class MtgRarityProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: MtgRarity,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         builder.where(ctx.resolve(MtgPrint::rarity), operator.toNumericSqlOperator(), value.index)
     }

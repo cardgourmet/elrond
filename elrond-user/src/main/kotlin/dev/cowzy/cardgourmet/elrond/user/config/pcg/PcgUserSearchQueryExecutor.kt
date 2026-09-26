@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.elrond.user.config.pcg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgCardTranslation
 import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
@@ -17,9 +17,8 @@ import dev.cowzy.cardgourmet.tcg.config.card.pcg.configureBasicPcgCardFilters
 import dev.cowzy.cardgourmet.tcg.config.card.pcg.createPcgCardBaseBuilder
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
-import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
+private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     if (!query.flags.contains(PcgCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereColumn(ctx.resolve(UserCard::language), ctx.resolve(PcgCardTranslation::language))
     }

@@ -8,7 +8,7 @@ import dev.cowzy.kuery.query.whereNotNull
 import java.util.UUID
 import kotlin.reflect.KProperty1
 
-class UuidColumnProperty(
+open class UuidColumnProperty(
     private val column: KProperty1<*, UUID?>,
     descriptor: PropertyDescriptor
 ) : SearchQueryProperty<UUID>(stringQueryOperators, emptyArray(), arrayOf(column.table()), descriptor) {
@@ -30,7 +30,7 @@ class UuidColumnProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: UUID,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         builder.whereNotNull(ctx.resolve(column))
         builder.where(ctx.resolve(column), value)

@@ -31,7 +31,7 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
         builder: T,
         operator: SearchQueryOperator,
         value: ValueType,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         builder.whereNotNull(ctx.resolve(column))
 

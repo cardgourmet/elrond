@@ -32,7 +32,7 @@ class DateProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: String,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val match = dateRegex.find(value) ?: throw IllegalStateException("Invalid date")
         val day = match.groupValues[3].ifEmpty { null }?.toInt()

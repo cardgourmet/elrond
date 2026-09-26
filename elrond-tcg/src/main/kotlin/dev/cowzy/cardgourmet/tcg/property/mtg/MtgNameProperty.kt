@@ -45,7 +45,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         builder: T,
         operator: SearchQueryOperator,
         value: QueryValue<*>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         builder.applyNameSearchTerm(operator, value, ctx)
     }
@@ -54,7 +54,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         builder: T,
         operator: LogicalOperator,
         conditions: List<Pair<SearchQueryOperator, QueryValue<*>>>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         conditions.forEach { (op, value) ->
             when (operator) {
@@ -67,7 +67,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     private fun <T : WhereQueryBuilder<T>> T.applyNameSearchTerm(
         operator: SearchQueryOperator,
         value: QueryValue<*>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ): T {
         return this
             .where { applyNameCondition(it, printFaceTranslationColumn(value), operator, value, ctx) }
@@ -80,7 +80,7 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         column: KProperty1<*, *>,
         operator: SearchQueryOperator,
         value: QueryValue<*>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         when (value) {
             is StringValue -> when (operator) {

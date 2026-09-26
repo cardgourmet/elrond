@@ -30,7 +30,7 @@ class DlcRarityProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: DlcRarity,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         when (operator) {
             SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(DlcPrint::rarity), value)

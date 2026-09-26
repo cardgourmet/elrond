@@ -1,7 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQuerySqlConfig
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
@@ -82,7 +82,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, P
     mode: SearchQueryMode,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
 ): SelectQueryBuilder {
-    val ctx = ColumnContext(config.materializedView)
+    val ctx = ExecutionContext(config.materializedView)
 
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
@@ -184,7 +184,7 @@ private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, P
 private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
     expression: QueryExpression,
     distinctBy: KProperty1<*, *>,
-    ctx: ColumnContext
+    ctx: ExecutionContext
 ) {
     when (expression) {
         is BooleanQueryExpression -> this.whereRaw(if (expression.negate) "FALSE" else "TRUE")
@@ -319,7 +319,7 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 fun SelectQueryBuilder.applyJoins(
     tables: Set<KClass<*>>,
     config: SearchQuerySqlConfig,
-    ctx: ColumnContext,
+    ctx: ExecutionContext,
 ): SelectQueryBuilder {
     val joinedTables = mutableSetOf(config.baseTable)
 
@@ -330,7 +330,7 @@ fun SelectQueryBuilder.applyJoins(
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach
 
-        val localJoins = mutableListOf<(SelectQueryBuilder, ColumnContext) -> Unit>()
+        val localJoins = mutableListOf<(SelectQueryBuilder, ExecutionContext) -> Unit>()
         var current = arrayOf(it)
         do {
             current = current.mapNotNull { table ->

@@ -6,7 +6,10 @@ import dev.cowzy.kuery.reflection.tableName
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
-data class ColumnContext(private val materializedView: MaterializedView?) {
+data class ExecutionContext(
+    val principal: Any?,
+    private val materializedView: MaterializedView?
+) {
 
     fun resolve(column: KProperty1<*, *>): String {
         return materializedView?.columnMappings?.get(column)?.let {

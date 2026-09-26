@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.elrond.query
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
-import dev.cowzy.cardgourmet.elrond.property.RestrictedSearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.property.StaticSearchQueryProperty
 import dev.cowzy.cardgourmet.elrond.tokenizer.*
@@ -419,15 +418,12 @@ private suspend fun <PrincipalType : Any> QueryToken.parseQueryExpression(
                         }
                     }
 
-                    val allowedProperties = validProperties.filter {
-                        it.first !is RestrictedSearchQueryProperty<*, *> || (it.first as RestrictedSearchQueryProperty<Any, Any>).isPermitted(principal, it.second)
-                    }
 
-                    if (allowedProperties.isEmpty()) {
+                    if (validProperties.isEmpty()) {
                         ignoredValues.add(IgnoredQueryValue(this.toString(), "unsupported_value"))
                         return@map null
-                    } else if (allowedProperties.size == 1) {
-                        val property = allowedProperties.single()
+                    } else if (validProperties.size == 1) {
+                        val property = validProperties.single()
 
                         ValueLeafQueryExpression(
                             filter,
@@ -439,7 +435,7 @@ private suspend fun <PrincipalType : Any> QueryToken.parseQueryExpression(
                             rawValue = this.toString()
                         )
                     } else {
-                        val properties = allowedProperties.map { (prop, value) ->
+                        val properties = validProperties.map { (prop, value) ->
                             MultiValueLeafProperty(
                                 prop as SearchQueryProperty<Any>,
                                 value.second ?: operator,

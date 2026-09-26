@@ -1,6 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.config
 
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -14,9 +14,9 @@ data class SearchQuerySqlConfig(
 
 data class TableDependency(
     val tables: List<KClass<*>>,
-    val join: (SelectQueryBuilder, ColumnContext) -> Unit
+    val join: (SelectQueryBuilder, ExecutionContext) -> Unit
 ) {
-    constructor(vararg tables: KClass<*>, join: (SelectQueryBuilder, ColumnContext) -> Unit) : this(tables = tables.toList(), join = join)
+    constructor(vararg tables: KClass<*>, join: (SelectQueryBuilder, ExecutionContext) -> Unit) : this(tables = tables.toList(), join = join)
 }
 
 data class CustomField<T : Any>(val properties: List<KProperty1<*, T>>) {

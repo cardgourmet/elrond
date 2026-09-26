@@ -4,7 +4,6 @@ import dev.cowzy.cardgourmet.commons.MtgManaType
 import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.orWhere
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCard
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCardFace
 import dev.cowzy.cardgourmet.commons.i18n.Strings
@@ -46,7 +45,7 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
         builder: T,
         operator: SearchQueryOperator,
         value: Map<MtgManaType, Int>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val targetDevotion = value.values.sum() / value.entries.size
 

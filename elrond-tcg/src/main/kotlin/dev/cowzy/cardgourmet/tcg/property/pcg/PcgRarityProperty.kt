@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.tcg.property.pcg
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgPrint
 import dev.cowzy.cardgourmet.chef.commons.model.card.pcg.PcgRarity
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.NumericDescriptor
@@ -34,7 +34,7 @@ class PcgRarityProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: PcgRarity,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         when (operator) {
             SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgPrint::rarity), value)

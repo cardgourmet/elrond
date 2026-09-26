@@ -37,7 +37,7 @@ abstract class StringSearchQueryProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: QueryValue<*>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val mappedOperator = when {
             mapContainsToEquals && operator == SearchQueryOperator.CONTAINS -> SearchQueryOperator.EQUALS
@@ -69,6 +69,6 @@ abstract class StringSearchQueryProperty(
         }
     }
 
-    abstract fun getRawSql(value: QueryValue<*>, ctx: ColumnContext): String
+    abstract fun getRawSql(value: QueryValue<*>, ctx: ExecutionContext): String
 
 }

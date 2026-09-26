@@ -6,7 +6,7 @@ import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
 import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
 import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrintTranslation
 import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcSet
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
@@ -17,9 +17,8 @@ import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
-import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
+private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     if (!query.flags.contains(DlcCardSearchQueryFlag.ANY_LANGUAGE)) {
         builder.whereInRaw(ctx.resolve(DlcCardTranslation::language), "(?, 'en')") { stmt, index ->
             stmt.setString(index.getAndIncrement(), query.preferredLanguage)
@@ -49,7 +48,7 @@ private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQue
     applyDlcSort(query, builder, ctx)
 }
 
-fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, ctx: ColumnContext) {
+fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, ctx: ExecutionContext) {
     builder.orderByRaw("array_position(ARRAY[?, 'en'], ${ctx.resolve(DlcPrintTranslation::language)})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
@@ -64,7 +63,7 @@ fun applyDlcSort(query: SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDi
 
 fun <PrincipalType : Any> createDlcCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
+    builder: (SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     return SearchQueryExecutorBuilder<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType>(config)
@@ -100,15 +99,23 @@ fun <PrincipalType : Any> createDlcCardBaseBuilder(
         }
 }
 
-fun <PrincipalType : Any> createDlcCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun <PrincipalType : Any> createDlcCardSearchQueryExecutor(
+    providers: ValueProviderPool,
+    transform: SearchQueryExecutorTransform? = null
+): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
+        transform?.applyFilters?.invoke(this)
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcCardBaseBuilder<PrincipalType>(dlcBasicCardSearchQueryConfig, queryBuilder, defaultFilter)
+    return createDlcCardBaseBuilder<PrincipalType>(
+        transform?.transformConfig?.invoke(dlcBasicCardSearchQueryConfig) ?: dlcBasicCardSearchQueryConfig,
+        queryBuilder,
+        defaultFilter
+    )
         .filters(filters)
         .build()
 }

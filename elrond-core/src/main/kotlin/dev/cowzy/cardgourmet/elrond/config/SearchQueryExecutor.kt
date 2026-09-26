@@ -21,7 +21,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
     var fallbackFilter: QueryFilter?,
     val attemptTransformers: List<SearchQueryTransformer<SearchFlag, DistinctMode>>,
     val customTables: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode) -> Set<KClass<*>>)?,
-    val customBuilder: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit)?
+    val customBuilder: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit)?
 ) {
     @Serializable
     data class SearchQueryFilter(
@@ -216,7 +216,7 @@ class SearchQueryExecutorBuilder<SearchFlag : Enum<SearchFlag>, DistinctMode : E
     private var fallbackFilter: QueryFilter? = null
     private val attemptTransformers = mutableListOf<SearchQueryTransformer<SearchFlag, DistinctMode>>()
     private var customTables: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode) -> Set<KClass<*>>)? = null
-    private var customBuilder: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit)? = null
+    private var customBuilder: ((SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit)? = null
 
     fun flags(vararg flags: SearchFlag) = this.apply { this.flags.addAll(flags) }
 
@@ -233,7 +233,7 @@ class SearchQueryExecutorBuilder<SearchFlag : Enum<SearchFlag>, DistinctMode : E
 
     fun customTables(builder: (SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode) -> Set<KClass<*>>) = this.apply { this.customTables = builder }
 
-    fun customBuilder(builder: (SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = this.apply { this.customBuilder = builder }
+    fun customBuilder(builder: (SearchQuery<SearchFlag, DistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit) = this.apply { this.customBuilder = builder }
 
     fun fallbackDistinctMode(distinctMode: DistinctMode) = this.apply { this.fallbackDistinctMode = distinctMode }
 

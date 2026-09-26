@@ -28,7 +28,7 @@ class StringRegexProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: String,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val escapedValue = value.replace(Regex("[^\\p{L}\\p{N}]"), ".")
         val pattern = this.mapPattern(escapedValue, operator)

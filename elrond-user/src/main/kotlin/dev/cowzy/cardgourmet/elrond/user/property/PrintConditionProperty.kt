@@ -33,7 +33,7 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
         builder: T,
         operator: SearchQueryOperator,
         value: CardCondition,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val matchConditions = when (operator) {
             SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> listOf(value)

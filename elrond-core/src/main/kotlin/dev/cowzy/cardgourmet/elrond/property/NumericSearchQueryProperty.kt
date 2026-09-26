@@ -26,7 +26,7 @@ abstract class NumericSearchQueryProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: Number,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         builder.whereNotNull(getRawSql(ctx))
         builder.where(getRawSql(ctx), operator.toNumericSqlOperator(), value)
@@ -36,7 +36,7 @@ abstract class NumericSearchQueryProperty(
         builder: T,
         operator: SearchQueryOperator,
         other: SearchQueryProperty<*>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         if (other !is NumericSearchQueryProperty) {
             throw IllegalStateException("Unsupported property type: ${other::class.simpleName}")
@@ -53,6 +53,6 @@ abstract class NumericSearchQueryProperty(
 
     }
 
-    abstract fun getRawSql(ctx: ColumnContext): String
+    abstract fun getRawSql(ctx: ExecutionContext): String
 
 }

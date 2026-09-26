@@ -4,7 +4,6 @@ import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.kuery.query.SelectQueryBuilder
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.table
 import kotlin.reflect.KProperty1
 
@@ -35,9 +34,9 @@ open class StringColumnProperty(
         }
     }
 
-    override fun applyProperty(builder: SelectQueryBuilder, ctx: ColumnContext) = Unit
+    override fun applyProperty(builder: SelectQueryBuilder, ctx: ExecutionContext) = Unit
 
-    override fun getRawSql(value: QueryValue<*>, ctx: ColumnContext) = when {
+    override fun getRawSql(value: QueryValue<*>, ctx: ExecutionContext) = when {
         simpleColumn != null && value is StringValue && !value.exact -> ctx.resolve(simpleColumn)
         else -> ctx.resolve(column)
     }

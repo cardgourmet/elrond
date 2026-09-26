@@ -4,12 +4,11 @@ import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.leftJoin
 import dev.cowzy.kuery.query.selectBuilder
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgMedium
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgPrint
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.Strings
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.NumberValue
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.createSqlAlias
@@ -33,7 +32,7 @@ abstract class MtgCardCountProperty(
         }
     }
 
-    override fun applyProperty(builder: SelectQueryBuilder, ctx: ColumnContext) {
+    override fun applyProperty(builder: SelectQueryBuilder, ctx: ExecutionContext) {
         val innerBuilder = MtgPrint::class.selectBuilder()
             .selectAs(MtgPrint::cardId, "id")
             .selectRaw("COUNT(DISTINCT ${ctx.resolve(distinctBy)}) count")
@@ -45,7 +44,7 @@ abstract class MtgCardCountProperty(
         }
     }
 
-    override fun getRawSql(ctx: ColumnContext) = "$innerBuilderAlias.count"
+    override fun getRawSql(ctx: ExecutionContext) = "$innerBuilderAlias.count"
 
 }
 

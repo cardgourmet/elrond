@@ -5,7 +5,6 @@ import dev.cowzy.cardgourmet.commons.ManaDisplay
 import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.orWhere
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCard
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.MtgCardFace
 import dev.cowzy.cardgourmet.commons.i18n.Strings
@@ -36,7 +35,7 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
         builder: T,
         operator: SearchQueryOperator,
         value: List<ManaDisplay>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         var generic = 0
         val specific = mutableMapOf<ManaDisplay, Int>()

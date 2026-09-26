@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.elrond.user.config.mtg
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
 import dev.cowzy.cardgourmet.commons.user.UserCard
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
@@ -13,9 +13,8 @@ import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
 import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.cardgourmet.tcg.config.card.mtg.*
 import dev.cowzy.kuery.query.SelectQueryBuilder
-import dev.cowzy.kuery.reflection.columnName
 
-private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
+private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     val preferMode = query.flags.firstOfOrNull(MtgCardSearchQueryFlag.preferModes)
 
     if (!query.flags.contains(MtgCardSearchQueryFlag.INCLUDE_EXTRAS)) {
