@@ -1,20 +1,17 @@
 package dev.cowzy.cardgourmet.elrond.values
 
-import dev.cowzy.cardgourmet.commons.toSimpleString
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import java.util.*
 
 data class ValueKey<T : Any>(
     val type: String,
     val value: T,
-    val language: String?,
     val operator: SearchQueryOperator?,
     val uniqueifyer: String?
 ) {
     constructor(value: ProvidedValue<T>, uniqueifyer: String?) : this(
         value.type,
         value.resolvesTo.value,
-        value.language,
         value.resolvesTo.operator,
         uniqueifyer
     )
@@ -32,7 +29,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
     fun add(value: ProvidedValue<T>, unique: Boolean = false) {
         value.aliases.removeIf { it.equals(value.input, true) }
         values.add(value)
-        valuesByKey[ValueKey(value, uniqueifyer = if (unique) UUID.randomUUID().toString() else null)] = value
+        valuesByKey[ValueKey(value, if (unique) UUID.randomUUID().toString() else null)] = value
     }
 
     fun addOrUpdate(
@@ -65,7 +62,7 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
             ),
             aliases = aliases,
             type = type,
-            language = language
+            languages = language?.let { mutableSetOf(it) } ?: mutableSetOf()
         )
 
         val existingValue = find(providedValue)
@@ -77,6 +74,8 @@ class ValueGroup<T : Any>(values: Iterable<ProvidedValue<T>> = emptySet()) {
             existingValue.aliases.addAll(providedValue.aliases.filter { alias ->
                 !existingValue.aliases.any { it.equals(alias, true) }
             })
+
+            existingValue.languages.addAll(providedValue.languages)
             return
         }
 

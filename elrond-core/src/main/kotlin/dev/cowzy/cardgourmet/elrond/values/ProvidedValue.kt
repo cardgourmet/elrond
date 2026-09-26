@@ -7,7 +7,7 @@ data class ProvidedValue<T : Any>(
     val resolvesTo: ResolvedValue<T>,
     val aliases: MutableSet<String>,
     val type: String,
-    val language: String? = null,
+    val languages: MutableSet<String>,
 )
 
 data class ResolvedValue<T : Any>(

@@ -27,11 +27,13 @@ class ValueProvider<T : Any>(
         { valueGroup -> dbPool.use { connection -> applyValues.forEach { it(connection, valueGroup, displayTransform) } } }
     )
 
-    suspend fun getValues(language: String? = null): Iterable<ProvidedValue<T>> = cache.getAll().filter { language == null || it.language == language }
+    suspend fun getValues(language: String? = null): Iterable<ProvidedValue<T>> {
+        return cache.getAll().filter { language == null || it.languages.isEmpty() || it.languages.contains(language) }
+    }
 
     suspend fun getValues(filter: String, language: String?): Iterable<ProvidedValue<T>> {
         return getValues()
-            .filter { language == null || it.language == null || it.language == language }
+            .filter { language == null || it.languages.isEmpty() || it.languages.contains(language) }
             .filter { it.input.contains(filter, ignoreCase = true) || it.aliases.any { alias -> alias.contains(filter, ignoreCase = true) } }
     }
 
@@ -54,7 +56,7 @@ fun <Input : Any, Output : Any> ValueProvider<Input>.withTransform(transform: (I
                     display = it.resolvesTo.display,
                     operator = it.resolvesTo.operator
                 ),
-                language = it.language
+                languages = it.languages
             )
         }.forEach(valueGroup::add)
     }

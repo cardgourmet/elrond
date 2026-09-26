@@ -61,7 +61,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         val aliases: List<String>?,
         val resolvesTo: String?,
         val resolvesToOperator: SearchQueryOperator?,
-        val language: String?,
+        val languages: Set<String>,
     )
 
     suspend fun describeSearchFilters(query: String?): List<SearchQueryFilter> {
@@ -193,7 +193,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                     aliases = value.aliases.sorted().takeIf { it.isNotEmpty() },
                     resolvesTo = value.resolvesTo.display.takeIf { !value.resolvesTo.display.equals(value.input, ignoreCase = true) },
                     resolvesToOperator = value.resolvesTo.operator,
-                    language = value.language
+                    languages = value.languages
                 )
             }
         )
