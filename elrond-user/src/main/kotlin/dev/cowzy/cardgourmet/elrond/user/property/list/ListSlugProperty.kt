@@ -3,10 +3,9 @@ package dev.cowzy.cardgourmet.elrond.user.property.list
 import dev.cowzy.cardgourmet.commons.i18n.*
 import dev.cowzy.cardgourmet.commons.user.*
 import dev.cowzy.cardgourmet.elrond.*
-import dev.cowzy.cardgourmet.elrond.descriptor.*
 import dev.cowzy.cardgourmet.elrond.property.*
 import dev.cowzy.kuery.query.*
-import java.util.UUID
+import java.util.*
 
 data class UserListKey(val slug: String, val username: String?)
 
@@ -14,7 +13,7 @@ class ListSlugProperty(
 ) : SearchQueryProperty<UserListKey>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(UserList::class, User::class),
-    descriptor = StringDescriptor(Strings.Query.Collection.Property.BINDER) // TODO
+    descriptor = ListDescriptor(Strings.Query.Collection.Property.BINDER) // TODO
 ) {
 
     override val valueDefinition = QueryValueDefinition {
@@ -40,16 +39,18 @@ class ListSlugProperty(
         if (value.username != null) {
             try {
                 val id = UUID.fromString(value.username)
-                builder.where(ctx.resolve(UserList::userId), id)
+                builder.where(UserList::userId, id)
             } catch (_: IllegalArgumentException) {
-                builder.where(ctx.resolve(User::username), operator = "ILIKE", value.username)
+                builder.where(User::username, operator = "ILIKE", value.username)
             }
 
-            builder.whereIn(ctx.resolve(UserList::visibility), values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
+            builder.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
+        } else if (ctx.principal is User) {
+            builder.where(UserList::userId, (ctx.principal as User).id)
         } else {
-            builder.where(ctx.resolve(UserList::userId), (ctx.principal as User).id)
+            builder.whereRaw("FALSE") // No username provided and not authenticated, so no results
         }
 
-        builder.where(ctx.resolve(UserList::slug), value.slug.lowercase())
+        builder.where(UserList::slug, value.slug.lowercase())
     }
 }

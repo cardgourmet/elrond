@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorTransform
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
@@ -46,30 +47,32 @@ private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQue
 }
 
 
-fun <PrincipalType : Any> createDlcSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun <PrincipalType : Any> createDlcSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
+        transform?.applyFilters?.invoke(this)
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcCardBaseBuilder<PrincipalType>(dlcSearchQueryConfig, fallbackFilter = defaultFilter)
-        .filters(filters)
-        .build()
+    return createDlcCardBaseBuilder<PrincipalType>(
+        transform?.transformConfig?.invoke(dlcSearchQueryConfig) ?: dlcSearchQueryConfig, fallbackFilter = defaultFilter
+    ).filters(filters).build()
 }
 
-fun <PrincipalType : Any> createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun <PrincipalType : Any> createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
         configureCollectionFilters()
         configureDlcCollectionFilters()
+        transform?.applyFilters?.invoke(this)
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcCardBaseBuilder<PrincipalType>(dlcSearchQueryConfig, queryBuilder, defaultFilter)
-        .filters(filters)
-        .build()
+    return createDlcCardBaseBuilder<PrincipalType>(
+        transform?.transformConfig?.invoke(dlcSearchQueryConfig) ?: dlcSearchQueryConfig, queryBuilder, defaultFilter
+    ).filters(filters).build()
 }

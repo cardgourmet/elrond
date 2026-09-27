@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.commons.user.UserCard
 import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryFilterBuilder
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
+import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutorTransform
 import dev.cowzy.cardgourmet.elrond.query.SearchQuery
 import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
 import dev.cowzy.cardgourmet.elrond.user.config.configureCollectionFilters
@@ -45,31 +46,33 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQue
     applyPcgSort(query, builder, ctx)
 }
 
-fun <PrincipalType : Any> createPcgSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun <PrincipalType : Any> createPcgSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
+        transform?.applyFilters?.invoke(this)
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder<PrincipalType>(pcgSearchQueryConfig, fallbackFilter = defaultFilter)
-        .filters(filters)
-        .build()
+    return createPcgCardBaseBuilder<PrincipalType>(
+        transform?.transformConfig?.invoke(pcgSearchQueryConfig) ?: pcgSearchQueryConfig, fallbackFilter = defaultFilter
+    ).filters(filters).build()
 }
 
-fun <PrincipalType : Any> createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun <PrincipalType : Any> createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
         configureCollectionFilters()
         configurePcgCollectionFilters()
+        transform?.applyFilters?.invoke(this)
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder<PrincipalType>(pcgSearchQueryConfig, queryBuilder, defaultFilter)
-        .filters(filters)
-        .build()
+    return createPcgCardBaseBuilder<PrincipalType>(
+        transform?.transformConfig?.invoke(pcgSearchQueryConfig) ?: pcgSearchQueryConfig, queryBuilder, defaultFilter
+    ).filters(filters).build()
 }
 

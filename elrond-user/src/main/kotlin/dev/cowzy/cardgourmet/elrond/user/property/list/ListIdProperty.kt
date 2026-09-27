@@ -11,7 +11,7 @@ import java.util.*
 class ListIdProperty : SearchQueryProperty<UUID>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(UserList::class),
-    descriptor = StringDescriptor(Strings.Query.Collection.Property.BINDER_ID) // TODO
+    descriptor = ListDescriptor(Strings.Query.Collection.Property.BINDER_ID) // TODO
 ) {
 
     override val valueDefinition = QueryValueDefinition {
