@@ -4,18 +4,19 @@ import dev.cowzy.cardgourmet.chef.commons.model.*
 import dev.cowzy.cardgourmet.commons.user.*
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.user.property.list.*
-import dev.cowzy.kuery.column.transformer.EnumStringColumnTransformer
 import dev.cowzy.kuery.query.*
 import dev.cowzy.kuery.reflection.*
 import kotlin.reflect.*
 
 fun SearchQueryFilterBuilder.configurePrincipalSearchQueryFilters(
+    printIdColumn: KProperty1<*, *>,
+    printCardIdColumn: KProperty1<*, *>,
     findListBySlug: suspend (User?, String) -> ListDetails?,
     getUserLists: suspend (User) -> List<ListDetails>
 ) {
     val listSlugValueProvider = UserListValueProvider(findListBySlug, getUserLists)
-    val listSlugProperty = ListSlugProperty()
-    val listIdProperty = ListIdProperty()
+    val listSlugProperty = ListSlugProperty(printIdColumn, printCardIdColumn)
+    val listIdProperty = ListIdProperty(printIdColumn, printCardIdColumn)
 
     filter("list") {
         property(listSlugProperty, listSlugValueProvider)

@@ -4,15 +4,20 @@ import dev.cowzy.cardgourmet.commons.i18n.*
 import dev.cowzy.cardgourmet.commons.user.*
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.property.*
+import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.query.*
+import dev.cowzy.kuery.reflection.table
 import java.util.*
+import kotlin.reflect.KProperty1
 
 data class UserListKey(val slug: String, val username: String?)
 
 class ListSlugProperty(
+    private val printIdColumn: KProperty1<*, *>,
+    private val printCardIdColumn: KProperty1<*, *>,
 ) : SearchQueryProperty<UserListKey>(
     supportedOperators = stringQueryOperators,
-    affectedTables = arrayOf(UserList::class, User::class),
+    affectedTables = arrayOf(printIdColumn.table(), printCardIdColumn.table()),
     descriptor = ListDescriptor(Strings.Query.Collection.Property.BINDER) // TODO
 ) {
 
@@ -30,27 +35,51 @@ class ListSlugProperty(
         }
     }
 
+    private fun SelectQueryBuilder.applyListCondition(value: UserListKey, ctx: ExecutionContext): SelectQueryBuilder = this.apply {
+        this.where(UserListResource::resourceType, ListResourceType.CARD)
+
+        if (value.username != null) {
+            try {
+                val id = UUID.fromString(value.username)
+                this.where(UserList::userId, id)
+            } catch (_: IllegalArgumentException) {
+                this.innerJoin(User::class) { it.whereColumn(UserList::userId, User::id) }
+                this.where(User::username, operator = "ILIKE", value.username)
+            }
+
+            this.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
+        } else if (ctx.principal is User) {
+            this.where(UserList::userId, (ctx.principal as User).id)
+        } else {
+            this.whereRaw("FALSE") // No username provided and not authenticated, so no results
+        }
+
+        this.where(UserList::slug, value.slug.lowercase())
+    }
+
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
         value: UserListKey,
         ctx: ExecutionContext
     ) {
-        if (value.username != null) {
-            try {
-                val id = UUID.fromString(value.username)
-                builder.where(UserList::userId, id)
-            } catch (_: IllegalArgumentException) {
-                builder.where(User::username, operator = "ILIKE", value.username)
-            }
+        val useCardId = ctx.searchQuery.distinctMode != TcgCardSearchQueryDistinctMode.UNIQUE_PRINTS && ctx.searchQuery.distinctMode != TcgCardSearchQueryDistinctMode.UNIQUE_PRINT_FACES
 
-            builder.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
-        } else if (ctx.principal is User) {
-            builder.where(UserList::userId, (ctx.principal as User).id)
+        if (useCardId) {
+            val cardIds = UserList::class.selectBuilder()
+                .select(printCardIdColumn)
+                .innerJoin(UserListResource::class) { it.whereColumn(UserList::id, UserListResource::listId) }
+                .innerJoin(printIdColumn.table()) { it.whereColumn(UserListResource::resourceId, printIdColumn) }
+                .applyListCondition(value, ctx)
+
+            builder.whereIn(ctx.resolve(printCardIdColumn), cardIds)
         } else {
-            builder.whereRaw("FALSE") // No username provided and not authenticated, so no results
-        }
+            val printIds = UserList::class.selectBuilder()
+                .innerJoin(UserListResource::class) { it.whereColumn(UserList::id, UserListResource::listId) }
+                .select(UserListResource::resourceId)
+                .applyListCondition(value, ctx)
 
-        builder.where(UserList::slug, value.slug.lowercase())
+            builder.whereIn(ctx.resolve(printIdColumn), printIds)
+        }
     }
 }

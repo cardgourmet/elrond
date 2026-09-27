@@ -86,7 +86,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, P
     principal: PrincipalType?,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
 ): SelectQueryBuilder {
-    val ctx = ExecutionContext(principal, config.materializedView)
+    val ctx = ExecutionContext(principal, query, config.materializedView)
 
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
