@@ -394,7 +394,7 @@ private val tableDependencies = mapOf(
         builder.leftJoin(CardPrice::class) {
             it
                 .whereColumn(ctx.resolve(PcgPrint::id), ctx.resolve(CardPrice::cardId))
-                .where(ctx.resolve(CardPrice::game), "=", GameType.POKEMON_CARD_GAME, transformer = ctx.transformer(CardPrice::game))
+                .where(ctx.resolve(CardPrice::game), "=", GameType.POKEMON_CARD_GAME, transformer = ctx.transformer(CardPrice::game), placeholder = ctx.placeholder(CardPrice::game))
         }
     },
     CardImage::class to TableDependency(PcgPrintTranslation::class) { builder, ctx ->
@@ -403,7 +403,7 @@ private val tableDependencies = mapOf(
     CardImageColor::class to TableDependency(PcgPrintTranslation::class) { builder, ctx ->
         builder.leftJoin(CardImageColor::class) {
             it
-                .where(ctx.resolve(CardImageColor::game), "=", GameType.POKEMON_CARD_GAME, transformer = ctx.transformer(CardImageColor::game))
+                .where(ctx.resolve(CardImageColor::game), "=", GameType.POKEMON_CARD_GAME, transformer = ctx.transformer(CardImageColor::game), placeholder = ctx.placeholder(CardImageColor::game))
                 .whereColumn(ctx.resolve(CardImageColor::printTranslationId), ctx.resolve(PcgPrintTranslation::id))
         }
     }

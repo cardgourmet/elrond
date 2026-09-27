@@ -57,23 +57,23 @@ class MtgDevotionProperty: SearchQueryProperty<Map<MtgManaType, Int>>(
         }
 
         builder.where { it
-            .where(ctx.resolve(MtgCard::layout), operator = "!=", "transform", transformer = ctx.transformer(MtgCard::layout))
-            .orWhere(ctx.resolve(MtgCardFace::index), "=", 0, transformer = ctx.transformer(MtgCardFace::index))
+            .where(ctx.resolve(MtgCard::layout), operator = "!=", "transform", transformer = ctx.transformer(MtgCard::layout), placeholder = ctx.placeholder(MtgCard::layout))
+            .orWhere(ctx.resolve(MtgCardFace::index), "=", 0, transformer = ctx.transformer(MtgCardFace::index), placeholder = ctx.placeholder(MtgCardFace::index))
         }
 
         builder.where { inner ->
             when (operator) {
                 SearchQueryOperator.CONTAINS, SearchQueryOperator.GREATER_THAN_OR_EQUALS -> inner
                     .whereRaw("$sqlSum >= ?", fillSum)
-                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">=", targetDevotion, transformer = ctx.transformer(MtgCardFace::totalDevotion))
+                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">=", targetDevotion, transformer = ctx.transformer(MtgCardFace::totalDevotion), placeholder = ctx.placeholder(MtgCardFace::totalDevotion))
                 SearchQueryOperator.GREATER_THAN -> inner
                     .whereRaw("$sqlSum > ?", fillSum)
-                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">", targetDevotion, transformer = ctx.transformer(MtgCardFace::totalDevotion))
+                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">", targetDevotion, transformer = ctx.transformer(MtgCardFace::totalDevotion), placeholder = ctx.placeholder(MtgCardFace::totalDevotion))
                 SearchQueryOperator.LESS_THAN_OR_EQUALS -> inner.whereRaw("$sqlSum <= ?", fillSum)
                 SearchQueryOperator.LESS_THAN -> inner.whereRaw("$sqlSum < ?", fillSum)
                 SearchQueryOperator.EQUALS -> inner
                     .whereRaw("$sqlSum = ?", fillSum)
-                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">=", targetDevotion, transformer = ctx.transformer(MtgCardFace::totalDevotion))
+                    .where(ctx.resolve(MtgCardFace::totalDevotion), ">=", targetDevotion, transformer = ctx.transformer(MtgCardFace::totalDevotion), placeholder = ctx.placeholder(MtgCardFace::totalDevotion))
             }
         }
     }

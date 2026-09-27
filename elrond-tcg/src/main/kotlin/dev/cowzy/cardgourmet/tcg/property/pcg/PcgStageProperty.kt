@@ -37,8 +37,8 @@ class PcgStageProperty(
         ctx: ColumnContext
     ) {
         when (operator) {
-            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgCard::evolutionStage), "=", value, transformer = ctx.transformer(PcgCard::evolutionStage))
-            else -> builder.where(ctx.resolve(PcgCard::evolutionStageValue), operator.toNumericSqlOperator(), value.value, transformer = ctx.transformer(PcgCard::evolutionStageValue))
+            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgCard::evolutionStage), "=", value, transformer = ctx.transformer(PcgCard::evolutionStage), placeholder = ctx.placeholder(PcgCard::evolutionStage))
+            else -> builder.where(ctx.resolve(PcgCard::evolutionStageValue), operator.toNumericSqlOperator(), value.value, transformer = ctx.transformer(PcgCard::evolutionStageValue), placeholder = ctx.placeholder(PcgCard::evolutionStageValue))
         }
     }
 

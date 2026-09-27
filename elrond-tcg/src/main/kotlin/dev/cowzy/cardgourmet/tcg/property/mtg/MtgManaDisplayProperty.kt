@@ -54,8 +54,8 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
         }
 
         builder.where { it
-            .where(ctx.resolve(MtgCard::layout), operator = "!=", "transform", transformer = ctx.transformer(MtgCard::layout))
-            .orWhere(ctx.resolve(MtgCardFace::index), "=", 0, transformer = ctx.transformer(MtgCardFace::index))
+            .where(ctx.resolve(MtgCard::layout), operator = "!=", "transform", transformer = ctx.transformer(MtgCard::layout), placeholder = ctx.placeholder(MtgCard::layout))
+            .orWhere(ctx.resolve(MtgCardFace::index), "=", 0, transformer = ctx.transformer(MtgCardFace::index), placeholder = ctx.placeholder(MtgCardFace::index))
         }
 
         val specificEntries = specific.entries.sortedBy { it.key.simpleString }
@@ -71,7 +71,7 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
             fun applyMinimumManaDisplayPartCounts() {
                 inner
                     .whereRaw(ctx.resolve(MtgCardFace::manaDisplayParts), "@>", sqlArray, fill = fillArray)
-                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), ">=", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric))
+                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), ">=", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric), placeholder = ctx.placeholder(MtgCardFace::manaDisplayGeneric))
 
                 specificEntries.forEach {
                     inner.whereRaw("cardinality(array_positions(${ctx.resolve(MtgCardFace::manaDisplayParts)}, ?)) >= ?") { stmt, index ->
@@ -84,7 +84,7 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
             fun applyMaximumManaDisplayPartCounts() {
                 inner
                     .whereRaw(ctx.resolve(MtgCardFace::manaDisplayParts), "<@", sqlArray, fill = fillArray)
-                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), "<=", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric))
+                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), "<=", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric), placeholder = ctx.placeholder(MtgCardFace::manaDisplayGeneric))
 
                 specificEntries.forEach {
                     inner.whereRaw("cardinality(array_positions(${ctx.resolve(MtgCardFace::manaDisplayParts)}, ?)) <= ?") { stmt, index ->
@@ -103,7 +103,7 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
                     applyMinimumManaDisplayPartCounts()
                     inner.where { it
                         .where("cardinality(${ctx.resolve(MtgCardFace::manaDisplayParts)})", ">", specific.size)
-                        .orWhere(ctx.resolve(MtgCardFace::manaDisplayGeneric), ">", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric))
+                        .orWhere(ctx.resolve(MtgCardFace::manaDisplayGeneric), ">", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric), placeholder = ctx.placeholder(MtgCardFace::manaDisplayGeneric))
                     }
                 }
 
@@ -115,13 +115,13 @@ class MtgManaDisplayProperty : SearchQueryProperty<List<ManaDisplay>>(
                     applyMaximumManaDisplayPartCounts()
                     inner.where { it
                         .where("cardinality(${ctx.resolve(MtgCardFace::manaDisplayParts)})", "<", specific.size)
-                        .orWhere(ctx.resolve(MtgCardFace::manaDisplayGeneric), "<", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric))
+                        .orWhere(ctx.resolve(MtgCardFace::manaDisplayGeneric), "<", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric), placeholder = ctx.placeholder(MtgCardFace::manaDisplayGeneric))
                     }
                 }
 
                 SearchQueryOperator.EQUALS -> inner
                     .whereRaw(ctx.resolve(MtgCardFace::manaDisplayParts), "=", sqlArray, fill = fillArray)
-                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), "=", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric))
+                    .where(ctx.resolve(MtgCardFace::manaDisplayGeneric), "=", generic, transformer = ctx.transformer(MtgCardFace::manaDisplayGeneric), placeholder = ctx.placeholder(MtgCardFace::manaDisplayGeneric))
             }
         }
     }

@@ -36,9 +36,9 @@ class EnumColumnProperty<ValueType : Enum<ValueType>>(
         builder.whereNotNull(ctx.resolve(column))
 
         if (column.javaField!!.type.isEnum) {
-            builder.where(ctx.resolve(column), "=", value, transformer = ctx.transformer(column))
+            builder.where(ctx.resolve(column), "=", value, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
         } else {
-            builder.where(ctx.resolve(column), "=", value.getSerialName(), transformer = ctx.transformer(column))
+            builder.where(ctx.resolve(column), "=", value.getSerialName(), transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
         }
     }
 

@@ -34,7 +34,7 @@ class StringRegexProperty(
         val pattern = this.mapPattern(escapedValue, operator)
 
         builder.whereNotNull(ctx.resolve(column))
-        builder.where(ctx.resolve(column), "~*", value = pattern, transformer = ctx.transformer(column))
+        builder.where(ctx.resolve(column), "~*", value = pattern, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
     }
 
 }

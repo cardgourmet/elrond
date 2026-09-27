@@ -41,21 +41,21 @@ class DateProperty(
         val condition: (WhereQueryBuilder<*>) -> Unit = { inner ->
             when (operator) {
                 SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> when {
-                    date != null -> inner.where(ctx.resolve(column), "=", date, transformer = ctx.transformer(column))
+                    date != null -> inner.where(ctx.resolve(column), "=", date, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
                     else -> inner
-                        .where(ctx.resolve(column), operator = ">=", getLowerBound(operator, value), transformer = ctx.transformer(column))
+                        .where(ctx.resolve(column), operator = ">=", getLowerBound(operator, value), transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
                         .whereRaw(ctx.resolve(column), "<", "'${getUpperBound(operator, value)}'")
                 }
 
                 SearchQueryOperator.GREATER_THAN_OR_EQUALS -> inner.whereRaw(ctx.resolve(column), ">=", "'${getLowerBound(operator, value)}'")
 
                 SearchQueryOperator.GREATER_THAN -> when {
-                    date != null -> inner.where(ctx.resolve(column), ">", date, transformer = ctx.transformer(column))
+                    date != null -> inner.where(ctx.resolve(column), ">", date, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
                     else -> inner.whereRaw(ctx.resolve(column), ">=", "'${getLowerBound(operator, value)}'")
                 }
 
                 SearchQueryOperator.LESS_THAN_OR_EQUALS -> when {
-                    date != null -> inner.where(ctx.resolve(column), "<=", date, transformer = ctx.transformer(column))
+                    date != null -> inner.where(ctx.resolve(column), "<=", date, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
                     else -> inner.whereRaw(ctx.resolve(column), "<", "'${getUpperBound(operator, value)}'")
                 }
 

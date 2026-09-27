@@ -84,12 +84,12 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
     ) {
         when (value) {
             is StringValue -> when (operator) {
-                SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(column), "ILIKE", value = value.value, transformer = ctx.transformer(column))
-                SearchQueryOperator.CONTAINS -> builder.where(ctx.resolve(column), "ILIKE", value = "%${value.value}%", transformer = ctx.transformer(column))
+                SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(column), "ILIKE", value = value.value, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
+                SearchQueryOperator.CONTAINS -> builder.where(ctx.resolve(column), "ILIKE", value = "%${value.value}%", transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
                 else -> throw IllegalStateException("Unsupported operator: $operator")
             }
 
-            is RegexValue -> builder.where(ctx.resolve(column), "~*", value = value.value.pattern.toPostgresRegex(), transformer = ctx.transformer(column))
+            is RegexValue -> builder.where(ctx.resolve(column), "~*", value = value.value.pattern.toPostgresRegex(), transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
 
             else -> throw IllegalStateException("Unsupported value type: ${value::class.simpleName}")
         }
