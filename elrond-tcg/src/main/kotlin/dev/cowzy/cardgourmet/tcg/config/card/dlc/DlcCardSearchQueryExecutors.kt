@@ -1,23 +1,15 @@
 package dev.cowzy.cardgourmet.tcg.config.card.dlc
 
-import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
-import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCard
-import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcCardTranslation
-import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrint
-import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.DlcPrintTranslation
-import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.DlcSet
-import dev.cowzy.cardgourmet.elrond.ColumnContext
-import dev.cowzy.cardgourmet.elrond.QueryFilter
+import dev.cowzy.cardgourmet.chef.commons.model.card.dlc.*
+import dev.cowzy.cardgourmet.chef.commons.model.image.*
+import dev.cowzy.cardgourmet.chef.commons.model.set.dlc.*
+import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.config.*
-import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
-import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.elrond.query.SearchQueryMode
-import dev.cowzy.cardgourmet.elrond.values.ValueProviderPool
-import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
-import dev.cowzy.kuery.Order
-import dev.cowzy.kuery.query.SelectQueryBuilder
-import dev.cowzy.kuery.query.whereNotNull
-import dev.cowzy.kuery.reflection.columnName
+import dev.cowzy.cardgourmet.elrond.query.*
+import dev.cowzy.cardgourmet.elrond.values.*
+import dev.cowzy.cardgourmet.tcg.config.card.*
+import dev.cowzy.kuery.*
+import dev.cowzy.kuery.query.*
 
 private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit) = queryBuilder@{ query, mode, builder, ctx ->
     if (!query.flags.contains(DlcCardSearchQueryFlag.ANY_LANGUAGE)) {

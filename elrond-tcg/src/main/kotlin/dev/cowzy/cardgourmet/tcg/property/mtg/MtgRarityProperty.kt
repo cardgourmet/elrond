@@ -32,7 +32,7 @@ class MtgRarityProperty(
         value: MtgRarity,
         ctx: ColumnContext
     ) {
-        builder.where(ctx.resolve(MtgPrint::rarity), operator.toNumericSqlOperator(), value.index)
+        builder.where(ctx.resolve(MtgPrint::rarity), operator.toNumericSqlOperator(), value.index, transformer = ctx.transformer(MtgPrint::rarity))
     }
 
 }

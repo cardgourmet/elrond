@@ -37,8 +37,8 @@ class PcgRarityProperty(
         ctx: ColumnContext
     ) {
         when (operator) {
-            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgPrint::rarity), value)
-            else -> builder.where(ctx.resolve(PcgPrint::rarityValue), operator.toNumericSqlOperator(), value.value)
+            SearchQueryOperator.CONTAINS, SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(PcgPrint::rarity), "=", value, transformer = ctx.transformer(PcgPrint::rarity))
+            else -> builder.where(ctx.resolve(PcgPrint::rarityValue), operator.toNumericSqlOperator(), value.value, transformer = ctx.transformer(PcgPrint::rarityValue))
         }
     }
 

@@ -33,6 +33,6 @@ class UuidColumnProperty(
         ctx: ColumnContext
     ) {
         builder.whereNotNull(ctx.resolve(column))
-        builder.where(ctx.resolve(column), value)
+        builder.where(ctx.resolve(column), "=", value, transformer = ctx.transformer(column))
     }
 }

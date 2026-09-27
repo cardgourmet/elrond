@@ -1,7 +1,9 @@
 package dev.cowzy.cardgourmet.elrond
 
 import dev.cowzy.cardgourmet.elrond.config.MaterializedView
+import dev.cowzy.kuery.column.transformer.ColumnTransformer
 import dev.cowzy.kuery.reflection.columnName
+import dev.cowzy.kuery.reflection.columnTransformer
 import dev.cowzy.kuery.reflection.tableName
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -13,6 +15,8 @@ data class ColumnContext(private val materializedView: MaterializedView?) {
             "${materializedView.table}.${it}"
         } ?: column.columnName()
     }
+
+    fun transformer(column: KProperty1<*, *>) = column.columnTransformer()
 
     fun resolveTable(table: KClass<*>): String {
         if (materializedView == null) return table.tableName()

@@ -624,7 +624,7 @@ private val tableDependencies = mapOf(
         builder.leftJoin(CardPrice::class) {
             it
                 .whereColumn(ctx.resolve(MtgPrint::id), ctx.resolve(CardPrice::cardId))
-                .where(ctx.resolve(CardPrice::game), GameType.MAGIC_THE_GATHERING)
+                .where(ctx.resolve(CardPrice::game), "=", GameType.MAGIC_THE_GATHERING, transformer = ctx.transformer(CardPrice::game))
         }
     },
     CardImage::class to TableDependency(MtgPrintFaceTranslation::class) { builder, ctx ->
@@ -638,7 +638,7 @@ private val tableDependencies = mapOf(
     CardImageColor::class to TableDependency(MtgPrintFaceTranslation::class) { builder, ctx ->
         builder.leftJoin(CardImageColor::class) {
             it
-                .where(ctx.resolve(CardImageColor::game), GameType.DISNEY_LORCANA)
+                .where(ctx.resolve(CardImageColor::game), "=", GameType.DISNEY_LORCANA, transformer = ctx.transformer(CardImageColor::game))
                 .whereColumn(ctx.resolve(CardImageColor::printTranslationId), ctx.resolve(MtgPrintFaceTranslation::id))
         }
     }

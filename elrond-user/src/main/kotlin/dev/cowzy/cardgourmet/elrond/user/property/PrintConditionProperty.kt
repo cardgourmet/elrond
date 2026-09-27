@@ -45,7 +45,7 @@ class PrintConditionProperty : SearchQueryProperty<CardCondition>(
 
         builder.where { inner ->
             matchConditions.forEach {
-                inner.orWhere(ctx.resolve(UserCard::condition), it)
+                inner.orWhere(ctx.resolve(UserCard::condition), "=", it, transformer = ctx.transformer(UserCard::condition))
             }
         }
     }

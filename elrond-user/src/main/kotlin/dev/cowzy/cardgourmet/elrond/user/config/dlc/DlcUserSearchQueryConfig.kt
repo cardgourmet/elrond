@@ -41,7 +41,7 @@ private val tableDependencies = mapOf(
         builder.leftJoin(UserCard::class) {
             it
                 .whereColumn(ctx.resolve(UserCard::printId), ctx.resolve(DlcPrint::id))
-                .where(ctx.resolve(UserCard::game), GameType.DISNEY_LORCANA)
+                .where(ctx.resolve(UserCard::game), "=", GameType.DISNEY_LORCANA, transformer = ctx.transformer(UserCard::game))
         }
     },
     UserCardBinder::class to TableDependency(UserCard::class) { builder, ctx ->
