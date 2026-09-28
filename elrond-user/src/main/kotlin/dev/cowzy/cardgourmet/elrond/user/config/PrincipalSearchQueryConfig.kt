@@ -11,10 +11,10 @@ import kotlin.reflect.*
 fun SearchQueryFilterBuilder.configurePrincipalSearchQueryFilters(
     printIdColumn: KProperty1<*, *>,
     printCardIdColumn: KProperty1<*, *>,
-    findListBySlug: suspend (User?, String) -> ListDetails?,
+    findListBySlugAndUsername: suspend (User?, String, String?) -> ListDetails?,
     getUserLists: suspend (User) -> List<ListDetails>
 ) {
-    val listSlugValueProvider = UserListValueProvider(findListBySlug, getUserLists)
+    val listSlugValueProvider = UserListValueProvider(findListBySlugAndUsername, getUserLists)
     val listSlugProperty = ListSlugProperty(printIdColumn, printCardIdColumn)
     val listIdProperty = ListIdProperty(printIdColumn, printCardIdColumn)
 

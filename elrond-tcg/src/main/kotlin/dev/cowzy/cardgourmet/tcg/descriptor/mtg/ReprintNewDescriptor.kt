@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
 
 class ReprintNewDescriptor : ReprintDescriptor(Mode.REPRINT_NEW) {
@@ -27,10 +28,11 @@ class ReprintNewDescriptor : ReprintDescriptor(Mode.REPRINT_NEW) {
         expression: PropertyQueryExpression,
         negate: Boolean,
         locale: UserLanguage,
-        i18n: LocalizationService
+        i18n: LocalizationService,
+        distinctMode: SearchQueryDistinctMode
     ): String {
         if (expression !is ValueLeafQueryExpression || !special.containsKey(expression.value)) {
-            return super.describe(expression, negate, locale, i18n)
+            return super.describe(expression, negate, locale, i18n, distinctMode)
         }
 
         val negated = if (negate) !expression.negate else expression.negate

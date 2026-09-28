@@ -1,0 +1,12 @@
+{
+  "filter": {
+    "list": {
+      "title": "List",
+      "description": "Cards or prints in a list"
+    }
+  },
+  "list": {
+    "without_user": "the list {1}",
+    "with_user": "the list {1} by {2}"
+  }
+}

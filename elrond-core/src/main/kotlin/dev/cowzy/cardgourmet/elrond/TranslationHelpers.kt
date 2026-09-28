@@ -19,12 +19,13 @@ suspend fun QueryExpression.explainCondition(
     i18n: LocalizationService,
     locale: UserLanguage,
     isTopLevel: Boolean = true,
-    negate: Boolean = false
+    negate: Boolean = false,
+    distinctMode: SearchQueryDistinctMode
 ): ExplainResult? {
     return when (this) {
         is PropertyQueryExpression -> {
             ExplainResult(
-                description = this.property.descriptor.describe(this, negate, locale, i18n),
+                description = this.property.descriptor.describe(this, negate, locale, i18n, distinctMode),
                 filters = listOf(this.property.descriptor.propertyKey.split(".").last())
             )
         }
@@ -43,7 +44,7 @@ suspend fun QueryExpression.explainCondition(
                 },
                 LogicalOperator.OR,
                 this.negate
-            ).explainCondition(i18n, locale, false, negate)
+            ).explainCondition(i18n, locale, false, negate, distinctMode)
         }
 
         is QueryExpressionGroup -> {
@@ -54,7 +55,8 @@ suspend fun QueryExpression.explainCondition(
                     i18n,
                     locale,
                     false,
-                    negated
+                    negated,
+                    distinctMode
                 )
             }
 
@@ -86,12 +88,13 @@ suspend fun QueryExpression.explainCondition(
 suspend fun QueryExpression.explain(
     i18n: LocalizationService,
     locale: UserLanguage,
-    subjectKey: String,
+    distinctMode: SearchQueryDistinctMode,
     amount: Int?, estimate: Boolean,
     withExtras: Boolean,
-    preferredLanguageKey: String?,
+    preferredLanguageKey: String?
 ): ExplainResult {
-    val condition = this.explainCondition(i18n, locale)
+    val subjectKey = distinctMode.key
+    val condition = this.explainCondition(i18n, locale, distinctMode = distinctMode)
 
     val numberFormat = NumberFormat.getInstance(locale.toLocale())
     val formattedAmount = amount?.let { numberFormat.format(it) }?.let { if (estimate) "~$it" else it }

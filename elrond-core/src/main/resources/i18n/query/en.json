@@ -145,6 +145,10 @@
     "has_art_crop": {
       "true": "an art crop is available",
       "false": "no art crop is available"
+    },
+    "contained_in": {
+      "true": "{1} is contained in {2}",
+      "false": "{1} is not contained in {2}"
     }
   }
 }

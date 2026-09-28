@@ -8,9 +8,9 @@ import dev.cowzy.cardgourmet.elrond.values.ResolvedValue
 import dev.cowzy.cardgourmet.elrond.values.ValueProvider
 
 class UserListValueProvider(
-    private val findListBySlug: suspend (User?, String) -> ListDetails?,
+    private val findListBySlugAndUsername: suspend (User?, String, String?) -> ListDetails?,
     private val getUserLists: suspend (User) -> List<ListDetails>
-) : ValueProvider<UserListKey>(false) {
+) : ValueProvider<UserListKey>(true) {
 
     override suspend fun getValues(
         attributes: ContextAttributes,
@@ -36,7 +36,11 @@ class UserListValueProvider(
         attributes: ContextAttributes,
         value: String
     ): ProvidedValue<UserListKey>? {
-        return findListBySlug(attributes[UserKey], value)?.let {
+        val parts = value.split("@")
+        val slug = parts.first()
+        val username = parts.getOrNull(1)
+
+        return findListBySlugAndUsername(attributes[UserKey], slug, username)?.let {
             ProvidedValue(
                 input = it.slug,
                 aliases = mutableSetOf(it.name),

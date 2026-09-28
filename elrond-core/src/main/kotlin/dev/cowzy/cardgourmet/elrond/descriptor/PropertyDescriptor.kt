@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.query.FilterLeafQueryExpression
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
 
 abstract class PropertyDescriptor(val propertyKey: String) {
@@ -12,7 +13,8 @@ abstract class PropertyDescriptor(val propertyKey: String) {
         expression: PropertyQueryExpression,
         negate: Boolean,
         locale: UserLanguage,
-        i18n: LocalizationService
+        i18n: LocalizationService,
+        distinctMode: SearchQueryDistinctMode
     ): String
 
     fun getProperty(locale: UserLanguage, i18n: LocalizationService): String = i18n.translate(locale, propertyKey)
