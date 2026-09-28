@@ -47,7 +47,7 @@ private val queryBuilder: ((SearchQuery<DlcCardSearchQueryFlag, TcgCardSearchQue
 }
 
 
-fun <PrincipalType : Any> createDlcSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun createDlcSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
         transform?.applyFilters?.invoke(this)
@@ -56,12 +56,12 @@ fun <PrincipalType : Any> createDlcSearchQueryExecutor(providers: ValueProviderP
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcCardBaseBuilder<PrincipalType>(
+    return createDlcCardBaseBuilder(
         transform?.transformConfig?.invoke(dlcSearchQueryConfig) ?: dlcSearchQueryConfig, fallbackFilter = defaultFilter
     ).filters(filters).build()
 }
 
-fun <PrincipalType : Any> createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun createDlcCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<DlcCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicDlcCardFilters()
         configureCollectionFilters()
@@ -72,7 +72,7 @@ fun <PrincipalType : Any> createDlcCollectionSearchQueryExecutor(providers: Valu
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createDlcCardBaseBuilder<PrincipalType>(
+    return createDlcCardBaseBuilder(
         transform?.transformConfig?.invoke(dlcSearchQueryConfig) ?: dlcSearchQueryConfig, queryBuilder, defaultFilter
     ).filters(filters).build()
 }

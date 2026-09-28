@@ -46,7 +46,7 @@ private val queryBuilder: ((SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQue
     applyPcgSort(query, builder, ctx)
 }
 
-fun <PrincipalType : Any> createPcgSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun createPcgSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
         transform?.applyFilters?.invoke(this)
@@ -55,12 +55,12 @@ fun <PrincipalType : Any> createPcgSearchQueryExecutor(providers: ValueProviderP
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder<PrincipalType>(
+    return createPcgCardBaseBuilder(
         transform?.transformConfig?.invoke(pcgSearchQueryConfig) ?: pcgSearchQueryConfig, fallbackFilter = defaultFilter
     ).filters(filters).build()
 }
 
-fun <PrincipalType : Any> createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun createPcgCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
         configureCollectionFilters()
@@ -71,7 +71,7 @@ fun <PrincipalType : Any> createPcgCollectionSearchQueryExecutor(providers: Valu
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder<PrincipalType>(
+    return createPcgCardBaseBuilder(
         transform?.transformConfig?.invoke(pcgSearchQueryConfig) ?: pcgSearchQueryConfig, queryBuilder, defaultFilter
     ).filters(filters).build()
 }

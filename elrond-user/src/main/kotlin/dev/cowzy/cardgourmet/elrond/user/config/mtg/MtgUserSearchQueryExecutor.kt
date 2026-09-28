@@ -45,7 +45,7 @@ private val queryBuilder: ((SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQue
     applyMtgSortPostLanguage(query, builder, preferMode, ctx)
 }
 
-fun <PrincipalType : Any> createMtgSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun createMtgSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
         transform?.applyFilters?.invoke(this)
@@ -54,12 +54,12 @@ fun <PrincipalType : Any> createMtgSearchQueryExecutor(providers: ValueProviderP
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgCardBaseBuilder<PrincipalType>(
+    return createMtgCardBaseBuilder(
         transform?.transformConfig?.invoke(mtgSearchQueryConfig) ?: mtgSearchQueryConfig, fallbackFilter = defaultFilter
     ).filters(filters).build()
 }
 
-fun <PrincipalType : Any> createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+fun createMtgCollectionSearchQueryExecutor(providers: ValueProviderPool, transform: SearchQueryExecutorTransform? = null): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
         configureCollectionFilters()
@@ -70,7 +70,7 @@ fun <PrincipalType : Any> createMtgCollectionSearchQueryExecutor(providers: Valu
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgCardBaseBuilder<PrincipalType>(
+    return createMtgCardBaseBuilder(
         transform?.transformConfig?.invoke(mtgSearchQueryConfig) ?: mtgSearchQueryConfig, queryBuilder, defaultFilter
     ).filters(filters).build()
 }

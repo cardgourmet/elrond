@@ -1,6 +1,7 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
+import dev.cowzy.cardgourmet.elrond.ContextAttributes
 import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQuerySqlConfig
@@ -18,39 +19,39 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.search(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.search(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int, offset: Int,
-    principal: PrincipalType?,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
-    return build(query, SearchQueryMode.SEARCH, principal, applyCustomConditions)
+    return build(query, SearchQueryMode.SEARCH, attributes, applyCustomConditions)
         .limit(limit)
         .offset(offset)
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.random(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.random(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int,
-    principal: PrincipalType?,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
-    return build(query, SearchQueryMode.RANDOM, principal, applyCustomConditions)
+    return build(query, SearchQueryMode.RANDOM, attributes, applyCustomConditions)
         .limit(limit)
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.count(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.count(
     query: SearchQuery<SearchFlag, DistinctMode>,
-    principal: PrincipalType?,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
-) = build(query, SearchQueryMode.COUNT, principal, applyCustomConditions).single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
+) = build(query, SearchQueryMode.COUNT, attributes, applyCustomConditions).single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
 
 data class QueryExecutionResult<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, Result>(
     val query: SearchQuery<SearchFlag, DistinctMode>,
@@ -58,7 +59,7 @@ data class QueryExecutionResult<SearchFlag : Enum<SearchFlag>, DistinctMode : En
     val result: Result?,
 )
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any, Result> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.execute(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, Result> SearchQueryExecutor<SearchFlag, DistinctMode>.execute(
     query: SearchQuery<SearchFlag, DistinctMode>,
     retry: Boolean = true,
     execute: suspend (SearchQuery<SearchFlag, DistinctMode>) -> Pair<Result, Boolean>
@@ -80,13 +81,13 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, P
     return QueryExecutionResult(transformedQuery, attempt, result)
 }
 
-suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.build(
+suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
     query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
-    principal: PrincipalType?,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
 ): SelectQueryBuilder {
-    val ctx = ExecutionContext(principal, query, config.materializedView)
+    val ctx = ExecutionContext(attributes, query, config.materializedView)
 
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
@@ -161,7 +162,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, P
     }
 }
 
-private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any> SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>.parseResult(
+private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.parseResult(
     distinctBy: KProperty1<*, UUID>,
     row: ResultSet,
     index: ColumnIndex

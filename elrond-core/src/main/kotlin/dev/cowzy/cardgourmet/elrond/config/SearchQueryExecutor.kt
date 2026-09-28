@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
-open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any>(
+open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
     val config: SearchQuerySqlConfig,
     val flags: Set<SearchFlag>,
     val sortModes: List<SortMode>,
@@ -64,7 +64,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         val languages: Set<String>,
     )
 
-    suspend fun describeSearchFilters(principal: PrincipalType?, query: String?): List<SearchQueryFilter> {
+    suspend fun describeSearchFilters(attributes: ContextAttributes, query: String?): List<SearchQueryFilter> {
         val filters = this.filters.filter { filter ->
             query?.let { query ->
                 filter.keywords.any { it.toSimpleString().contains(query.toSimpleString()) }
@@ -91,7 +91,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
 
                 val operators = property.supportedOperators.map { it.value }
 
-                val provider = property.valueDefinition.getProviderWithPrincipal<PrincipalType>()
+                val provider = property.valueDefinition.provider
                 if (provider != null) {
                     allowsAnyValue = allowsAnyValue || !provider.strictValues
                     providesValues = true
@@ -100,7 +100,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                     allowsAnyValue = true
                 }
 
-                val providedValueTypes = provider?.getValues(principal)?.map { it.type }?.distinct() ?: emptyList()
+                val providedValueTypes = provider?.getValues(attributes)?.map { it.type }?.distinct() ?: emptyList()
 
                 SearchQueryProperty(property.key, valueTypes.sortedBy { it.type }, operators, providedValueTypes)
             }
@@ -109,16 +109,16 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         }.sortedBy { it.keywords.first() }
     }
 
-    suspend fun getFilterValueTypes(principal: PrincipalType?): List<String> {
+    suspend fun getFilterValueTypes(attributes: ContextAttributes): List<String> {
         return filters.flatMap { filter ->
             filter.properties.flatMap { property ->
-                property.valueDefinition.getProviderWithPrincipal<PrincipalType>()?.getValues(principal)?.map { it.type } ?: emptyList()
+                property.valueDefinition.provider?.getValues(attributes)?.map { it.type } ?: emptyList()
             }
         }.distinct().sorted()
     }
 
     suspend fun getFilterValues(
-        principal: PrincipalType?,
+        attributes: ContextAttributes,
         keyword: String,
         amount: Int,
         query: String?,
@@ -130,7 +130,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
 
         val providers = filter.properties
             .filter { operator == null || it.supportedOperators.contains(operator) }
-            .mapNotNull { it.valueDefinition.getProviderWithPrincipal<PrincipalType>() }
+            .mapNotNull { it.valueDefinition.provider }
 
         val providedValues = mutableListOf<ProvidedValue<*>>()
         val totalCount: Int
@@ -141,20 +141,20 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
 
             // First, find any exact matches
             val exactMatches = providers
-                .mapNotNull { it.findValue(principal, query) }
+                .mapNotNull { it.findValue(attributes, query) }
                 .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input.lowercase()) }
                 .sortedBy { it.input }
 
             // Next, find any values that contain the keyword.
-            var fuzzyMatches = providers.flatMap { it.getValues(principal, query, preferredLanguage) }
+            var fuzzyMatches = providers.flatMap { it.getValues(attributes, query, preferredLanguage) }
                 .filter { type == null || it.type == type }
                 .filter { usedInputs.add(it.input.lowercase()) }
                 .sortedBy { it.input }
 
             // If there are no fuzzy matches, search again without the language
             if (fuzzyMatches.isEmpty() && preferredLanguage != null) {
-                fuzzyMatches = providers.flatMap { it.getValues(principal, query, null) }
+                fuzzyMatches = providers.flatMap { it.getValues(attributes, query, null) }
                     .filter { type == null || it.type == type }
                     .filter { usedInputs.add(it.input.lowercase()) }
                     .sortedBy { it.input }
@@ -164,15 +164,15 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
             providedValues.addAll(matches.take(amount))
 
             matchCount = matches.size
-            totalCount = providers.sumOf { it.getValues(principal).count() }
+            totalCount = providers.sumOf { it.getValues(attributes).count() }
         } else {
-            var values = providers.flatMap { it.getValues(principal, preferredLanguage) }
+            var values = providers.flatMap { it.getValues(attributes, preferredLanguage) }
                 .filter { type == null || it.type == type }
                 .sortedBy { it.input }
 
             // If there are no values, search again without the language
             if (values.isEmpty() && preferredLanguage != null) {
-                values = providers.flatMap { it.getValues(principal, null) }
+                values = providers.flatMap { it.getValues(attributes, null) }
                     .filter { type == null || it.type == type }
                     .sortedBy { it.input }
             }
@@ -180,7 +180,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
             providedValues.addAll(values.take(amount))
 
             matchCount = values.size
-            totalCount = providers.flatMap { it.getValues(principal) }.size
+            totalCount = providers.flatMap { it.getValues(attributes) }.size
         }
 
         return FilterValues(
@@ -203,7 +203,7 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
 
 typealias SearchQueryTransformer<F, D> = (SearchQuery<F, D>) -> SearchQuery<F, D>?
 
-class SearchQueryExecutorBuilder<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, PrincipalType : Any>(
+class SearchQueryExecutorBuilder<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>>(
     private val config: SearchQuerySqlConfig
 ) {
 
@@ -242,7 +242,7 @@ class SearchQueryExecutorBuilder<SearchFlag : Enum<SearchFlag>, DistinctMode : E
         this.distinctModes[distinctMode] = property
     }
 
-    fun build() = SearchQueryExecutor<SearchFlag, DistinctMode, PrincipalType>(
+    fun build() = SearchQueryExecutor(
         config = config,
         flags = flags,
         sortModes = sortModes,

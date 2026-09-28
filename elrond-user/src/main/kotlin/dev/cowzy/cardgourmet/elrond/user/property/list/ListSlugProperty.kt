@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.commons.i18n.*
 import dev.cowzy.cardgourmet.commons.user.*
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.property.*
+import dev.cowzy.cardgourmet.elrond.user.UserKey
 import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.query.*
 import dev.cowzy.kuery.reflection.table
@@ -48,10 +49,13 @@ class ListSlugProperty(
             }
 
             this.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
-        } else if (ctx.principal is User) {
-            this.where(UserList::userId, (ctx.principal as User).id)
         } else {
-            this.whereRaw("FALSE") // No username provided and not authenticated, so no results
+            val user = ctx.attributes[UserKey]
+            if (user != null) {
+                this.where(UserList::userId, user.id)
+            } else {
+                this.whereRaw("FALSE") // No username provided and not authenticated, so no results
+            }
         }
 
         this.where(UserList::slug, value.slug.lowercase())

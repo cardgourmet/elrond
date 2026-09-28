@@ -1,15 +1,17 @@
 package dev.cowzy.cardgourmet.elrond.values
 
-abstract class ValueProvider<T : Any, PrincipalType : Any>(val strictValues: Boolean) {
+import dev.cowzy.cardgourmet.elrond.ContextAttributes
 
-    abstract suspend fun getValues(principal: PrincipalType?, language: String? = null): Iterable<ProvidedValue<T>>
+abstract class ValueProvider<T : Any>(val strictValues: Boolean) {
 
-    open suspend fun getValues(principal: PrincipalType?, filter: String, language: String?): Iterable<ProvidedValue<T>> {
-        return getValues(principal)
+    abstract suspend fun getValues(attributes: ContextAttributes, language: String? = null): Iterable<ProvidedValue<T>>
+
+    open suspend fun getValues(attributes: ContextAttributes, filter: String, language: String?): Iterable<ProvidedValue<T>> {
+        return getValues(attributes)
             .filter { language == null || it.languages.isEmpty() || it.languages.contains(language) }
             .filter { it.input.contains(filter, ignoreCase = true) || it.aliases.any { alias -> alias.contains(filter, ignoreCase = true) } }
     }
 
-    abstract suspend fun findValue(principal: PrincipalType?, value: String): ProvidedValue<T>?
+    abstract suspend fun findValue(attributes: ContextAttributes, value: String): ProvidedValue<T>?
 
 }

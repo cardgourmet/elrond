@@ -109,12 +109,12 @@ fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardS
     builder.orderBy(ctx.resolve(MtgCardFace::index))
 }
 
-fun <PrincipalType : Any> createMtgCardBaseBuilder(
+fun createMtgCardBaseBuilder(
     config: SearchQuerySqlConfig,
     builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
-    return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType>(config)
+): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+    return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*MtgCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
@@ -174,10 +174,10 @@ fun <PrincipalType : Any> createMtgCardBaseBuilder(
         }
 }
 
-fun <PrincipalType : Any> createMtgCardSearchQueryExecutor(
+fun createMtgCardSearchQueryExecutor(
     providers: ValueProviderPool,
     transform: SearchQueryExecutorTransform? = null
-): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
         transform?.applyFilters?.invoke(this)
@@ -186,13 +186,11 @@ fun <PrincipalType : Any> createMtgCardSearchQueryExecutor(
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgCardBaseBuilder<PrincipalType>(
+    return createMtgCardBaseBuilder(
         transform?.transformConfig?.invoke(mtgBasicSearchQueryConfig) ?: mtgBasicSearchQueryConfig,
         queryBuilder,
         defaultFilter
-    )
-        .filters(filters)
-        .build()
+    ).filters(filters).build()
 }
 
 fun <T : Enum<T>> Iterable<T>.firstOfOrNull(values: Collection<T>) = this.firstOrNull { values.contains(it) }

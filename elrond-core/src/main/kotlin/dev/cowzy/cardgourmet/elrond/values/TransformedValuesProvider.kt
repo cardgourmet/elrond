@@ -1,19 +1,21 @@
 package dev.cowzy.cardgourmet.elrond.values
 
-class TransformedValuesProvider<Input : Any, Output : Any, PrincipalType : Any>(
-    private val baseProvider: ValueProvider<Input, PrincipalType>,
+import dev.cowzy.cardgourmet.elrond.ContextAttributes
+
+class TransformedValuesProvider<Input : Any, Output : Any>(
+    private val baseProvider: ValueProvider<Input>,
     private val transform: (Input) -> Output
-) : ValueProvider<Output, PrincipalType>(baseProvider.strictValues) {
+) : ValueProvider<Output>(baseProvider.strictValues) {
 
     override suspend fun getValues(
-        principal: PrincipalType?,
+        attributes: ContextAttributes,
         language: String?
-    ) = baseProvider.getValues(principal = null, language = language).map { transform(it) }
+    ) = baseProvider.getValues(attributes, language = language).map { transform(it) }
 
     override suspend fun findValue(
-        principal: PrincipalType?,
+        attributes: ContextAttributes,
         value: String
-    ) = baseProvider.findValue(principal = null, value = value)?.let { transform(it) }
+    ) = baseProvider.findValue(attributes, value = value)?.let { transform(it) }
 
     private fun transform(it: ProvidedValue<Input>): ProvidedValue<Output> {
         return ProvidedValue(
@@ -31,6 +33,6 @@ class TransformedValuesProvider<Input : Any, Output : Any, PrincipalType : Any>(
 
 }
 
-fun <Input : Any, Output : Any, PrincipalType : Any> ValueProvider<Input, PrincipalType>.withTransform(transform: (Input) -> Output): ValueProvider<Output, PrincipalType> {
+fun <Input : Any, Output : Any> ValueProvider<Input>.withTransform(transform: (Input) -> Output): ValueProvider<Output> {
     return TransformedValuesProvider(this, transform)
 }

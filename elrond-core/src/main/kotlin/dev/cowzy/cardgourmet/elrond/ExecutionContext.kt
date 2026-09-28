@@ -1,15 +1,12 @@
 package dev.cowzy.cardgourmet.elrond
 
-import dev.cowzy.cardgourmet.elrond.config.MaterializedView
-import dev.cowzy.cardgourmet.elrond.query.SearchQuery
-import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
-import dev.cowzy.kuery.reflection.columnName
-import dev.cowzy.kuery.reflection.tableName
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
+import dev.cowzy.cardgourmet.elrond.config.*
+import dev.cowzy.cardgourmet.elrond.query.*
+import dev.cowzy.kuery.reflection.*
+import kotlin.reflect.*
 
 data class ExecutionContext(
-    val principal: Any?,
+    val attributes: ContextAttributes,
     val searchQuery: SearchQuery<*, *>,
     private val materializedView: MaterializedView?
 ) {

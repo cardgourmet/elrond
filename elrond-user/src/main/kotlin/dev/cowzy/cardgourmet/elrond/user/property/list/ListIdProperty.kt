@@ -4,6 +4,7 @@ import dev.cowzy.cardgourmet.commons.i18n.*
 import dev.cowzy.cardgourmet.commons.user.*
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.property.*
+import dev.cowzy.cardgourmet.elrond.user.UserKey
 import dev.cowzy.cardgourmet.tcg.config.card.*
 import dev.cowzy.kuery.query.*
 import dev.cowzy.kuery.reflection.*
@@ -58,8 +59,9 @@ class ListIdProperty(
         this.where(UserListResource::resourceType, ListResourceType.CARD)
         this.where(UserList::id, value)
         this.where {
-            if (ctx.principal is User) {
-                it.where(UserList::userId, (ctx.principal as User).id)
+            val user = ctx.attributes[UserKey]
+            if (user != null) {
+                it.where(UserList::userId, user.id)
             }
 
             it.orWhere(UserList::visibility, UserListVisibility.PUBLIC) // TODO: add unlisted once available

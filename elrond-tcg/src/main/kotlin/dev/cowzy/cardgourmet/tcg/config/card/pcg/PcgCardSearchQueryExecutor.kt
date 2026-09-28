@@ -61,12 +61,12 @@ fun applyPcgSort(query: SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDi
     builder.orderBy(ctx.resolve(PcgPrint::collectorNumber)) // exact sorting for subset
 }
 
-fun <PrincipalType : Any> createPcgCardBaseBuilder(
+fun createPcgCardBaseBuilder(
     config: SearchQuerySqlConfig,
     builder: (SearchQuery<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
-): SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
-    return SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType>(config)
+): SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+    return SearchQueryExecutorBuilder<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
         .fallbackFilter(fallbackFilter)
         .flags(*PcgCardSearchQueryFlag.values())
         // TODO: distinct mode unique:art
@@ -99,10 +99,10 @@ fun <PrincipalType : Any> createPcgCardBaseBuilder(
         }
 }
 
-fun <PrincipalType : Any> createPcgCardSearchQueryExecutor(
+fun createPcgCardSearchQueryExecutor(
     providers: ValueProviderPool,
     transform: SearchQueryExecutorTransform? = null
-): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode, PrincipalType> {
+): SearchQueryExecutor<PcgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicPcgCardFilters()
         transform?.applyFilters?.invoke(this)
@@ -111,7 +111,7 @@ fun <PrincipalType : Any> createPcgCardSearchQueryExecutor(
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createPcgCardBaseBuilder<PrincipalType>(
+    return createPcgCardBaseBuilder(
         transform?.transformConfig?.invoke(pcgBasicCardSearchQueryConfig) ?: pcgBasicCardSearchQueryConfig,
         queryBuilder,
         defaultFilter
