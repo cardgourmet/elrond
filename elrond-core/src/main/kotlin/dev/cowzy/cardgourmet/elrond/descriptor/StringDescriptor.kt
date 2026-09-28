@@ -7,6 +7,7 @@ import dev.cowzy.cardgourmet.elrond.RegexValue
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.StringValue
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
 
 class StringDescriptor(
@@ -17,7 +18,8 @@ class StringDescriptor(
         expression: PropertyQueryExpression,
         negate: Boolean,
         locale: UserLanguage,
-        i18n: LocalizationService
+        i18n: LocalizationService,
+        distinctMode: SearchQueryDistinctMode
     ): String {
         if (expression !is ValueLeafQueryExpression) {
             throw IllegalArgumentException("Unsupported expression $expression")

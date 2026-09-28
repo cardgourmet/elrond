@@ -29,7 +29,7 @@ class StringArrayColumnProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: String,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val apply: (ConcreteWhereQueryBuilder) -> Unit = {
             columns.forEach { column ->

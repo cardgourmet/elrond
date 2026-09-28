@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.elrond.property
 import dev.cowzy.cardgourmet.commons.getSerialName
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.QueryValueDefinition
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
@@ -33,7 +33,7 @@ class EnumArrayColumnProperty<ValueType : Enum<ValueType>>(
         builder: T,
         operator: SearchQueryOperator,
         value: ValueType,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         builder.whereNotNull(ctx.resolve(column))
         builder.whereRaw(ctx.resolve(column), "@>", "ARRAY[${column.placeholder()}]::text[]") { stmt, index ->

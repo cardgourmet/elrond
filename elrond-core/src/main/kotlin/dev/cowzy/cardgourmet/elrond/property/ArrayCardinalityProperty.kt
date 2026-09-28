@@ -1,6 +1,5 @@
 package dev.cowzy.cardgourmet.elrond.property
 
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
 import kotlin.reflect.KProperty1
@@ -21,7 +20,7 @@ class ArrayCardinalityProperty(
         }
     }
 
-    override fun getRawSql(ctx: ColumnContext) = columns.joinToString(" + ") {
+    override fun getRawSql(ctx: ExecutionContext) = columns.joinToString(" + ") {
         when {
             distinctValues -> "cardinality(array(select distinct unnest(${ctx.resolve(it)})))"
             else -> "cardinality(${ctx.resolve(it)})"

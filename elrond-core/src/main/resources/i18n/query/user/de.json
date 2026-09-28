@@ -1,6 +1,12 @@
 {
-  "property": {
-    "list": "",
-    "list_id": ""
+  "filter": {
+    "list": {
+      "title": "Liste",
+      "description": "Karten oder Prints einer Liste"
+    }
+  },
+  "list": {
+    "without_user": "der Liste {1}",
+    "with_user": "der Liste {1} von {2}"
   }
 }

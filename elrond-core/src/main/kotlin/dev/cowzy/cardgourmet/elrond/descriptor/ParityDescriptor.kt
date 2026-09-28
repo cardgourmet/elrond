@@ -5,6 +5,7 @@ import dev.cowzy.cardgourmet.commons.i18n.Strings
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.property.Parity
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 import dev.cowzy.cardgourmet.elrond.query.ValueLeafQueryExpression
 
 class ParityDescriptor(propertyKey: String) : PropertyDescriptor(propertyKey) {
@@ -13,7 +14,8 @@ class ParityDescriptor(propertyKey: String) : PropertyDescriptor(propertyKey) {
         expression: PropertyQueryExpression,
         negate: Boolean,
         locale: UserLanguage,
-        i18n: LocalizationService
+        i18n: LocalizationService,
+        distinctMode: SearchQueryDistinctMode
     ): String {
         if (expression !is ValueLeafQueryExpression) throw IllegalArgumentException("Unsupported expression type: ${expression::class.simpleName}")
 

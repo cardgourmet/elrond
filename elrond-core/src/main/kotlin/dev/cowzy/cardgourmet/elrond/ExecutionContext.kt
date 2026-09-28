@@ -1,15 +1,15 @@
 package dev.cowzy.cardgourmet.elrond
 
-import dev.cowzy.cardgourmet.elrond.config.MaterializedView
-import dev.cowzy.kuery.column.transformer.ColumnTransformer
-import dev.cowzy.kuery.reflection.columnName
-import dev.cowzy.kuery.reflection.columnTransformer
-import dev.cowzy.kuery.reflection.placeholder
-import dev.cowzy.kuery.reflection.tableName
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
+import dev.cowzy.cardgourmet.elrond.config.*
+import dev.cowzy.cardgourmet.elrond.query.*
+import dev.cowzy.kuery.reflection.*
+import kotlin.reflect.*
 
-data class ColumnContext(private val materializedView: MaterializedView?) {
+data class ExecutionContext(
+    val attributes: ContextAttributes,
+    val searchQuery: SearchQuery<*, *>,
+    private val materializedView: MaterializedView?
+) {
 
     fun resolve(column: KProperty1<*, *>): String {
         return materializedView?.columnMappings?.get(column)?.let {

@@ -1,7 +1,8 @@
 package dev.cowzy.cardgourmet.elrond.query
 
 import dev.cowzy.cardgourmet.elrond.BadDistinctModeException
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ContextAttributes
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.config.SearchQueryExecutor
 import dev.cowzy.cardgourmet.elrond.config.SearchQuerySqlConfig
 import dev.cowzy.cardgourmet.elrond.property.SearchQueryProperty
@@ -21,11 +22,12 @@ import kotlin.reflect.full.isSubclassOf
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.search(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int, offset: Int,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
-    return build(query, SearchQueryMode.SEARCH, applyCustomConditions)
+    return build(query, SearchQueryMode.SEARCH, attributes, applyCustomConditions)
         .limit(limit)
         .offset(offset)
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
@@ -34,20 +36,22 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.random(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
-    return build(query, SearchQueryMode.RANDOM, applyCustomConditions)
+    return build(query, SearchQueryMode.RANDOM, attributes, applyCustomConditions)
         .limit(limit)
         .get(connection) { row, index -> parseResult(distinctBy, row, index) }
 }
 
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.count(
     query: SearchQuery<SearchFlag, DistinctMode>,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
-) = build(query, SearchQueryMode.COUNT, applyCustomConditions).single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
+) = build(query, SearchQueryMode.COUNT, attributes, applyCustomConditions).single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
 
 data class QueryExecutionResult<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, Result>(
     val query: SearchQuery<SearchFlag, DistinctMode>,
@@ -80,9 +84,10 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, R
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
     query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
-    applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
 ): SelectQueryBuilder {
-    val ctx = ColumnContext(config.materializedView)
+    val ctx = ExecutionContext(attributes, query, config.materializedView)
 
     val expression = query.normalizedExpression
     val distinctBy = distinctModes[query.distinctMode] ?: throw BadDistinctModeException(query.distinctMode)
@@ -184,7 +189,7 @@ private fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
     expression: QueryExpression,
     distinctBy: KProperty1<*, *>,
-    ctx: ColumnContext
+    ctx: ExecutionContext
 ) {
     when (expression) {
         is BooleanQueryExpression -> this.whereRaw(if (expression.negate) "FALSE" else "TRUE")
@@ -319,7 +324,7 @@ private suspend fun <T : WhereQueryBuilder<T>> T.applyExpression(
 fun SelectQueryBuilder.applyJoins(
     tables: Set<KClass<*>>,
     config: SearchQuerySqlConfig,
-    ctx: ColumnContext,
+    ctx: ExecutionContext,
 ): SelectQueryBuilder {
     val joinedTables = mutableSetOf(config.baseTable)
 
@@ -330,7 +335,7 @@ fun SelectQueryBuilder.applyJoins(
     tables.forEach {
         if (joinedTables.contains(it)) return@forEach
 
-        val localJoins = mutableListOf<(SelectQueryBuilder, ColumnContext) -> Unit>()
+        val localJoins = mutableListOf<(SelectQueryBuilder, ExecutionContext) -> Unit>()
         var current = arrayOf(it)
         do {
             current = current.mapNotNull { table ->

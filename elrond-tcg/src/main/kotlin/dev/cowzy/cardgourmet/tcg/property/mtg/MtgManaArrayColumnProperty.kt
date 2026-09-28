@@ -3,7 +3,6 @@ package dev.cowzy.cardgourmet.tcg.property.mtg
 import dev.cowzy.cardgourmet.commons.*
 import dev.cowzy.kuery.ColumnIndex
 import dev.cowzy.kuery.query.WhereQueryBuilder
-import dev.cowzy.kuery.reflection.columnName
 import dev.cowzy.kuery.reflection.table
 import dev.cowzy.cardgourmet.elrond.*
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
@@ -36,7 +35,7 @@ class MtgManaArrayColumnProperty(
         builder: T,
         operator: SearchQueryOperator,
         value: List<ManaValue>,
-        ctx: ColumnContext
+        ctx: ExecutionContext
     ) {
         val manaValues = value.map { it.type }.distinct().toManaColorIndices()
 

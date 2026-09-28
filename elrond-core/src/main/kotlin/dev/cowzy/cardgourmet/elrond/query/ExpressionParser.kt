@@ -59,7 +59,8 @@ data class SearchQueryParseConfig<SearchFlag : Enum<SearchFlag>, DistinctMode>(
 
 suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQueryExecutor<SearchFlag, DistinctMode>.parse(
     query: String,
-    config: SearchQueryParseConfig<SearchFlag, DistinctMode> = SearchQueryParseConfig()
+    config: SearchQueryParseConfig<SearchFlag, DistinctMode> = SearchQueryParseConfig(),
+    attributes: ContextAttributes = ContextAttributes.EMPTY
 ) : SearchQuery<SearchFlag, DistinctMode> where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
     val failedValidations = mutableSetOf<QueryValidationRule>()
 
@@ -96,7 +97,7 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     val tokenizer = QueryTokenizer(tokenizerFilters, fallbackFilter?.toTokenizerFilter(), whitelistedValueTypes)
 
     val (token, ignored) = tokenizer.tokenizeToQuery(queryWithoutSorting)
-    val result = token.toQueryExpression(allowedFilters, fallbackFilter)
+    val result = token.toQueryExpression(allowedFilters, fallbackFilter, attributes)
     val normalizedExpression = result.expression.normalize()
 
     val (filters, filterExpressions) = normalizedExpression.extractFilterExpressions().unzip()
@@ -214,11 +215,12 @@ fun <T> String.stripValues(values: Iterable<T>, toString: (T) -> Set<String>): P
 
 suspend fun QueryToken?.toQueryExpression(
     filters: List<QueryFilter>,
-    fallbackFilter: QueryFilter? = null
+    fallbackFilter: QueryFilter? = null,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
 ): QueryExpressionBuilderResult {
     if (this == null) return QueryExpressionBuilderResult()
 
-    val (rawExpression, rawIgnoredValues) = this.parseQueryExpression(filters, fallbackFilter)
+    val (rawExpression, rawIgnoredValues) = this.parseQueryExpression(filters, fallbackFilter, attributes)
 
     val ignoredValues = rawIgnoredValues.toMutableList()
     val expression = rawExpression ?: return QueryExpressionBuilderResult()
@@ -242,14 +244,15 @@ suspend fun QueryToken?.toQueryExpression(
 private suspend fun QueryToken.parseQueryExpression(
     filters: List<QueryFilter>,
     fallbackFilter: QueryFilter? = null,
+    attributes: ContextAttributes = ContextAttributes.EMPTY,
 ): Pair<QueryExpression?, List<IgnoredQueryValue>> {
     val ignoredValues = mutableListOf<IgnoredQueryValue>()
 
     when (this) {
         is QueryTokenGroup -> {
-            val results = this.children.map { it.parseQueryExpression(filters, fallbackFilter) }
+            val results = this.children.map { it.parseQueryExpression(filters, fallbackFilter, attributes) }
             val expressions = results.mapNotNull { it.first }
-            ignoredValues.addAll(results.map { it.second }.flatten())
+            ignoredValues.addAll(results.flatMap { it.second })
 
             return when {
                 expressions.isEmpty() -> null to ignoredValues
@@ -294,15 +297,14 @@ private suspend fun QueryToken.parseQueryExpression(
             }
 
             val supportedValueTypes = filter.properties
-                .map { prop ->
+                .flatMap { prop ->
                     when {
-                        prop.valueDefinition.provider?.getValues()
+                        prop.valueDefinition.provider?.getValues(attributes)
                             ?.any() == true -> prop.valueDefinition.supportedValueTypes + StringValue::class
 
                         else -> prop.valueDefinition.supportedValueTypes
                     }
                 }
-                .flatten()
                 .distinct()
                 .toTypedArray()
 
@@ -343,13 +345,13 @@ private suspend fun QueryToken.parseQueryExpression(
                     val propertyCandidates = filter.properties.mapNotNull inner@{ prop ->
                         val supportsValueType = prop.valueDefinition.supportedValueTypes.any { it.isInstance(value) }
                         val supportsValueMappings =
-                            value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues()
+                            value is StringValue && (supportsValueType || prop.valueDefinition.provider?.getValues(attributes)
                                 ?.any() == true)
                         if (!supportsValueType && !supportsValueMappings) return@inner null
 
                         val provider = prop.valueDefinition.provider
                         if (value is StringValue && provider != null) {
-                            val matchingValue = provider.findValue(value.value)
+                            val matchingValue = provider.findValue(attributes, value.value)
                             if (matchingValue != null) {
                                 val mappedOperator = when (operator) {
                                     SearchQueryOperator.CONTAINS -> matchingValue.resolvesTo.operator
@@ -416,7 +418,11 @@ private suspend fun QueryToken.parseQueryExpression(
                         }
                     }
 
-                    if (validProperties.size == 1) {
+
+                    if (validProperties.isEmpty()) {
+                        ignoredValues.add(IgnoredQueryValue(this.toString(), "unsupported_value"))
+                        return@map null
+                    } else if (validProperties.size == 1) {
                         val property = validProperties.single()
 
                         ValueLeafQueryExpression(

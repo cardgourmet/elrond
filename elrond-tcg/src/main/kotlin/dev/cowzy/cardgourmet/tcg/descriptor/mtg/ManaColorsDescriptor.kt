@@ -6,6 +6,7 @@ import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.SearchQueryOperator
 import dev.cowzy.cardgourmet.elrond.descriptor.PropertyDescriptor
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 
 class ManaColorsDescriptor(
     propertyKey: String,
@@ -16,7 +17,8 @@ class ManaColorsDescriptor(
         expression: PropertyQueryExpression,
         negate: Boolean,
         locale: UserLanguage,
-        i18n: LocalizationService
+        i18n: LocalizationService,
+        distinctMode: SearchQueryDistinctMode
     ): String {
         val negated = if (negate) !expression.negate else expression.negate
 

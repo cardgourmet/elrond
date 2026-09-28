@@ -1,6 +1,6 @@
 package dev.cowzy.cardgourmet.elrond.property
 
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.descriptor.SimplePropertyDescriptor
 import dev.cowzy.kuery.query.WhereQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
@@ -13,7 +13,7 @@ class StaticNullColumnProperty(
     descriptor: SimplePropertyDescriptor,
 ) : StaticSearchQueryProperty(arrayOf(column.table()), descriptor) {
 
-    override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T, ctx: ColumnContext) {
+    override suspend fun <T : WhereQueryBuilder<T>> applyCondition(builder: T, ctx: ExecutionContext) {
         if (inverted) {
             builder.whereNotNull(ctx.resolve(column))
         } else {

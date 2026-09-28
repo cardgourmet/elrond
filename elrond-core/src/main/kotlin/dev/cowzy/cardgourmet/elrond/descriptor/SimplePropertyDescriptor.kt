@@ -3,6 +3,7 @@ package dev.cowzy.cardgourmet.elrond.descriptor
 import dev.cowzy.cardgourmet.commons.i18n.LocalizationService
 import dev.cowzy.cardgourmet.commons.i18n.UserLanguage
 import dev.cowzy.cardgourmet.elrond.query.PropertyQueryExpression
+import dev.cowzy.cardgourmet.elrond.query.SearchQueryDistinctMode
 
 open class SimplePropertyDescriptor(
     private val trueComparisonKey: String,
@@ -22,7 +23,8 @@ open class SimplePropertyDescriptor(
         expression: PropertyQueryExpression,
         negate: Boolean,
         locale: UserLanguage,
-        i18n: LocalizationService
+        i18n: LocalizationService,
+        distinctMode: SearchQueryDistinctMode
     ): String {
         val negated = if (inverted == negate) expression.negate else !expression.negate
         val comparisonKey = if (negated) falseComparisonKey else trueComparisonKey

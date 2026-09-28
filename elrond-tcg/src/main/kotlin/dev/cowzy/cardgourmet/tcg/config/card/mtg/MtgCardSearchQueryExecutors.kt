@@ -3,7 +3,7 @@ package dev.cowzy.cardgourmet.tcg.config.card.mtg
 import dev.cowzy.cardgourmet.chef.commons.model.image.CardImage
 import dev.cowzy.cardgourmet.commons.database.Schemata
 import dev.cowzy.cardgourmet.chef.commons.model.card.mtg.*
-import dev.cowzy.cardgourmet.elrond.ColumnContext
+import dev.cowzy.cardgourmet.elrond.ExecutionContext
 import dev.cowzy.cardgourmet.elrond.QueryFilter
 import dev.cowzy.cardgourmet.elrond.config.*
 import dev.cowzy.cardgourmet.elrond.query.BooleanQueryExpression
@@ -14,11 +14,10 @@ import dev.cowzy.cardgourmet.tcg.config.card.TcgCardSearchQueryDistinctMode
 import dev.cowzy.kuery.Order
 import dev.cowzy.kuery.query.SelectQueryBuilder
 import dev.cowzy.kuery.query.whereNotNull
-import dev.cowzy.kuery.reflection.columnName
 
 private val queryBuilder: ((
     SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>,
-    SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit
+    SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit
 ) = queryBuilder@{ query, mode, builder, ctx ->
     val preferMode = query.flags.firstOfOrNull(MtgCardSearchQueryFlag.preferModes)
 
@@ -54,7 +53,7 @@ private val queryBuilder: ((
     applyMtgSortPostLanguage(query, builder, preferMode, ctx)
 }
 
-fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?, ctx: ColumnContext) {
+fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?, ctx: ExecutionContext) {
     // Always prefer cards with images.
     builder.orderByRaw("CASE WHEN(${ctx.resolve(CardImage::imageId)} IS NOT NULL) THEN 1 ELSE 2 END")
 
@@ -91,7 +90,7 @@ fun applyMtgSortPreLanguage(builder: SelectQueryBuilder, preferMode: MtgCardSear
     }
 }
 
-fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?, ctx: ColumnContext) {
+fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, builder: SelectQueryBuilder, preferMode: MtgCardSearchQueryFlag?, ctx: ExecutionContext) {
     builder.orderByRaw("array_position(ARRAY[?, 'en'], ${ctx.resolve(MtgPrintFaceTranslation::language)})") { stmt, index ->
         stmt.setString(index.getAndIncrement(), query.preferredLanguage)
     }
@@ -112,7 +111,7 @@ fun applyMtgSortPostLanguage(query: SearchQuery<MtgCardSearchQueryFlag, TcgCardS
 
 fun createMtgCardBaseBuilder(
     config: SearchQuerySqlConfig,
-    builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ColumnContext) -> Unit = queryBuilder,
+    builder: (SearchQuery<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>, SearchQueryMode, SelectQueryBuilder, ExecutionContext) -> Unit = queryBuilder,
     fallbackFilter: QueryFilter
 ): SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     return SearchQueryExecutorBuilder<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode>(config)
@@ -175,17 +174,23 @@ fun createMtgCardBaseBuilder(
         }
 }
 
-fun createMtgCardSearchQueryExecutor(providers: ValueProviderPool): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
+fun createMtgCardSearchQueryExecutor(
+    providers: ValueProviderPool,
+    transform: SearchQueryExecutorTransform? = null
+): SearchQueryExecutor<MtgCardSearchQueryFlag, TcgCardSearchQueryDistinctMode> {
     val builder = SearchQueryFilterBuilder(providers) {
         configureBasicMtgCardFilters()
+        transform?.applyFilters?.invoke(this)
     }
 
     val filters = builder.build()
     val defaultFilter = filters.single { it.keywords.contains("name") }
 
-    return createMtgCardBaseBuilder(mtgBasicSearchQueryConfig, queryBuilder, defaultFilter)
-        .filters(filters)
-        .build()
+    return createMtgCardBaseBuilder(
+        transform?.transformConfig?.invoke(mtgBasicSearchQueryConfig) ?: mtgBasicSearchQueryConfig,
+        queryBuilder,
+        defaultFilter
+    ).filters(filters).build()
 }
 
 fun <T : Enum<T>> Iterable<T>.firstOfOrNull(values: Collection<T>) = this.firstOrNull { values.contains(it) }
