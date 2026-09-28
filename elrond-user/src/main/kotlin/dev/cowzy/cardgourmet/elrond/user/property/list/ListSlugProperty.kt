@@ -16,55 +16,33 @@ data class UserListKey(val slug: String, val username: String?)
 class ListSlugProperty(
     private val printIdColumn: KProperty1<*, *>,
     private val printCardIdColumn: KProperty1<*, *>,
-) : SearchQueryProperty<UserListKey>(
+) : SearchQueryProperty<ListDetails>(
     supportedOperators = stringQueryOperators,
     affectedTables = arrayOf(printIdColumn.table(), printCardIdColumn.table()),
     descriptor = ListDescriptor(Strings.Query.Collection.Property.BINDER) // TODO
 ) {
 
-    override val valueDefinition = QueryValueDefinition {
-        StringValue::class {
-            format = "slug_with_optional_username"
-
-            transform {
-                val parts = it.value.split("@")
-                if (parts.size > 2) return@transform null
-                val slug = parts[0]
-                val username = if (parts.size == 2) parts[1] else null
-                UserListKey(slug.lowercase(), username)
-            }
-        }
+    override val valueDefinition = QueryValueDefinition<ListDetails> {
+        StringValue::class()
     }
 
-    private fun SelectQueryBuilder.applyListCondition(value: UserListKey, ctx: ExecutionContext): SelectQueryBuilder = this.apply {
+    private fun SelectQueryBuilder.applyListCondition(value: ListDetails, ctx: ExecutionContext): SelectQueryBuilder = this.apply {
         this.where(UserListResource::resourceType, ListResourceType.CARD)
-
-        if (value.username != null) {
-            try {
-                val id = UUID.fromString(value.username)
-                this.where(UserList::userId, id)
-            } catch (_: IllegalArgumentException) {
-                this.innerJoin(User::class) { it.whereColumn(UserList::userId, User::id) }
-                this.where(User::username, operator = "ILIKE", value.username)
-            }
-
+        this.where(UserList::id, value.id)
+        this.where {
             this.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
-        } else {
+
             val user = ctx.attributes[UserKey]
             if (user != null) {
-                this.where(UserList::userId, user.id)
-            } else {
-                this.whereRaw("FALSE") // No username provided and not authenticated, so no results
+                this.orWhere(UserList::userId, user.id)
             }
         }
-
-        this.where(UserList::slug, value.slug.lowercase())
     }
 
     override suspend fun <T : WhereQueryBuilder<T>> applyCondition(
         builder: T,
         operator: SearchQueryOperator,
-        value: UserListKey,
+        value: ListDetails,
         ctx: ExecutionContext
     ) {
         val useCardId = ctx.searchQuery.distinctMode != TcgCardSearchQueryDistinctMode.UNIQUE_PRINTS && ctx.searchQuery.distinctMode != TcgCardSearchQueryDistinctMode.UNIQUE_PRINT_FACES

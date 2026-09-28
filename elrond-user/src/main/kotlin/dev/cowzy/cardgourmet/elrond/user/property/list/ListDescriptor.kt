@@ -23,18 +23,18 @@ class ListDescriptor(propertyKey: String) : PropertyDescriptor(propertyKey) {
         val negated = if (negate) !expression.negate else expression.negate
 
         val value = when {
-            expression.value is UserListKey && (expression.value as UserListKey).username != null -> {
+            expression.value is ListDetails && (expression.value as ListDetails).username != null -> {
                 i18n.translate(
                     locale,
                     "query.user.list.with_user",
-                    "`${(expression.value as UserListKey).slug}`",
-                    "`@${(expression.value as UserListKey).username}`"
+                    "`${(expression.value as ListDetails).name}`",
+                    "`@${(expression.value as ListDetails).username}`"
                 )
             }
             else -> i18n.translate(
                 locale,
                 "query.user.list.without_user",
-                "`${(expression.value as? UserListKey)?.slug ?: expression.value.toString()}`"
+                "`${(expression.value as? ListDetails)?.name ?: expression.value.toString()}`"
             )
         }
 
