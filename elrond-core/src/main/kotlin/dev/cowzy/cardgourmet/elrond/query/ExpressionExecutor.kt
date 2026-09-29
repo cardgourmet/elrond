@@ -22,7 +22,7 @@ import kotlin.reflect.full.isSubclassOf
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.search(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int, offset: Int,
-    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    attributes: ContextAttributes,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
@@ -36,7 +36,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.random(
     query: SearchQuery<SearchFlag, DistinctMode>,
     limit: Int,
-    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    attributes: ContextAttributes,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ): List<SearchQueryResult> {
@@ -48,7 +48,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> S
 
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.count(
     query: SearchQuery<SearchFlag, DistinctMode>,
-    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    attributes: ContextAttributes,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
     connection: Connection
 ) = build(query, SearchQueryMode.COUNT, attributes, applyCustomConditions).single(connection) { row, index -> row.getInt(index.getAndIncrement()) }
@@ -84,7 +84,7 @@ suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>, R
 suspend fun <SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<DistinctMode>> SearchQueryExecutor<SearchFlag, DistinctMode>.build(
     query: SearchQuery<SearchFlag, DistinctMode>,
     mode: SearchQueryMode,
-    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    attributes: ContextAttributes,
     applyCustomConditions: ((SelectQueryBuilder) -> Unit)? = null,
 ): SelectQueryBuilder {
     val ctx = ExecutionContext(attributes, query, config.materializedView)

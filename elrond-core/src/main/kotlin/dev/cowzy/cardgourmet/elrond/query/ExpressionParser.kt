@@ -61,7 +61,7 @@ data class SearchQueryParseConfig<SearchFlag : Enum<SearchFlag>, DistinctMode>(
 suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQueryExecutor<SearchFlag, DistinctMode>.parse(
     query: String,
     config: SearchQueryParseConfig<SearchFlag, DistinctMode> = SearchQueryParseConfig(),
-    attributes: ContextAttributes = ContextAttributes.EMPTY
+    attributes: ContextAttributes
 ) : SearchQuery<SearchFlag, DistinctMode> where DistinctMode : Enum<DistinctMode>, DistinctMode : SearchQueryDistinctMode {
     val failedValidations = mutableSetOf<QueryValidationRule>()
 
@@ -219,7 +219,7 @@ fun <T> String.stripValues(values: Iterable<T>, toString: (T) -> Set<String>): P
 suspend fun QueryToken?.toQueryExpression(
     filters: List<QueryFilter>,
     fallbackFilter: QueryFilter? = null,
-    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    attributes: ContextAttributes,
 ): QueryExpressionBuilderResult {
     if (this == null) return QueryExpressionBuilderResult()
 
@@ -247,7 +247,7 @@ suspend fun QueryToken?.toQueryExpression(
 private suspend fun QueryToken.parseQueryExpression(
     filters: List<QueryFilter>,
     fallbackFilter: QueryFilter? = null,
-    attributes: ContextAttributes = ContextAttributes.EMPTY,
+    attributes: ContextAttributes,
 ): Pair<QueryExpression?, List<IgnoredQueryValue>> {
     val ignoredValues = mutableListOf<IgnoredQueryValue>()
 
