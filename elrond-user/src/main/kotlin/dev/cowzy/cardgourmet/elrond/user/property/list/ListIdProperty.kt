@@ -58,13 +58,13 @@ class ListIdProperty(
     private fun SelectQueryBuilder.applyListCondition(value: UUID, ctx: ExecutionContext): SelectQueryBuilder = this.apply {
         this.where(UserListResource::resourceType, ListResourceType.CARD)
         this.where(UserList::id, value)
-        this.where {
+        this.where { inner ->
+            inner.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
+
             val user = ctx.attributes[UserKey]
             if (user != null) {
-                it.where(UserList::userId, user.id)
+                inner.orWhere(UserList::userId, user.id)
             }
-
-            it.orWhere(UserList::visibility, UserListVisibility.PUBLIC) // TODO: add unlisted once available
         }
     }
 }

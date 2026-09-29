@@ -29,12 +29,12 @@ class ListSlugProperty(
     private fun SelectQueryBuilder.applyListCondition(value: ListDetails, ctx: ExecutionContext): SelectQueryBuilder = this.apply {
         this.where(UserListResource::resourceType, ListResourceType.CARD)
         this.where(UserList::id, value.id)
-        this.where {
-            this.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
+        this.where { inner ->
+            inner.whereIn(UserList::visibility, values = listOf(Visibility.PUBLIC)) // TODO: add unlisted once available
 
             val user = ctx.attributes[UserKey]
             if (user != null) {
-                this.orWhere(UserList::userId, user.id)
+                inner.orWhere(UserList::userId, user.id)
             }
         }
     }
