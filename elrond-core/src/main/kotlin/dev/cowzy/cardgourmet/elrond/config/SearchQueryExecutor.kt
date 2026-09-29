@@ -29,7 +29,8 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         val properties: List<SearchQueryProperty>,
         val providesValues: Boolean,
         val strictValues: Boolean,
-        val inverted: Boolean
+        val inverted: Boolean,
+        val isDynamic: Boolean
     )
 
     @Serializable
@@ -106,7 +107,14 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                 SearchQueryProperty(property.key, valueTypes.sortedBy { it.type }, operators, providedValueTypes)
             }
 
-            SearchQueryFilter(filter.keywords, properties, providesValues, !allowsAnyValue, filter.inverted)
+            SearchQueryFilter(
+                filter.keywords,
+                properties,
+                providesValues,
+                !allowsAnyValue,
+                filter.inverted,
+                filter.isDynamic
+            )
         }.sortedBy { it.keywords.first() }
     }
 
