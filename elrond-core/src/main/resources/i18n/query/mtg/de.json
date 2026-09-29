@@ -311,6 +311,10 @@
     "year": {
       "title": "Veröffentlichungsjahr",
       "description": ""
+    },
+    "list": {
+      "title": "Liste",
+      "description": "Karten oder Prints einer Liste"
     }
   },
   "property": {

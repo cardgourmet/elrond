@@ -311,6 +311,10 @@
     "year": {
       "title": "Release Year",
       "description": ""
+    },
+    "list": {
+      "title": "List",
+      "description": "Cards or prints in a list"
     }
   },
   "property": {

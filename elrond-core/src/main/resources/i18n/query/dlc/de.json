@@ -143,6 +143,10 @@
     "year": {
       "title": "Veröffentlichungsjahr",
       "description": "Jahr, in dem ein Print in ausgewählten Spieleläden veröffentlicht wurde"
+    },
+    "list": {
+      "title": "Liste",
+      "description": "Karten oder Prints einer Liste"
     }
   },
   "property": {

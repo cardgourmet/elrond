@@ -207,6 +207,10 @@
     "year": {
       "title": "Set-Veröffentlichungsstartjahr",
       "description": "Jahr, in dem das Set eines Prints mit der Veröffentlichung begann"
+    },
+    "list": {
+      "title": "Liste",
+      "description": "Karten oder Prints einer Liste"
     }
   },
   "property": {

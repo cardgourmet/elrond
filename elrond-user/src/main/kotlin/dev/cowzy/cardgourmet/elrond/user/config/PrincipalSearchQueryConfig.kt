@@ -23,15 +23,6 @@ fun SearchQueryFilterBuilder.configurePrincipalSearchQueryFilters(
         property(listSlugProperty, listSlugValueProvider)
         property(listIdProperty)
     }
-
-    filter("listslug") {
-        dynamic(true)
-        property(listSlugProperty, listSlugValueProvider)
-    }
-
-    filter("listid") {
-        property(listIdProperty)
-    }
 }
 
 fun SearchQuerySqlConfig.withPrincipalContext(game: GameType, printIdColumn: KProperty1<*, *>): SearchQuerySqlConfig {

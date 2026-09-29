@@ -207,6 +207,10 @@
     "year": {
       "title": "Set Release Start Year",
       "description": "Year the set of a print started to release"
+    },
+    "list": {
+      "title": "List",
+      "description": "Cards or prints in a list"
     }
   },
   "property": {
