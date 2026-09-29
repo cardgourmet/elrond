@@ -49,6 +49,7 @@ class QueryFilterBuilder(
     private val properties = mutableListOf<SearchQueryProperty<out Any>>()
     private val ignoreReferenceKeywords = mutableSetOf<String>()
     private var inverted = false
+    private var dynamic = false
 
     fun <T : Any> property(
         property: SearchQueryProperty<T>,
@@ -360,6 +361,8 @@ class QueryFilterBuilder(
 
     fun inverted(inverted: Boolean) = this.apply { this.inverted = inverted }
 
+    fun dynamic(dynamic: Boolean) = this.apply { this.dynamic = dynamic }
+
     fun ignoreReference(keyword: String) {
         if (!keywords.contains(keyword)) throw IllegalArgumentException("Keyword not part of filter: $keyword")
         this.ignoreReferenceKeywords.add(keyword)
@@ -371,7 +374,8 @@ class QueryFilterBuilder(
             keywords = keywords,
             properties = properties,
             inverted = inverted,
-            ignoreReferenceKeywords = ignoreReferenceKeywords
+            ignoreReferenceKeywords = ignoreReferenceKeywords,
+            isDynamic = dynamic
         )
     }
 

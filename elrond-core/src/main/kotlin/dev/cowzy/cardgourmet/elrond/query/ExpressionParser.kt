@@ -25,6 +25,7 @@ data class SearchQuery<SearchFlag : Enum<SearchFlag>, DistinctMode : Enum<Distin
     val filters: List<String>,
     val filterExpressions: List<String>,
     val preferredLanguage: String?,
+    val isDynamic: Boolean
 )
 
 data class QueryExpressionBuilderResult(
@@ -100,7 +101,8 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
     val result = token.toQueryExpression(allowedFilters, fallbackFilter, attributes)
     val normalizedExpression = result.expression.normalize()
 
-    val (filters, filterExpressions) = normalizedExpression.extractFilterExpressions().unzip()
+    val (filterNames, filterExpressions) = normalizedExpression.extractFilterExpressions().unzip()
+    val filters = normalizedExpression.extractFilters()
 
     if (config.validationRules.contains(QueryValidationRule.NO_IGNORED_VALUES) && (ignored.any() || result.ignored.any())) {
         failedValidations.add(QueryValidationRule.NO_IGNORED_VALUES)
@@ -122,8 +124,9 @@ suspend inline fun <SearchFlag : Enum<SearchFlag>, reified DistinctMode> SearchQ
         distinctMode = config.overrideDistinctMode ?: distinctMode.firstOrNull() ?: fallbackDistinctMode,
         ignoredExpressions = ignored + result.ignored,
         preferredLanguage = config.preferredLanguage,
-        filters = filters,
-        filterExpressions = filterExpressions
+        filters = filterNames,
+        filterExpressions = filterExpressions,
+        isDynamic = filters.any { it.isDynamic }
     )
 }
 
@@ -663,6 +666,16 @@ fun QueryExpression.extractFilterExpressions(): List<Pair<String, String>> {
 
         is FilterLeafQueryExpression -> listOf(filter.keywords.minBy { it.length } to "${filter.keywords.minBy { it.length }}${operator.value}${otherFilter.keywords.minBy { it.length }}")
         is QueryExpressionGroup -> this.children.flatMap { it.extractFilterExpressions() }
+    }
+}
+
+fun QueryExpression.extractFilters(): List<QueryFilter> {
+    return when (this) {
+        is BooleanQueryExpression -> emptyList()
+        is ValueLeafQueryExpression -> listOf(filter)
+        is MultiValueLeafQueryExpression -> listOf(filter)
+        is FilterLeafQueryExpression -> listOf(filter)
+        is QueryExpressionGroup -> this.children.flatMap { it.extractFilters() }
     }
 }
 

@@ -7,5 +7,6 @@ class QueryFilter(
     val keywords: List<String>,
     val properties: List<SearchQueryProperty<out Any>>,
     val ignoreReferenceKeywords: Set<String>,
-    val inverted: Boolean
+    val inverted: Boolean,
+    val isDynamic: Boolean
 )

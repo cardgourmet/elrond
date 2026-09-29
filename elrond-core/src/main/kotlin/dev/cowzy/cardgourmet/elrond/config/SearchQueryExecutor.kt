@@ -50,7 +50,8 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
     data class FilterValues(
         val total: Int,
         val matches: Int,
-        val values: List<FilterValue>
+        val values: List<FilterValue>,
+        val isDynamic: Boolean
     )
 
     @Serializable
@@ -184,9 +185,9 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
         }
 
         return FilterValues(
-            totalCount,
-            matchCount,
-            providedValues.map { value ->
+            total = totalCount,
+            matches = matchCount,
+            values = providedValues.map { value ->
                 FilterValue(
                     value = value.input,
                     displayValue = value.input,
@@ -194,9 +195,10 @@ open class SearchQueryExecutor<SearchFlag : Enum<SearchFlag>, DistinctMode : Enu
                     aliases = value.aliases.sorted().takeIf { it.isNotEmpty() },
                     resolvesTo = value.resolvesTo.display.takeIf { !value.resolvesTo.display.equals(value.input, ignoreCase = true) },
                     resolvesToOperator = value.resolvesTo.operator,
-                    languages = value.languages
+                    languages = value.languages,
                 )
-            }
+            },
+            isDynamic = filter.isDynamic,
         )
     }
 }

@@ -21,7 +21,7 @@ class UserListValueProvider(
         return getUserLists(user).map {
             ProvidedValue(
                 input = it.slug,
-                aliases = mutableSetOf(it.name),
+                aliases = mutableSetOf(),
                 resolvesTo = ResolvedValue(
                     display = it.name,
                     value = it,
@@ -46,7 +46,7 @@ class UserListValueProvider(
         return findListBySlugAndUsername(user, slug, username)?.let {
             ProvidedValue(
                 input = it.slug,
-                aliases = mutableSetOf(it.name),
+                aliases = mutableSetOf(),
                 resolvesTo = ResolvedValue(
                     display = it.name,
                     value = it.copy(username = if (it.username == user?.username) null else it.username),
