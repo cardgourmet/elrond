@@ -82,6 +82,8 @@ class MtgNameProperty : SearchQueryProperty<QueryValue<*>>(
         value: QueryValue<*>,
         ctx: ExecutionContext
     ) {
+        builder.whereNotNull(ctx.resolve(column))
+
         when (value) {
             is StringValue -> when (operator) {
                 SearchQueryOperator.EQUALS -> builder.where(ctx.resolve(column), "ILIKE", value = value.value, transformer = ctx.transformer(column), placeholder = ctx.placeholder(column))
