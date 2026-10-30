@@ -306,10 +306,6 @@ fun SearchQueryFilterBuilder.configureBasicMtgCardFilters() {
         stringArray(MtgCardFace::superTypes, mtgPropertyKeys.SUPER_TYPE)
         stringArray(MtgCardFace::subTypes, mtgPropertyKeys.SUB_TYPE)
         stringArray(MtgPrint::frameEffects, mtgPropertyKeys.FRAME_EFFECT)
-        stringArray(MtgPrintFace::mechanicTags, propertyKeys.MECHANIC) {
-            strict(true)
-            autoArrayValues(MtgPrintFace::mechanicTags, "mechanic", true)
-        }
     }
 
     filter("is", "has", "tag", "tags") { applyTagProperties() }
